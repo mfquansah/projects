@@ -1,0 +1,17 @@
+{
+  "name": "ghana-resource-monitor-web",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test test/scenario.test.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.4.11"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
