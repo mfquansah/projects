@@ -22,6 +22,68 @@ and what levers (gas, new plants, EV charging, cooling, demand management) chang
    and "what can we do about it?" run the model and the levers.
 4. **Website**: "right now" page, forecast page with scenario sliders, ask box, methods page, data downloads.
 
+## Where data lives (storage design)
+Three stores, each with one job. Nothing is ever edited in place.
+
+1. **Raw store (immutable files)**: every source document exactly as downloaded (PDFs, CSV/XLSX, later rasters).
+   Local dev: `data/raw/<source_id>/<YYYY-MM-DD>_<sha256-prefix>_<filename>`. Production: S3-compatible object storage
+   (Cloudflare R2, S3 or Supabase Storage). Never overwritten; a changed file is a new file. Large satellite products
+   (Sentinel, CHIRPS, GPM) stay in their public archives or are stored as Cloud-Optimized GeoTIFF / Zarr and are
+   *catalogued* in the DB (STAC-style), not copied into it.
+2. **Structured DB (the source of truth for numbers)**: SQLite locally, Postgres in production (add PostGIS when the flood
+   module starts). Use SQLAlchemy + Alembic so one schema runs on both. Hosted Postgres (Neon, Supabase or Railway) is fine.
+3. **Derived/cache**: forecast outputs and scenario runs are stored in the DB with the model version and input snapshot,
+   so any number shown on the site can be reproduced. Parquet exports in `data/exports/` for public download.
+
+**Core tables** (long/tidy format so new metrics and modules need no schema change):
+- `sources` (id, name, publisher, url, tier primary|secondary|ai_summary, licence, notes)
+- `documents` (id, source_id, raw_path, sha256, published_date, retrieved_at, pages, parse_status)
+- `entities` (id, kind national|plant|region|district|vehicle_class, name, parent_id, geometry nullable, attrs json)
+- `observations` (id, metric, entity_id, period_start, period_end, period_type, value, unit, value_type actual|forecast,
+  capacity_type nullable, source_id, document_id, page, table_ref, confidence high|medium|low, note, ingested_at,
+  superseded_by nullable). Append-only; a correction inserts a new row and sets `superseded_by` on the old one.
+- `conflicts` (id, metric, entity_id, period, observation_ids, status open|resolved, resolution_note), conflicting
+  observations stay side by side; the site shows the range, never a silent average.
+- `assumptions` (id, name, value, unit, rationale, source_id), every model input that is not data (growth rate, EV kWh
+  per vehicle, outage rates) lives here with its reason.
+- `model_runs` (id, model_version, scenario_json, inputs_snapshot, run_at) and `forecast_outputs` (run_id, metric, period,
+  p10, p50, p90).
+- `ingest_runs` (id, job, started_at, status, rows_added, error) and `review_queue` (values parsed from PDFs awaiting a
+  human check before they are marked `confidence=high`).
+- `alerts` (id, rule, triggered_at, resolved_at, payload) and `alert_rules` (metric, threshold, direction).
+
+**Ingestion pipeline** (idempotent, re-runnable): fetch -> save raw file + hash -> record in `documents` -> parse
+(PDF tables via pdfplumber/camelot, with page refs) -> write `observations` as `confidence=medium` -> push to `review_queue`
+-> a human approves -> `high`. Schedule with cron or GitHub Actions: PURC monthly, GRIDCo/Energy Commission annual,
+weather/satellite later. Every run logs to `ingest_runs`. A failed or empty run must alert, not fail silently.
+
+**API**: read-only JSON endpoints over the DB (FastAPI): `/metrics`, `/observations`, `/forecast`, `/scenarios`, `/sources`,
+`/alerts`. The site and the assistant both use these; nothing else touches the DB. Public CSV/Parquet download per metric.
+
+**Hosting (start cheap)**: static site (Vercel/Netlify/Cloudflare Pages) + small API container (Fly.io/Railway/Render)
++ hosted Postgres + object storage. Nightly DB backup and a monthly restore test. Keep secrets in env vars, never in the repo.
+
+**Licensing**: record each source's licence in `sources`. Public data stays attributed; do not republish documents whose
+licence forbids it, link to them instead.
+
+## Design (decided)
+Chosen look: **"Theme 1 headline layout, forest green"** (design/MainGreen.dc.html). A story headline at the top
+("Demand is growing faster than the capacity we can confirm"), then four indicator tiles, forecast chart, levers, module teasers.
+- Palette: header `#1f4d36`; page `#f4f1ea`; cards `#ffffff` with `#d9d4c6` border; text `#1b2a21`; muted `#5d6358`;
+  primary accent green `#2f8f5b`; "Ask the monitor" button mint `#8fdcae` with dark text `#0f2a1a`; warning amber `#8a5200`
+  on `#fbefd9`; danger `#c0352b`. **No blue. No Ghana flag mark. No black header.**
+- Type: Bricolage Grotesque (headings, big numbers), Public Sans (body). Radius 10px.
+- Layout alternative kept for reference: design/AltPortal.dc.html (left section tabs: Overview, Demand, Capacity, Forecast,
+  Scenarios, Alerts, Data and sources). Optional: add those tabs to the chosen layout once the forecast page exists.
+- Screens designed so far: Home (MainGreen), Ask the monitor (design/Ask.dc.html), Flooding (design/Flood.dc.html, placeholder;
+  Ask and Flood still use the earlier Theme 1 colours and need the green palette applied).
+- Rules: show uncertainty (ranges, not single dates); label provisional data visibly; every figure links to its source,
+  page and whether it is actual or forecast; plain-language copy; accessible contrast and keyboard-friendly controls.
+- Canvas with all explorations: https://claude.ai/artifact/Ev2goae9UaNhuQkz1UbyKd
+- The `.dc.html` files are design mockups, not production code. Rebuild in the chosen framework (suggested: Next.js or Astro + a
+  small charting library) and keep the mockup numbers only as layout placeholders. Every number on the live site must
+  come from the API.
+
 ## Phases
 0. Verified dataset v0 (started: see data/)  1. Forecast model + backtest  2. Site v0
 3. Assistant  4. Scheduled ingestion + alerts  5. Flood module (CHIRPS/GPM rainfall, Sentinel-1 flood extent,
@@ -56,7 +118,7 @@ Annual system peak (MW): 2019 2,804; 2020 3,090; 2021 3,246; 2022 3,469; 2023 3,
   Energy Commission / VRA / BPA / ECG / WAPCo are listed in the proposal doc (section 11 of the AI report's gap matrix).
 
 ## First tasks for Claude Code
-1. Scaffold repo: `data/` (raw + processed), `ingest/`, `model/`, `api/`, `web/`, `tests/`. Start with SQLite or DuckDB; keep schema Postgres-compatible.
+1. Scaffold repo: `data/` (raw + processed), `ingest/`, `model/`, `api/`, `web/`, `tests/`, `design/`. Create the schema above with Alembic (SQLite locally, Postgres-compatible).
 2. Load data/gridco_series.csv and data/source_register.csv into the schema with provenance columns.
 3. Fetch and parse the GRIDCo 2025 Electricity Supply Plan and PURC monthly fact sheets (PDFs) into plant-level capacity
    and monthly generation tables, with page references. Flag every conflict.
