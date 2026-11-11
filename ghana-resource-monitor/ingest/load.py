@@ -1,32 +1,46 @@
-"""Load the source register and curated observation CSVs into SQLite.
+"""Load the curated source register and observation CSVs into the database.
 
-Rebuilds the database from scratch every run, so the CSVs in data/ stay the
-single source of truth and the load is idempotent. Fails loudly on malformed
-rows instead of guessing (see "Data rules" in CLAUDE.md).
+Rebuilds from scratch each run (the CSVs in data/ are the source of truth for v0), by running the Alembic
+migrations on a fresh database and then inserting. Fails loudly on malformed rows (see CLAUDE.md "Data rules").
 
 Usage: python -m ingest.load [--db data/processed/monitor.sqlite]
 """
 import argparse
+import calendar
 import csv
-import sqlite3
+from datetime import date
 from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+
+from db.models import Entity, Observation, Source
+
 ROOT = Path(__file__).resolve().parent.parent
-SCHEMA = ROOT / "db" / "schema.sql"
 
 SOURCE_COLS = ["source_id", "title", "publisher", "date", "url", "status",
                "contains", "reliability", "notes"]
 OBS_COLS = ["year", "metric", "value", "unit", "period_type", "value_type",
             "source_id", "pdf_page", "confidence", "note"]
 
-# The curated CSVs do not carry capacity_type. Only a peak-demand series maps to
-# one: GRIDCo's annual system peak is the coincident peak. Other metrics stay NULL
-# rather than being guessed.
+# The curated CSVs carry no capacity_type. Only an annual system peak maps to one: GRIDCo's annual peak is the
+# coincident peak. Other metrics stay NULL rather than being guessed.
 CAPACITY_TYPE_BY_METRIC = {"system_peak_demand": "peak_coincident"}
 
 
 class LoadError(ValueError):
     pass
+
+
+def source_tier(status: str) -> str:
+    """Rule for the register: 'unreliable...' -> ai_summary; 'secondary' -> secondary; otherwise primary."""
+    if status.startswith("unreliable"):
+        return "ai_summary"
+    if status == "secondary":
+        return "secondary"
+    return "primary"
 
 
 def read_csv(path, expected_cols):
@@ -46,6 +60,19 @@ def read_csv(path, expected_cols):
         return rows
 
 
+def period_bounds(year: int, period_type: str):
+    if period_type == "annual":
+        return date(year, 1, 1), date(year, 12, 31)
+    raise LoadError(f"period_type {period_type!r} not supported by the annual CSV loader")
+
+
+def migrate(db_url: str):
+    cfg = Config(str(ROOT / "alembic.ini"))
+    cfg.set_main_option("script_location", str(ROOT / "migrations"))
+    cfg.set_main_option("sqlalchemy.url", db_url)
+    command.upgrade(cfg, "head")
+
+
 def load(db_path, data_dir=ROOT / "data"):
     sources = read_csv(data_dir / "source_register.csv", SOURCE_COLS)
     obs = read_csv(data_dir / "gridco_series.csv", OBS_COLS)
@@ -54,26 +81,29 @@ def load(db_path, data_dir=ROOT / "data"):
     db_path.parent.mkdir(parents=True, exist_ok=True)
     if db_path.exists():
         db_path.unlink()
-    con = sqlite3.connect(db_path)
-    con.execute("PRAGMA foreign_keys = ON")
-    con.executescript(SCHEMA.read_text())
-    with con:
-        con.executemany(
-            f"INSERT INTO sources ({','.join(SOURCE_COLS)}) VALUES ({','.join('?' * len(SOURCE_COLS))})",
-            [[r[c] for c in SOURCE_COLS] for r in sources])
+    url = f"sqlite:///{db_path}"
+    migrate(url)
+
+    engine = create_engine(url)
+    with Session(engine) as s, s.begin():
+        s.add_all(Source(id=r["source_id"], name=r["title"], publisher=r["publisher"], url=r["url"],
+                         tier=source_tier(r["status"]), notes=r["notes"], published=r["date"],
+                         status=r["status"], contains=r["contains"], reliability=r["reliability"])
+                  for r in sources)
+        ghana = Entity(kind="national", name="Ghana")
+        s.add(ghana)
+        s.flush()
         for r in obs:
-            con.execute(
-                """INSERT INTO observations
-                   (metric, year, month, value, unit, period_type, value_type,
-                    capacity_type, source_id, pdf_page, confidence, note)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (r["metric"], int(r["year"]), None, float(r["value"]), r["unit"],
-                 r["period_type"], r["value_type"],
-                 CAPACITY_TYPE_BY_METRIC.get(r["metric"]), r["source_id"],
-                 r["pdf_page"], r["confidence"], r["note"]))
-    n_src = con.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
-    n_obs = con.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
-    con.close()
+            start, end = period_bounds(int(r["year"]), r["period_type"])
+            s.add(Observation(
+                metric=r["metric"], entity_id=ghana.id, period_start=start, period_end=end,
+                period_type=r["period_type"], value=float(r["value"]), unit=r["unit"],
+                value_type=r["value_type"], capacity_type=CAPACITY_TYPE_BY_METRIC.get(r["metric"]),
+                source_id=r["source_id"], page=r["pdf_page"], confidence=r["confidence"], note=r["note"]))
+    with Session(engine) as s:
+        n_src = len(s.scalars(select(Source)).all())
+        n_obs = len(s.scalars(select(Observation)).all())
+    engine.dispose()
     return n_src, n_obs
 
 
