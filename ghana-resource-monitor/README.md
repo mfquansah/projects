@@ -27,8 +27,18 @@ Static Astro site; every number comes from `web/src/data/energy.json`, generated
 .venv/bin/python -m ingest.load && .venv/bin/python -m model.baseline && .venv/bin/python -m model.scenario && .venv/bin/python -m ingest.export
 cd web && npm install && npm run dev      # or: npm run build; npm test checks the JS scenario math against Python
 ```
-Deploy to Vercel with **Root Directory = `web`** (framework: Astro). `energy.json` is committed so Vercel needs no Python;
-re-run the four commands above and commit when the data changes.
+## Deploying to Vercel
+The site is fully static (no server, no adapter). Config is in `web/vercel.json`: clean install, Astro build, trailing slashes,
+security headers including a strict Content-Security-Policy (no inline scripts), long cache for hashed assets and a short cache for the data files.
+
+1. vercel.com > Add New > Project > import the GitHub repo `mfquansah/projects`.
+2. **Root Directory: `ghana-resource-monitor/web`** (the project is in a subfolder). Framework Preset: Astro (auto-detected). Leave the build settings; `vercel.json` sets them.
+3. Deploy. Every push to a branch gets a preview URL. The **production branch** (Settings > Git, default `main`) is what the main URL serves,
+   so the work on `claude/epic-hamilton-cec2ze` has to be merged to `main` before it is live on the production URL.
+4. Domain: Settings > Domains > add `resourcesinghana.com` (or the final name), then set the DNS records Vercel shows. Add an environment variable
+   `SITE_URL=https://<domain>` (Settings > Environment Variables) so pages get canonical links; until then Vercel's own production URL is used.
+5. Data updates: run `scripts/refresh.sh` locally, commit the changed `data/` CSVs and `web/src/data/energy.json`, push. Vercel rebuilds.
+   `energy.json` is committed on purpose so Vercel never needs Python or the database.
 
 ## Scenario model
 `model/scenario.py` (Python) and `web/src/lib/scenario.js` (browser) implement the same arithmetic; `tests/vectors/scenario.json`

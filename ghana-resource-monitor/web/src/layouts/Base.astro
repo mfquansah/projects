@@ -1,6 +1,7 @@
 ---
-interface Props { title: string; active?: 'energy' | 'scenarios' | 'data'; }
-const { title, active = 'energy' } = Astro.props;
+interface Props { title: string; description?: string; active?: 'energy' | 'scenarios' | 'data' | 'none'; }
+const { title, description = "Ghana's electricity demand, where it is heading, and what could change the picture. Every number links to its source.", active = 'energy' } = Astro.props;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 ---
 <!doctype html>
 <html lang="en">
@@ -8,6 +9,15 @@ const { title, active = 'energy' } = Astro.props;
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{title} | Ghana Resource Monitor</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#1f4d36" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  {canonical && <link rel="canonical" href={canonical} />}
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Ghana Resource Monitor" />
+  <meta property="og:title" content={`${title} | Ghana Resource Monitor`} />
+  <meta property="og:description" content={description} />
+  {canonical && <meta property="og:url" content={canonical} />}
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
