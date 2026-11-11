@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-11T18:47:30+00:00",
+  "generated_at": "2026-11-11T18:50:03+00:00",
   "series": {
     "electricity_access_national": [
       {
@@ -277,7 +277,7 @@
   },
   "forecast": {
     "model_version": "baseline-0.1",
-    "run_at": "2026-11-11T18:47:29",
+    "run_at": "2026-11-11T18:50:02",
     "interval": "80% prediction interval",
     "points": [
       {
@@ -346,6 +346,67 @@
       }
     }
   },
+  "scenario": {
+    "base_year": 2025,
+    "base_peak": 4283.0,
+    "end_year": 2040,
+    "growth": {
+      "low": 0.05399049496754471,
+      "central": 0.06912056659557386,
+      "high": 0.07351659779992903
+    },
+    "growth_basis": "slowest / fastest 3-year compound growth observed, and the log-linear fit",
+    "assumptions": {
+      "baseline_peak_growth_loglinear": {
+        "value": 0.06912056659557386,
+        "unit": "fraction/yr",
+        "rationale": "Fitted log-linear growth of annual peak, 2019-2025; not a policy or planning assumption.",
+        "source_id": "S01"
+      },
+      "capacity_addition_delay": {
+        "value": 2.0,
+        "unit": "years",
+        "rationale": "ILLUSTRATIVE. Years before the first new capacity arrives; projects slip.",
+        "source_id": null
+      },
+      "ev_coincidence": {
+        "value": 0.4,
+        "unit": "fraction",
+        "rationale": "ILLUSTRATIVE. Share of EVs charging at the moment of system peak. No Ghana charging-load data exists yet.",
+        "source_id": null
+      },
+      "ev_fleet_base": {
+        "value": 1200.0,
+        "unit": "vehicles",
+        "rationale": "Pure battery EVs registered by Oct 2025 per a DVLA figure quoted by UN Ghana (S09). Secondary source; definitions conflict with other counts (e.g. ~17,000 incl. 2/3-wheelers). Replace with DVLA primary data.",
+        "source_id": "S09"
+      },
+      "ev_growth": {
+        "value": 0.5,
+        "unit": "fraction/yr",
+        "rationale": "ILLUSTRATIVE. No source. A deliberately fast rate for a small fleet; a slider, not a forecast.",
+        "source_id": null
+      },
+      "ev_kw_per_vehicle": {
+        "value": 7.0,
+        "unit": "kW",
+        "rationale": "ILLUSTRATIVE. A typical single-phase AC home or workplace charger.",
+        "source_id": null
+      },
+      "ev_managed_share": {
+        "value": 0.0,
+        "unit": "fraction",
+        "rationale": "Share of charging moved away from the peak hours (a policy lever). Default none.",
+        "source_id": null
+      },
+      "reserve_margin_target": {
+        "value": 0.18,
+        "unit": "fraction",
+        "rationale": "Benchmark quoted in the project brief (CLAUDE.md). Source to be verified.",
+        "source_id": null
+      }
+    }
+  },
   "sources": [
     {
       "id": "S01",
@@ -355,6 +416,15 @@
       "tier": "primary",
       "status": "have",
       "notes": "Transmission company report; has NO plant capacity, fuel mix, gas, hydro or load-shedding totals"
+    },
+    {
+      "id": "S09",
+      "name": "EV registrations statement (DVLA via UN Ghana)",
+      "publisher": "UN Ghana",
+      "url": "https://ghana.un.org/en/stories?page=5",
+      "tier": "secondary",
+      "status": "secondary",
+      "notes": "Find the DVLA primary data; definitions conflict with other counts"
     }
   ],
   "capacity": null

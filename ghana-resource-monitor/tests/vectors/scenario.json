@@ -1,0 +1,242 @@
+{
+ "cases": [
+  {
+   "name": "no_capacity",
+   "inputs": {
+    "base_year": 2025,
+    "base_peak": 4283,
+    "growth": 0.0691,
+    "end_year": 2040,
+    "capacity_mw": null,
+    "added_mw_per_year": 0.0,
+    "delay_years": 2,
+    "derate": 0.0,
+    "ev_fleet_base": 1200,
+    "ev_growth": 0.5,
+    "ev_kw": 7.0,
+    "ev_coincidence": 0.4,
+    "ev_managed_share": 0.0,
+    "margin_target": 0.18
+   },
+   "expect": {
+    "below_target_year": null,
+    "gap_year": null,
+    "rows": [
+     {
+      "year": 2025,
+      "demand": 4283.0,
+      "ev_mw": 3.36,
+      "total": 4286.36,
+      "available": null,
+      "margin": null
+     },
+     {
+      "year": 2028,
+      "demand": 5233.630564015992,
+      "ev_mw": 11.34,
+      "total": 5244.970564015992,
+      "available": null,
+      "margin": null
+     },
+     {
+      "year": 2030,
+      "demand": 5981.907899516371,
+      "ev_mw": 25.515,
+      "total": 6007.422899516371,
+      "available": null,
+      "margin": null
+     },
+     {
+      "year": 2040,
+      "demand": 11668.714595725409,
+      "ev_mw": 1471.3234716796876,
+      "total": 13140.038067405096,
+      "available": null,
+      "margin": null
+     }
+    ]
+   }
+  },
+  {
+   "name": "flat_capacity",
+   "inputs": {
+    "base_year": 2025,
+    "base_peak": 4283,
+    "growth": 0.0691,
+    "end_year": 2040,
+    "capacity_mw": 4968,
+    "added_mw_per_year": 0.0,
+    "delay_years": 2,
+    "derate": 0.0,
+    "ev_fleet_base": 1200,
+    "ev_growth": 0.5,
+    "ev_kw": 7.0,
+    "ev_coincidence": 0.4,
+    "ev_managed_share": 0.0,
+    "margin_target": 0.18
+   },
+   "expect": {
+    "below_target_year": 2025,
+    "gap_year": 2028,
+    "rows": [
+     {
+      "year": 2025,
+      "demand": 4283.0,
+      "ev_mw": 3.36,
+      "total": 4286.36,
+      "available": 4968.0,
+      "margin": 0.15902537351039125
+     },
+     {
+      "year": 2028,
+      "demand": 5233.630564015992,
+      "ev_mw": 11.34,
+      "total": 5244.970564015992,
+      "available": 4968.0,
+      "margin": -0.052806886260943986
+     },
+     {
+      "year": 2030,
+      "demand": 5981.907899516371,
+      "ev_mw": 25.515,
+      "total": 6007.422899516371,
+      "available": 4968.0,
+      "margin": -0.17302309441208974
+     },
+     {
+      "year": 2040,
+      "demand": 11668.714595725409,
+      "ev_mw": 1471.3234716796876,
+      "total": 13140.038067405096,
+      "available": 4968.0,
+      "margin": -0.6219189035438553
+     }
+    ]
+   }
+  },
+  {
+   "name": "build_375_derate_5",
+   "inputs": {
+    "base_year": 2025,
+    "base_peak": 4283,
+    "growth": 0.0691,
+    "end_year": 2040,
+    "capacity_mw": 4968,
+    "added_mw_per_year": 375,
+    "delay_years": 2,
+    "derate": 0.05,
+    "ev_fleet_base": 1200,
+    "ev_growth": 0.5,
+    "ev_kw": 7.0,
+    "ev_coincidence": 0.4,
+    "ev_managed_share": 0.0,
+    "margin_target": 0.18
+   },
+   "expect": {
+    "below_target_year": 2025,
+    "gap_year": 2027,
+    "rows": [
+     {
+      "year": 2025,
+      "demand": 4283.0,
+      "ev_mw": 3.36,
+      "total": 4286.36,
+      "available": 4719.599999999999,
+      "margin": 0.10107410483487156
+     },
+     {
+      "year": 2028,
+      "demand": 5233.630564015992,
+      "ev_mw": 11.34,
+      "total": 5244.970564015992,
+      "available": 5075.849999999999,
+      "margin": -0.03224433044034081
+     },
+     {
+      "year": 2030,
+      "demand": 5981.907899516371,
+      "ev_mw": 25.515,
+      "total": 6007.422899516371,
+      "available": 5788.349999999999,
+      "margin": -0.03646703473031809
+     },
+     {
+      "year": 2040,
+      "demand": 11668.714595725409,
+      "ev_mw": 1471.3234716796876,
+      "total": 13140.038067405096,
+      "available": 9350.85,
+      "margin": -0.28836964154650935
+     }
+    ]
+   }
+  },
+  {
+   "name": "low_growth_ev_managed",
+   "inputs": {
+    "base_year": 2025,
+    "base_peak": 4283,
+    "growth": 0.054,
+    "end_year": 2040,
+    "capacity_mw": 5200,
+    "added_mw_per_year": 0.0,
+    "delay_years": 0,
+    "derate": 0.0,
+    "ev_fleet_base": 1200,
+    "ev_growth": 0.8,
+    "ev_kw": 7.0,
+    "ev_coincidence": 0.4,
+    "ev_managed_share": 0.5,
+    "margin_target": 0.18
+   },
+   "expect": {
+    "below_target_year": 2026,
+    "gap_year": 2029,
+    "rows": [
+     {
+      "year": 2025,
+      "demand": 4283.0,
+      "ev_mw": 1.68,
+      "total": 4284.68,
+      "available": 5200.0,
+      "margin": 0.21362622179485968
+     },
+     {
+      "year": 2028,
+      "demand": 5014.988102312001,
+      "ev_mw": 9.79776,
+      "total": 5024.785862312001,
+      "available": 5200.0,
+      "margin": 0.034869971077211126
+     },
+     {
+      "year": 2030,
+      "demand": 5571.230522668039,
+      "ev_mw": 31.744742400000007,
+      "total": 5602.975265068039,
+      "available": 5200.0,
+      "margin": -0.07192165697757114
+     },
+     {
+      "year": 2040,
+      "demand": 9426.646852404765,
+      "ev_mw": 11334.356235682135,
+      "total": 20761.0030880869,
+      "available": 5200.0,
+      "margin": -0.7495304066987076
+     }
+    ]
+   }
+  }
+ ],
+ "evs_needed": {
+  "args": [
+   0.01,
+   4283,
+   7,
+   0.4,
+   0.25
+  ],
+  "expect": 20395.23809523809
+ }
+}

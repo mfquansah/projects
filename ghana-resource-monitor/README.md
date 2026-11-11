@@ -6,6 +6,7 @@ See `CLAUDE.md` for the project brief, data rules and known discrepancies, and `
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m ingest.load                      # build data/processed/monitor.sqlite (Alembic migrations + CSVs)
 .venv/bin/python -m model.baseline                   # peak-demand baseline forecast + backtest (stores a model run)
+.venv/bin/python -m model.scenario                   # seed scenario/EV assumptions (with rationale) into the DB
 .venv/bin/python -m unittest discover -s tests -t .  # tests
 .venv/bin/alembic revision --autogenerate -m "..."   # after editing db/models.py
 ```
@@ -19,8 +20,13 @@ capacity (GRIDCo Supply Plan / PURC fact sheets not yet obtained).
 ## Site (web/)
 Static Astro site; every number comes from `web/src/data/energy.json`, generated from the database.
 ```bash
-.venv/bin/python -m ingest.load && .venv/bin/python -m model.baseline && .venv/bin/python -m ingest.export
-cd web && npm install && npm run dev      # or: npm run build
+.venv/bin/python -m ingest.load && .venv/bin/python -m model.baseline && .venv/bin/python -m model.scenario && .venv/bin/python -m ingest.export
+cd web && npm install && npm run dev      # or: npm run build; npm test checks the JS scenario math against Python
 ```
 Deploy to Vercel with **Root Directory = `web`** (framework: Astro). `energy.json` is committed so Vercel needs no Python;
-re-run the three commands above and commit when the data changes.
+re-run the four commands above and commit when the data changes.
+
+## Scenario model
+`model/scenario.py` (Python) and `web/src/lib/scenario.js` (browser) implement the same arithmetic; `tests/vectors/scenario.json`
+is checked by both test suites. Capacity is always a user input until verified from primary documents. EV figures
+are illustrative assumptions stored in the `assumptions` table with their rationale.

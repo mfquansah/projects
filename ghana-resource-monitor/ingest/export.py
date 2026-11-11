@@ -7,21 +7,31 @@ Usage: python -m ingest.export [--db data/processed/monitor.sqlite] [--out web/s
 """
 import argparse
 import json
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from db.models import ForecastOutput, ModelRun, Observation, Source
+from db.models import Assumption, ForecastOutput, ModelRun, Observation, Source
 from model.baseline import MODEL_VERSION, backtest, load_series
+from model.scenario import ASSUMPTIONS, growth_cases
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
+@contextmanager
+def disposing(engine):
+    try:
+        yield engine
+    finally:
+        engine.dispose()
+
+
 def export(db_path, out_path):
     engine = create_engine(f"sqlite:///{db_path}")
-    with Session(engine) as s:
+    with disposing(engine), Session(engine) as s:
         obs = s.scalars(select(Observation).where(Observation.superseded_by.is_(None))
                         .order_by(Observation.metric, Observation.period_start)).all()
         series = {}
@@ -54,7 +64,20 @@ def export(db_path, out_path):
         derived["energy_latest"] = en[-1]["value"]
         derived["energy_yoy_pct"] = (en[-1]["value"] / en[-2]["value"] - 1) * 100
 
-        used = sorted({r["source_id"] for rows in series.values() for r in rows})
+        assumptions = s.scalars(select(Assumption).order_by(Assumption.name)).all()
+        missing = set(ASSUMPTIONS) - {a.name for a in assumptions}
+        if missing:
+            raise RuntimeError(f"assumptions not seeded ({sorted(missing)}); run `python -m model.scenario` first")
+        gc = growth_cases(years, vals)
+        scenario = {
+            "base_year": last["year"], "base_peak": last["value"], "end_year": 2040,
+            "growth": {k: gc[k] for k in ("low", "central", "high")}, "growth_basis": gc["basis"],
+            "assumptions": {a.name: {"value": a.value, "unit": a.unit, "rationale": a.rationale, "source_id": a.source_id}
+                            for a in assumptions},
+        }
+
+        used = sorted({r["source_id"] for rows in series.values() for r in rows}
+                      | {a.source_id for a in assumptions if a.source_id})
         sources = [{"id": x.id, "name": x.name, "publisher": x.publisher, "url": x.url, "tier": x.tier,
                     "status": x.status, "notes": x.notes}
                    for x in s.scalars(select(Source).where(Source.id.in_(used))).all()]
@@ -69,6 +92,7 @@ def export(db_path, out_path):
                 "points": [{"year": int(f.period), "p10": f.p10, "p50": f.p50, "p90": f.p90} for f in fc],
                 "backtest": bt,
             },
+            "scenario": scenario,
             "sources": sources,
             "capacity": None,  # no verified capacity yet; the site must show "not yet verified", never a number
         }

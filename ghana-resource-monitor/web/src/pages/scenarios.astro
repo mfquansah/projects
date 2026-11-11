@@ -1,0 +1,190 @@
+---
+import Base from '../layouts/Base.astro';
+import { energy, fmt, pct } from '../lib/energy';
+
+const sc = energy.scenario;
+const A = sc.assumptions;
+const g = sc.growth;
+---
+<Base title="Scenarios" active="scenarios">
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <span class="eyebrow">Energy · Scenarios</span>
+      <span class="pill">What-if tool, not a forecast</span>
+    </div>
+    <h1 style="margin:0;font-size:40px;line-height:1.1;letter-spacing:-.02em;max-width:22ch;text-wrap:balance">When could demand pass supply?</h1>
+    <p class="muted" style="margin:0;max-width:66ch;font-size:17px">Change the settings and see how the year a shortfall opens moves. We have not yet verified how much capacity Ghana can reliably deliver, so you supply that number. Until it is checked against official documents, treat any answer as an experiment.</p>
+  </section>
+
+  <div id="app" data-scenario={JSON.stringify(sc)} style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+    <form class="card controls" aria-label="Scenario settings" onsubmit="return false">
+      <h2 style="margin:0;font-size:18px">Settings</h2>
+
+      <fieldset>
+        <legend>Demand growth a year</legend>
+        <label><input type="radio" name="growth" value="low" /> Low, {pct(g.low * 100)}</label>
+        <label><input type="radio" name="growth" value="central" checked /> Central, {pct(g.central * 100)}</label>
+        <label><input type="radio" name="growth" value="high" /> High, {pct(g.high * 100)}</label>
+        <p class="hint">From the data: {sc.growth_basis}.</p>
+      </fieldset>
+
+      <div class="field">
+        <label for="capacity">Capacity you want to test (MW)</label>
+        <input id="capacity" type="number" min="0" step="50" inputmode="numeric" placeholder="For example 5000" />
+        <p class="hint">Not verified. Leave blank to see demand only. Use "dependable" capacity, not the rated total.</p>
+      </div>
+
+      <div class="field">
+        <label for="added"><span>New capacity per year</span><output id="added-out">0 MW</output></label>
+        <input id="added" type="range" min="0" max="500" step="125" value="0" />
+        <p class="hint">Arrives after a delay of {fmt(A.capacity_addition_delay.value)} years, because projects slip.</p>
+      </div>
+
+      <div class="field">
+        <label for="derate"><span>Capacity lost to gas, water or outages</span><output id="derate-out">0%</output></label>
+        <input id="derate" type="range" min="0" max="30" step="5" value="0" />
+      </div>
+
+      <details>
+        <summary>Electric vehicle charging</summary>
+        <div class="field">
+          <label for="evg"><span>EV fleet growth a year</span><output id="evg-out"></output></label>
+          <input id="evg" type="range" min="0" max="100" step="10" />
+        </div>
+        <div class="field">
+          <label for="evm"><span>Charging moved off the peak</span><output id="evm-out">0%</output></label>
+          <input id="evm" type="range" min="0" max="100" step="25" value="0" />
+        </div>
+        <ul class="hint" style="padding-left:18px;margin:6px 0 0">
+          <li>Starting fleet: {fmt(A.ev_fleet_base.value)} pure EVs. {A.ev_fleet_base.rationale}</li>
+          <li>Charger: {A.ev_kw_per_vehicle.value} kW. {A.ev_kw_per_vehicle.rationale}</li>
+          <li>Charging at the peak moment: {pct(A.ev_coincidence.value * 100, 0)}. {A.ev_coincidence.rationale}</li>
+          <li>Growth: {A.ev_growth.rationale}</li>
+        </ul>
+      </details>
+    </form>
+
+    <div style="flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px">
+      <div class="card" style="display:flex;flex-wrap:wrap;gap:12px 28px" aria-live="polite">
+        <div style="flex:1 1 220px"><span class="eyebrow">Demand first exceeds supply in</span>
+          <div class="big" id="gap" style="font-size:38px;font-weight:700;line-height:1.15">…</div><div class="sub" id="gap-note"></div></div>
+        <div style="flex:1 1 220px"><span class="eyebrow">Reserve margin falls below {pct(A.reserve_margin_target.value * 100, 0)} in</span>
+          <div class="big" id="target" style="font-size:38px;font-weight:700;line-height:1.15">…</div><div class="sub" id="target-note"></div></div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-size:19px">Peak demand and supply under these settings</h2>
+        <div id="chart"></div>
+        <p class="src" style="margin:0">Starting point: {sc.base_year} peak of {fmt(sc.base_peak)} MW (<a href="/data/#sources">GRIDCo</a>, actual). Everything after {sc.base_year} is a what-if. Demand includes EV charging.</p>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-size:19px">Would electric vehicles matter?</h2>
+        <p id="ev-text" style="margin:0"></p>
+        <p class="src" style="margin:0">Illustrative: the per-vehicle figures are assumptions, not measurements (see "Electric vehicle charging" above). Ghana has no public charging-load data yet.</p>
+      </div>
+
+      <details class="card">
+        <summary style="font-weight:600;cursor:pointer">Year-by-year numbers</summary>
+        <div class="scroll"><table id="table"></table></div>
+      </details>
+    </div>
+  </div>
+  <noscript><p class="card">This tool needs JavaScript. The projection method is explained on the <a href="/data/#methods">Data and methods</a> page.</p></noscript>
+</Base>
+
+<script>
+  import { project, evsNeeded } from '../lib/scenario.js';
+
+  const app = document.getElementById('app')!;
+  const sc = JSON.parse(app.dataset.scenario!);
+  const A = sc.assumptions;
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const fmt = (n: number, d = 0) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  $<HTMLInputElement>('evg').value = String(Math.round(A.ev_growth.value * 100));
+
+  function state() {
+    const growthKey = (document.querySelector('input[name=growth]:checked') as HTMLInputElement).value;
+    const cap = $<HTMLInputElement>('capacity').value;
+    return {
+      base_year: sc.base_year, base_peak: sc.base_peak, end_year: sc.end_year,
+      growth: sc.growth[growthKey],
+      capacity_mw: cap === '' ? null : Number(cap),
+      added_mw_per_year: Number($<HTMLInputElement>('added').value),
+      delay_years: A.capacity_addition_delay.value,
+      derate: Number($<HTMLInputElement>('derate').value) / 100,
+      ev_fleet_base: A.ev_fleet_base.value, ev_growth: Number($<HTMLInputElement>('evg').value) / 100,
+      ev_kw: A.ev_kw_per_vehicle.value, ev_coincidence: A.ev_coincidence.value,
+      ev_managed_share: Number($<HTMLInputElement>('evm').value) / 100,
+      margin_target: A.reserve_margin_target.value,
+    };
+  }
+
+  function chart(rows: any[], gapYear: number | null) {
+    const W = 720, H = 300, L = 56, R = 650, T = 20, B = 260;
+    const y0 = rows[0].year, y1 = rows[rows.length - 1].year;
+    const vals = rows.flatMap((r) => [r.total, r.available]).filter((v) => v !== null) as number[];
+    const lo = Math.floor(Math.min(...vals) / 1000) * 1000, hi = Math.ceil(Math.max(...vals) / 1000) * 1000;
+    const x = (yr: number) => L + ((yr - y0) / (y1 - y0)) * (R - L);
+    const y = (v: number) => B - ((v - lo) / (hi - lo)) * (B - T);
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" style="width:100%;height:auto;display:block" aria-label="Chart of peak demand and available supply in megawatts, ${y0} to ${y1}.${gapYear ? ' Demand passes supply in ' + gapYear + '.' : ''}">`;
+    for (let v = lo; v <= hi; v += 1000) s += `<line x1="${L}" x2="${R}" y1="${y(v)}" y2="${y(v)}" stroke="#d9d4c6"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#5d6358">${fmt(v)}</text>`;
+    s += `<text x="${L - 8}" y="12" text-anchor="end" font-size="11" fill="#5d6358">MW</text>`;
+    for (let yr = y0; yr <= y1; yr += 3) s += `<text x="${x(yr)}" y="282" text-anchor="middle" font-size="11" fill="#5d6358">${yr}</text>`;
+    s += `<polyline fill="none" stroke="#2f8f5b" stroke-width="2.5" points="${rows.map((r) => `${x(r.year)},${y(r.total)}`).join(' ')}"/>`;
+    s += `<text x="${R + 8}" y="${y(rows[rows.length - 1].total) + 4}" font-size="11" font-weight="600" fill="#2f8f5b">Demand</text>`;
+    if (rows[0].available !== null) {
+      s += `<polyline fill="none" stroke="#1b2a21" stroke-width="2.5" points="${rows.map((r) => `${x(r.year)},${y(r.available)}`).join(' ')}"/>`;
+      s += `<text x="${R + 8}" y="${y(rows[rows.length - 1].available) + 4}" font-size="11" font-weight="600" fill="#1b2a21">Supply</text>`;
+    }
+    if (gapYear) {
+      const r = rows.find((q) => q.year === gapYear)!;
+      s += `<circle cx="${x(gapYear)}" cy="${y(r.total)}" r="6" fill="#fff" stroke="#c0352b" stroke-width="3"/><text x="${x(gapYear)}" y="${y(r.total) - 12}" text-anchor="middle" font-size="12" font-weight="600" fill="#c0352b">${gapYear}</text>`;
+    }
+    return s + '</svg>';
+  }
+
+  function render() {
+    const i = state();
+    $('added-out').textContent = `${fmt(i.added_mw_per_year)} MW`;
+    $('derate-out').textContent = `${fmt(i.derate * 100)}%`;
+    $('evg-out').textContent = `${fmt(i.ev_growth * 100)}%`;
+    $('evm-out').textContent = `${fmt(i.ev_managed_share * 100)}%`;
+    const r = project(i);
+    const hasCap = i.capacity_mw !== null;
+    const word = (yr: number | null, none: string) => (yr === null ? none : String(yr));
+    $('gap').textContent = hasCap ? word(r.gap_year, `Not before ${sc.end_year}`) : 'Enter a capacity';
+    $('gap-note').textContent = hasCap ? (r.gap_year && r.gap_year === sc.base_year ? 'Already short at the starting year.' : 'On these settings.') : 'We have not verified official capacity, so no date is given.';
+    $('target').textContent = hasCap ? word(r.below_target_year, `Not before ${sc.end_year}`) : 'Enter a capacity';
+    $('target-note').textContent = hasCap ? (r.below_target_year === sc.base_year ? 'Already below target at the starting year.' : 'An early warning, before any shortfall.') : '';
+    $('chart').innerHTML = chart(r.rows, r.gap_year);
+
+    const row = (yr: number) => r.rows.find((q: any) => q.year === yr);
+    const y30 = row(2030), y40 = row(sc.end_year);
+    const need1 = evsNeeded(0.01, sc.base_peak, i.ev_kw, i.ev_coincidence, i.ev_managed_share);
+    $('ev-text').innerHTML = `On these assumptions, EV charging adds about <b>${fmt(y30.ev_mw, 1)} MW</b> to the peak in 2030 (${fmt((y30.ev_mw / y30.total) * 100, 1)}% of demand) and <b>${fmt(y40.ev_mw)} MW</b> by ${sc.end_year} (${fmt((y40.ev_mw / y40.total) * 100, 1)}%). For charging to add even 1% to today's peak, about <b>${fmt(need1)}</b> vehicles would need to be charging at the same moment, roughly ${fmt(need1 / A.ev_fleet_base.value, 0)} times today's fleet of ${fmt(A.ev_fleet_base.value)}. Timing matters more than total energy: moving charging away from the evening peak reduces this directly.`;
+
+    $('table').innerHTML = `<thead><tr><th>Year</th><th class="n">Demand (MW)</th><th class="n">EV charging (MW)</th><th class="n">Supply (MW)</th><th class="n">Reserve margin</th></tr></thead><tbody>${r.rows
+      .map((q: any) => `<tr><td>${q.year}</td><td class="n">${fmt(q.total)}</td><td class="n">${fmt(q.ev_mw, 1)}</td><td class="n">${q.available === null ? '–' : fmt(q.available)}</td><td class="n">${q.margin === null ? '–' : fmt(q.margin * 100, 1) + '%'}</td></tr>`)
+      .join('')}</tbody>`;
+  }
+
+  app.addEventListener('input', render);
+  render();
+</script>
+
+<style is:global>
+  .controls { flex:1 1 300px; max-width:380px; display:flex; flex-direction:column; gap:16px; }
+  .controls fieldset { border:0; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; }
+  .controls legend, .controls .field > label { font-weight:600; font-size:14px; padding:0; }
+  .controls .field { display:flex; flex-direction:column; gap:4px; }
+  .controls .field > label { display:flex; justify-content:space-between; gap:8px; }
+  .controls output { color:var(--accent); font-weight:600; }
+  .controls input[type=number] { min-height:44px; padding:8px 12px; border:1px solid #bdb8a8; border-radius:8px; font:inherit; background:#fff; color:var(--text); width:100%; }
+  .controls input[type=range] { width:100%; accent-color:var(--accent); min-height:28px; }
+  .controls input[type=radio] { accent-color:var(--accent); margin-right:6px; }
+  .controls summary { cursor:pointer; font-weight:600; font-size:14px; }
+  .hint { margin:0; font-size:12.5px; color:var(--muted); }
+  @media (max-width:720px) { .controls { max-width:none; } }
+</style>
