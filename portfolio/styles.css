@@ -29,3 +29,9 @@ footer{text-align:center;color:var(--muted);padding:2rem 0}
 .btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
 .reading-list{padding-left:1.2rem}
 .reading-list li{margin-bottom:.5rem}
+.timeline{list-style:none;padding:0;margin:0;border-left:2px solid var(--card)}
+.timeline li{position:relative;padding:0 0 2rem 1.5rem}
+.timeline li::before{content:"";position:absolute;left:-7px;top:.4rem;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.timeline h3{margin:.1rem 0}
+.timeline p{margin:0;color:var(--muted)}
+.dates{font-size:.85rem;color:var(--muted)}
