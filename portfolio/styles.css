@@ -22,3 +22,10 @@ h1{font-size:clamp(2.5rem,8vw,4.5rem);margin:.2em 0;line-height:1.1}
 .card{background:var(--card);padding:1.25rem;border-radius:12px}
 .card h3{margin-top:0}
 footer{text-align:center;color:var(--muted);padding:2rem 0}
+.section-intro{color:var(--muted);max-width:60ch}
+.tags{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.5rem}
+.tags li,.tag{background:var(--card);padding:.2rem .7rem;border-radius:999px;font-size:.8rem;color:var(--muted)}
+.card .tag{display:inline-block;margin-bottom:.5rem;background:var(--bg)}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
+.reading-list{padding-left:1.2rem}
+.reading-list li{margin-bottom:.5rem}
