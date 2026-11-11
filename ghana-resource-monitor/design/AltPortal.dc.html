@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Module portal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:"Public Sans",system-ui,sans-serif;background:#f4f1ea;color:#1b2a21}
+a{color:#2f8f5b}a:hover{color:#1b2a21}
+</style>
+</helmet>
+<div style="font-family:'Public Sans',system-ui,sans-serif;color:#1b2a21;font-size:15px;line-height:1.5;background:#f4f1ea">
+
+<header style="background:#1f4d36;color:#eaf0ec">
+<div style="max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;flex-wrap:wrap;gap:10px 32px;align-items:center;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px;letter-spacing:-.01em">Ghana Resource Monitor</span>
+</div>
+<nav style="display:flex;flex-wrap:wrap;gap:6px 26px;font-size:14px;font-weight:500">
+<a href="AltPortal.dc.html" style="color:#ffffff;text-decoration:none;border-bottom:2px solid #8fdcae;padding:6px 0;font-weight:600">Energy</a>
+<a href="Flood.dc.html" style="color:#cfe3d6;text-decoration:none;padding:6px 0">Flooding</a>
+<span style="color:#a9c4b4;padding:6px 0">Water</span>
+<span style="color:#a9c4b4;padding:6px 0">Heat</span>
+</nav>
+<a href="Ask.dc.html" style="text-decoration:none;color:#0f2a1a;background:#8fdcae;border-radius:8px;padding:9px 16px;font-weight:600;font-size:14px;min-height:44px;box-sizing:border-box;line-height:26px">Ask the monitor</a>
+</div>
+</header>
+
+<div style="max-width:1280px;margin:0 auto;padding:22px 24px 56px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<nav aria-label="Energy sections" style="flex:0 0 200px;display:flex;flex-direction:column;gap:2px;font-size:14px">
+<a href="AltPortal.dc.html" style="text-decoration:none;color:#1f4d36;background:#dcefe3;border-radius:8px;padding:10px 12px;font-weight:600">Overview</a>
+<a href="AltPortal.dc.html#demand" style="text-decoration:none;color:#334155;border-radius:8px;padding:10px 12px">Demand</a>
+<a href="AltPortal.dc.html#capacity" style="text-decoration:none;color:#334155;border-radius:8px;padding:10px 12px">Capacity</a>
+<a href="AltPortal.dc.html#forecast" style="text-decoration:none;color:#334155;border-radius:8px;padding:10px 12px">Forecast</a>
+<a href="AltPortal.dc.html#scenarios" style="text-decoration:none;color:#334155;border-radius:8px;padding:10px 12px">Scenarios</a>
+<a href="AltPortal.dc.html#alerts" style="text-decoration:none;color:#334155;border-radius:8px;padding:10px 12px">Alerts</a>
+<a href="AltPortal.dc.html#data" style="text-decoration:none;color:#334155;border-radius:8px;padding:10px 12px">Data and sources</a>
+</nav>
+
+<main style="flex:999 1 720px;min-width:0;display:flex;flex-direction:column;gap:18px">
+
+<section style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:4px;max-width:64ch">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+<h1 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:36px;letter-spacing:-.02em">Energy</h1>
+<span style="font-size:12.5px;font-weight:600;color:#8a5200;background:#fbefd9;border-radius:999px;padding:3px 11px">Below reserve target</span>
+<span style="font-size:12.5px;font-weight:600;color:#5d6358;background:#e6e1d3;border-radius:999px;padding:3px 11px">Capacity unverified</span>
+</div>
+<p style="margin:0;color:#5d6358">Ghana's electricity: how demand is growing, what capacity we can count on, and when the two could meet. Provisional until the capacity data is verified.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<label for="range" style="font-size:12.5px;font-weight:600;color:#5d6358">History shown</label>
+<select id="range" style="min-height:44px;padding:8px 12px;border:1px solid #bdb8a8;border-radius:8px;font:inherit;background:#ffffff;color:#1b2a21"><option>2019 to 2025</option></select>
+</div>
+</section>
+
+<section id="demand" aria-label="Key indicators" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+<div style="background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12.5px;color:#5d6358;font-weight:500">Peak demand, 2025</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:26px;letter-spacing:-.02em">4,283 <span style="font-size:13px;font-weight:500;color:#5d6358">MW</span></span>
+<span style="font-size:12.5px;color:#c0352b;font-weight:600">Up 8.4% on 2024</span>
+<svg viewBox="0 0 120 40" role="img" aria-label="Peak demand rising from 2,804 MW in 2019 to 4,283 MW in 2025" style="width:100%;height:36px;margin-top:4px"><polyline points="0,36 20,30.3 40,27.1 60,22.6 80,19.6 100,12.9 120,6.3" fill="none" stroke="#2f8f5b" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="120" cy="6.3" r="3" fill="#2f8f5b"/></svg>
+</div>
+<div style="background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12.5px;color:#5d6358;font-weight:500">Energy transmitted, 2025</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:26px;letter-spacing:-.02em">25,860 <span style="font-size:13px;font-weight:500;color:#5d6358">GWh</span></span>
+<span style="font-size:12.5px;color:#5d6358;font-weight:600">Up 9.15% on 2024</span>
+<svg viewBox="0 0 120 40" role="img" aria-label="Energy transmitted rising from about 16,958 GWh in 2019 to 25,860 GWh in 2025" style="width:100%;height:36px;margin-top:4px"><polyline points="0,35.8 20,30.1 40,24.4 60,20.5 80,13.8 100,13.4 120,6.1" fill="none" stroke="#2f8f5b" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="120" cy="6.1" r="3" fill="#2f8f5b"/></svg>
+</div>
+<div style="background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12.5px;color:#5d6358;font-weight:500">Transmission losses, 2025</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:26px;letter-spacing:-.02em">4.02<span style="font-size:13px;font-weight:500;color:#5d6358">%</span></span>
+<span style="font-size:12.5px;color:#5d6358;font-weight:600">Limit is 4.10%</span>
+<svg viewBox="0 0 120 40" role="img" aria-label="Transmission losses by year, 2019 to 2025, ending at 4.02 percent" style="width:100%;height:36px;margin-top:4px"><polyline points="0,15.8 20,20 40,9.8 60,28 80,32.8 100,33.6 120,29.6" fill="none" stroke="#2f8f5b" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="120" cy="29.6" r="3" fill="#2f8f5b"/></svg>
+</div>
+<div style="background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12.5px;color:#5d6358;font-weight:500">Reserve margin, 2025</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:26px;letter-spacing:-.02em">16.0<span style="font-size:13px;font-weight:500;color:#5d6358">%</span></span>
+<span style="font-size:12.5px;color:#8a5200;font-weight:600">Target 18%. Provisional.</span>
+<svg viewBox="0 0 120 40" role="img" aria-label="Projected reserve margin falling from 16 percent to minus 17 percent by 2030 on a 7 percent growth path" style="width:100%;height:36px;margin-top:4px"><polyline points="0,9 24,14.7 48,20 72,25 96,29.6 120,34" fill="none" stroke="#b45309" stroke-width="2.2" stroke-dasharray="4 3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="0" cy="9" r="3" fill="#b45309"/></svg>
+</div>
+</section>
+
+<section id="forecast" style="display:flex;flex-wrap:wrap;gap:16px;align-items:stretch">
+<div style="flex:999 1 560px;min-width:0;background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:19px">Peak demand forecast and capacity</h2>
+<div role="tablist" aria-label="Chart view" style="display:flex;gap:4px;font-size:13.5px">
+<button type="button" style="min-height:36px;padding:4px 12px;border-radius:8px;border:0;background:#dcefe3;color:#1f4d36;font:600 13.5px 'Public Sans',sans-serif;cursor:pointer">Forecast</button>
+<button type="button" style="min-height:36px;padding:4px 12px;border-radius:8px;border:0;background:transparent;color:#5d6358;font:500 13.5px 'Public Sans',sans-serif;cursor:pointer">Margin</button>
+<button type="button" style="min-height:36px;padding:4px 12px;border-radius:8px;border:0;background:transparent;color:#5d6358;font:500 13.5px 'Public Sans',sans-serif;cursor:pointer">Table</button>
+</div>
+</div>
+<svg viewBox="0 0 760 310" role="img" aria-label="Chart of peak demand in megawatts. History rises from 2,804 in 2019 to 4,283 in 2025. A central 7 percent projection reaches about 6,880 by 2032, inside a shaded band from 5 to 8.5 percent growth. A flat capacity line at 4,968 is crossed by the central path around 2028." style="width:100%;height:auto;display:block">
+<line x1="60" x2="690" y1="238.2" y2="238.2" stroke="#e6e1d3"/><line x1="60" x2="690" y1="194.5" y2="194.5" stroke="#e6e1d3"/><line x1="60" x2="690" y1="150.9" y2="150.9" stroke="#e6e1d3"/><line x1="60" x2="690" y1="107.3" y2="107.3" stroke="#e6e1d3"/><line x1="60" x2="690" y1="63.6" y2="63.6" stroke="#e6e1d3"/><line x1="60" x2="690" y1="20" y2="20" stroke="#e6e1d3"/>
+<text x="52" y="242" text-anchor="end" font-size="11" fill="#5d6358">3,000</text><text x="52" y="198" text-anchor="end" font-size="11" fill="#5d6358">4,000</text><text x="52" y="155" text-anchor="end" font-size="11" fill="#5d6358">5,000</text><text x="52" y="111" text-anchor="end" font-size="11" fill="#5d6358">6,000</text><text x="52" y="68" text-anchor="end" font-size="11" fill="#5d6358">7,000</text><text x="52" y="24" text-anchor="end" font-size="11" fill="#5d6358">8,000</text>
+<text x="52" y="8" text-anchor="end" font-size="11" fill="#5d6358">MW</text>
+<polygon points="346.2,182.2 393.8,166.3 441.5,149.1 489.2,130.4 536.9,110.1 584.6,88 632.3,64.2 680,38.2 680,106.1 632.3,118.6 584.6,130.6 536.9,141.9 489.2,152.7 441.5,163 393.8,172.9" fill="#2f8f5b" fill-opacity=".14"/>
+<line x1="346.2" x2="346.2" y1="20" y2="258" stroke="#bdb8a8" stroke-dasharray="3 3"/>
+<text x="340" y="32" text-anchor="end" font-size="11" fill="#5d6358">Actual</text><text x="352" y="32" font-size="11" fill="#5d6358">Projected</text>
+<polyline points="346.2,182.2 393.8,169.1 441.5,155.1 489.2,140.1 536.9,124.1 584.6,107 632.3,88.6 680,69" fill="none" stroke="#2f8f5b" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round"/>
+<polyline points="60,246.7 107.7,234.3 155.4,227.5 203.1,217.7 250.8,211.2 298.5,196.6 346.2,182.2" fill="none" stroke="#2f8f5b" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="60" cy="246.7" r="3.5" fill="#2f8f5b"/><circle cx="107.7" cy="234.3" r="3.5" fill="#2f8f5b"/><circle cx="155.4" cy="227.5" r="3.5" fill="#2f8f5b"/><circle cx="203.1" cy="217.7" r="3.5" fill="#2f8f5b"/><circle cx="250.8" cy="211.2" r="3.5" fill="#2f8f5b"/><circle cx="298.5" cy="196.6" r="3.5" fill="#2f8f5b"/><circle cx="346.2" cy="182.2" r="4.5" fill="#2f8f5b"/>
+<line x1="346.2" x2="690" y1="152.3" y2="152.3" stroke="#1b2a21" stroke-width="2.2"/>
+<circle cx="450.4" cy="152.3" r="6" fill="#ffffff" stroke="#c0352b" stroke-width="3"/>
+<text x="462" y="176" font-size="12" font-weight="600" fill="#c0352b">Central case passes capacity, 2028</text>
+<text x="696" y="40" font-size="11" fill="#5d6358">High, 8.5%</text>
+<text x="696" y="72" font-size="11" font-weight="600" fill="#2f8f5b">Central, 7%</text>
+<text x="696" y="109" font-size="11" fill="#5d6358">Low, 5%</text>
+<text x="696" y="156" font-size="11" font-weight="600" fill="#1b2a21">Capacity</text>
+<text x="60" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2019</text><text x="155.4" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2021</text><text x="250.8" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2023</text><text x="346.2" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2025</text><text x="441.5" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2027</text><text x="536.9" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2029</text><text x="632.3" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2031</text>
+</svg>
+<p style="margin:0;font-size:12.5px;color:#5d6358">Shaded band: demand growth between 5% and 8.5% a year. Capacity of 4,968 MW is a placeholder and no new plants are assumed. History: GRIDCo 2025 Annual Report.</p>
+</div>
+
+<div id="scenarios" style="flex:1 1 280px;min-width:0;background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:19px">What if we build more?</h2>
+<p style="margin:0;font-size:13.5px;color:#5d6358">New firm capacity added each year, on the central demand path.</p>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="add" style="display:flex;justify-content:space-between;font-weight:600;font-size:13.5px"><span>New capacity per year</span><span style="color:#2f8f5b">375 MW</span></label>
+<input id="add" type="range" min="0" max="500" step="125" value="375" style="width:100%;accent-color:#2f8f5b">
+<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#5d6358"><span>0</span><span>125</span><span>250</span><span>375</span><span>500</span></div>
+</div>
+<div style="background:#f4f1ea;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12.5px;color:#5d6358;font-weight:500">Demand first exceeds capacity in</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:34px;letter-spacing:-.02em;color:#15803d">2037</span>
+<span style="font-size:12.5px;color:#5d6358">Instead of 2028 with no new plants.</span>
+</div>
+<div style="overflow-x:auto">
+<table style="border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums">
+<thead><tr><th style="text-align:left;padding:6px 4px;color:#5d6358;font-weight:600;border-bottom:1px solid #d9d4c6">MW a year</th><th style="text-align:right;padding:6px 4px;color:#5d6358;font-weight:600;border-bottom:1px solid #d9d4c6">Shortfall starts</th></tr></thead>
+<tbody>
+<tr><td style="padding:6px 4px;border-bottom:1px solid #ece8dc">0</td><td style="text-align:right;padding:6px 4px;border-bottom:1px solid #ece8dc">2028</td></tr>
+<tr><td style="padding:6px 4px;border-bottom:1px solid #ece8dc">125</td><td style="text-align:right;padding:6px 4px;border-bottom:1px solid #ece8dc">2029</td></tr>
+<tr><td style="padding:6px 4px;border-bottom:1px solid #ece8dc">250</td><td style="text-align:right;padding:6px 4px;border-bottom:1px solid #ece8dc">2032</td></tr>
+<tr style="font-weight:700"><td style="padding:6px 4px;border-bottom:1px solid #ece8dc">375</td><td style="text-align:right;padding:6px 4px;border-bottom:1px solid #ece8dc">2037</td></tr>
+<tr><td style="padding:6px 4px">500</td><td style="text-align:right;padding:6px 4px">2042</td></tr>
+</tbody>
+</table>
+</div>
+<p style="margin:0;font-size:12px;color:#5d6358">Provisional. Assumes projects arrive on time and gas and hydro do not limit output. The full model will add delays and fuel limits.</p>
+</div>
+</section>
+
+<section style="display:flex;flex-wrap:wrap;gap:16px;align-items:stretch">
+<div id="alerts" style="flex:1 1 380px;min-width:0;background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:19px">Alert rules</h2><span style="font-size:12.5px;color:#5d6358">Status on provisional data</span></div>
+<div style="display:flex;flex-direction:column">
+<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #e6e1d3;align-items:center"><span style="font-size:14px">Reserve margin below 18%</span><span style="font-size:12.5px;font-weight:600;color:#8a5200;background:#fbefd9;border-radius:999px;padding:2px 10px;white-space:nowrap">Triggered</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #e6e1d3;align-items:center"><span style="font-size:14px">Capacity below peak demand</span><span style="font-size:12.5px;font-weight:600;color:#1f7a45;background:#e3f4ea;border-radius:999px;padding:2px 10px;white-space:nowrap">Not triggered</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #e6e1d3;align-items:center"><span style="font-size:14px">Transmission losses above 4.10%</span><span style="font-size:12.5px;font-weight:600;color:#1f7a45;background:#e3f4ea;border-radius:999px;padding:2px 10px;white-space:nowrap">Not triggered</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;align-items:center"><span style="font-size:14px">Demand growth above 8% a year</span><span style="font-size:12.5px;font-weight:600;color:#8a5200;background:#fbefd9;border-radius:999px;padding:2px 10px;white-space:nowrap">Triggered in 2025</span></div>
+</div>
+</div>
+<div id="data" style="flex:1 1 380px;min-width:0;background:#ffffff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:19px">Data and sources</h2>
+<div style="display:flex;flex-direction:column;font-size:14px">
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #e6e1d3"><span>Peak demand, energy, losses</span><span style="color:#1f7a45;font-weight:600">Verified, GRIDCo 2025</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #e6e1d3"><span>Plant capacity</span><span style="color:#8a5200;font-weight:600">Being verified</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #e6e1d3"><span>Gas and hydro availability</span><span style="color:#5d6358;font-weight:600">Data requested</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0"><span>EV load</span><span style="color:#5d6358;font-weight:600">Assumptions only</span></div>
+</div>
+<p style="margin:0;font-size:12.5px;color:#5d6358">Each figure will link to its source document, page and whether it is an actual or a forecast.</p>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
