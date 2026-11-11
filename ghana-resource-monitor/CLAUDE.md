@@ -144,6 +144,13 @@ Data arrives **annually** (GRIDCo, Energy Commission) and sometimes **more often
   (B) the committed curated CSVs stay the record and the database is rebuilt each run (simple, but superseded history lives only in git).
   Until one is chosen, run updates locally and commit the CSVs and `energy.json`.
 
+- **Decided (intake plan):** for now all new data arrives as curated CSV. Later, an API/ingest job will pull data from the GRIDCo website.
+  Before building it: check the site's terms and robots.txt; find out what GRIDCo actually publishes (live figures vs report documents);
+  the session environment must allow the GRIDCo host (gridcogh.com was blocked in the earlier environment). When built it must reuse the existing
+  pipeline: save every fetched page or file in the raw store by hash, write rows at confidence=medium into `review_queue` until checked, be polite
+  (identify the client, rate-limit), and fail loudly through `ingest_runs` and the exit codes if the layout changes or a page returns nothing.
+  Scraped values that disagree with curated CSV values become conflicts, never overwrites.
+
 ## Known discrepancies / traps (found while reviewing an AI-generated research report)
 - Installed capacity appears as ~5,200, 5,260, 5,507, 5,818 and "just under 6,000" MW: different boundaries
   (NITS-only vs embedded, dates, legacy non-operational plants). Reconcile plant by plant; don't pick one.
