@@ -128,8 +128,20 @@ Data arrives **annually** (GRIDCo, Energy Commission) and sometimes **more often
   never edit or delete history. Disagreeing sources go in `conflicts`, side by side.
 - Every update is logged (`ingest_runs`); a failed or empty scheduled run must alert. The forecast is re-run (new `model_runs`) and the backtest
   re-checked each time new actuals arrive, and the site shows the data date and model version.
-- v0 caveat: `ingest.load` currently rebuilds the database from the CSVs in data/ every time (fine while the curated CSVs are the source of truth).
-  Before the first scheduled/monthly source it must become an incremental load into a persistent database.
+- **Built (ingest v1):** `python -m ingest.update` applies the curated CSVs to a persistent database: new rows are inserted, identical rows
+  left alone, changed rows supersede the old one (history kept), rows missing from the inputs are warned about and never deleted. Every real
+  run is logged in `ingest_runs` (input file hashes included); `--dry-run` previews; a failed run rolls back and exits 1; `--expect-changes`
+  exits 3 if nothing new arrived; a snapshot is saved to `data/processed/backups/` before a change. `python -m ingest.raw SOURCE FILE`
+  stores a source file by hash in `data/raw/<source>/` (never overwritten, read-only) and records it in `documents`.
+  `scripts/refresh.sh [--build] [--expect-changes]` runs ingest -> forecast -> scenario inputs -> site data -> site build.
+  `python -m ingest.load` is the dev shortcut (delete the DB, apply to an empty one: same code path).
+- **To add a new year or month of an existing series:** add the row(s) to the curated CSV (and the source to `data/source_register.csv`), run
+  `python -m ingest.update --dry-run`, read the plan, then `scripts/refresh.sh`, review the diff of `web/src/data/energy.json`, commit.
+- **Not built yet:** parsing PDFs into `observations` + `review_queue` (needs the documents); alerts beyond the exit code; automated schedule.
+- **Open decision, where the persistent database lives for scheduled runs.** A GitHub Actions job starts with an empty disk, so either
+  (A) hosted Postgres is the store of record (`DATABASE_URL` is already honoured; migrations are SQLite-tested only, so test them on Postgres first), or
+  (B) the committed curated CSVs stay the record and the database is rebuilt each run (simple, but superseded history lives only in git).
+  Until one is chosen, run updates locally and commit the CSVs and `energy.json`.
 
 ## Known discrepancies / traps (found while reviewing an AI-generated research report)
 - Installed capacity appears as ~5,200, 5,260, 5,507, 5,818 and "just under 6,000" MW: different boundaries

@@ -146,13 +146,20 @@ class ForecastOutput(Base):
 
 
 class IngestRun(Base):
+    """One row per ingest run. status: running | success | no_change | failed."""
     __tablename__ = "ingest_runs"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     job: Mapped[str] = mapped_column(String, nullable=False)
     started_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime)
     status: Mapped[str] = mapped_column(String, nullable=False)
     rows_added: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    rows_superseded: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    rows_unchanged: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    detail: Mapped[dict | None] = mapped_column(JSON)  # full counters, warnings, input hashes
     error: Mapped[str | None] = mapped_column(Text)
+    __table_args__ = (CheckConstraint(_in("status", ("running", "success", "no_change", "failed")),
+                                      name="ck_ingest_runs_status"),)
 
 
 class ReviewQueue(Base):

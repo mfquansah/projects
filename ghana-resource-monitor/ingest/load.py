@@ -1,14 +1,15 @@
-"""Load the source register and curated GRIDCo data into the database.
+"""Read the curated inputs (source register, cleaned GRIDCo series) and rebuild a database from them.
 
-Rebuilds from scratch each run (the CSVs in data/ are the source of truth for v0): runs the Alembic migrations on a
-fresh database, then inserts. Fails loudly on malformed rows (see CLAUDE.md "Data rules").
+`read_inputs` parses and validates the CSVs. `ingest.update` applies them incrementally to a persistent database.
+`load` (this module's CLI) is the dev/test shortcut: delete the database and apply everything to an empty one, so
+there is only one code path for writing observations. Fails loudly on malformed rows (see CLAUDE.md "Data rules").
 
 Inputs
 - data/source_register.csv                    sources
 - data/gridco/gridco_clean_2013_2025.csv      one chosen value per (year, metric), with the values rejected
 - data/gridco_2025_extra.csv                  rows the clean file does not cover (2025 electricity access)
 
-For every rejected value the loader stores it as its own observation (confidence low, `superseded_by` -> the chosen
+For every rejected value the update stores it as its own observation (confidence low, `superseded_by` -> the chosen
 row, so it never reaches the site as a live fact) and records a `conflicts` row linking both. Choices the data owner
 marked "Unresolved" become open conflicts. Blank values are gaps and are never loaded.
 
@@ -17,15 +18,12 @@ Usage: python -m ingest.load [--db data/processed/monitor.sqlite]
 import argparse
 import csv
 import re
-from datetime import date
+import os
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-
-from db.models import Conflict, Entity, Observation, Source
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -43,6 +41,35 @@ REJECTED_RE = re.compile(r"^(?P<value>-?[\d.]+) \((?P<year>\d{4}) report p(?P<pa
 
 class LoadError(ValueError):
     pass
+
+
+@dataclass
+class Rejected:
+    value: float
+    source_id: str
+    page: str
+
+
+@dataclass
+class Rec:
+    """One chosen observation from the curated inputs, plus the values the data owner rejected for it."""
+    year: int
+    metric: str
+    value: float
+    unit: str
+    confidence: str
+    source_id: str
+    page: str
+    note: str
+    rejected: list = field(default_factory=list)
+    unresolved: bool = False
+
+
+def resolve_url(db_path=None) -> str:
+    """DATABASE_URL wins (hosted Postgres later); otherwise a local SQLite file."""
+    if os.environ.get("DATABASE_URL"):
+        return os.environ["DATABASE_URL"]
+    return f"sqlite:///{Path(db_path or ROOT / 'data' / 'processed' / 'monitor.sqlite')}"
 
 
 def source_tier(status: str) -> str:
@@ -85,7 +112,8 @@ def report_year(source_file: str) -> int:
     return int(m.group())
 
 
-def load(db_path, data_dir=ROOT / "data"):
+def read_inputs(data_dir=ROOT / "data"):
+    """Parse and validate the curated CSVs. Touches no database. Returns (source rows, records, gaps)."""
     sources = read_csv(data_dir / "source_register.csv", SOURCE_COLS)
     clean = read_csv(data_dir / "gridco" / "gridco_clean_2013_2025.csv", CLEAN_COLS)
     extra = read_csv(data_dir / "gridco_2025_extra.csv", EXTRA_COLS)
@@ -101,77 +129,61 @@ def load(db_path, data_dir=ROOT / "data"):
             raise LoadError(f"no GRIDCo {year} Annual Report in the source register")
         return by_report[year]
 
+    ids = {r["source_id"] for r in sources}
+    recs, gaps = [], []
+    for r in clean:
+        year = int(r["year"])
+        if r["value"] == "":
+            gaps.append((year, r["metric"], r["method"]))  # a gap stays a gap
+            continue
+        rec = Rec(year=year, metric=r["metric"], value=float(r["value"]), unit=UNIT_NORMAL.get(r["unit"], r["unit"]),
+                  confidence=r["confidence"], source_id=source_for(report_year(r["source_file"])),
+                  page=r["pdf_page"], note=r["method"], unresolved="unresolved" in r["method"].lower())
+        if r["rejected_values"]:
+            for part in r["rejected_values"].split("; "):
+                m = REJECTED_RE.match(part.strip())
+                if not m:
+                    raise LoadError(f"{r['year']} {r['metric']}: cannot parse rejected value {part!r}")
+                rec.rejected.append(Rejected(float(m["value"]), source_for(int(m["year"])), m["page"]))
+        recs.append(rec)
+    for r in extra:
+        if r["period_type"] != "annual" or r["value_type"] != "actual":
+            raise LoadError("gridco_2025_extra.csv: only annual actuals are supported")
+        if r["source_id"] not in ids:
+            raise LoadError(f"gridco_2025_extra.csv: unknown source {r['source_id']}")
+        recs.append(Rec(year=int(r["year"]), metric=r["metric"], value=float(r["value"]),
+                        unit=UNIT_NORMAL.get(r["unit"], r["unit"]), confidence=r["confidence"],
+                        source_id=r["source_id"], page=r["pdf_page"], note=r["note"]))
+    return sources, recs, gaps
+
+
+def load(db_path, data_dir=ROOT / "data"):
+    """Dev/test shortcut: delete the database and apply the inputs to an empty one. Returns (sources, observations, gaps)."""
+    from sqlalchemy import create_engine, select
+    from sqlalchemy.orm import Session
+
+    from db.models import Observation, Source
+    from ingest.update import run
+
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     if db_path.exists():
         db_path.unlink()
     url = f"sqlite:///{db_path}"
-    migrate(url)
-
-    gaps = []
+    result = run(url, data_dir, backup=False, job="rebuild")
     engine = create_engine(url)
     try:
-        with Session(engine) as s, s.begin():
-            s.add_all(Source(id=r["source_id"], name=r["title"], publisher=r["publisher"], url=r["url"],
-                             tier=source_tier(r["status"]), notes=r["notes"], published=r["date"] or None,
-                             status=r["status"], contains=r["contains"], reliability=r["reliability"])
-                      for r in sources)
-            ghana = Entity(kind="national", name="Ghana")
-            s.add(ghana)
-            s.flush()
-
-            def make(year, metric, value, unit, confidence, source_id, page, note):
-                return Observation(
-                    metric=metric, entity_id=ghana.id, period_start=date(year, 1, 1), period_end=date(year, 12, 31),
-                    period_type="annual", value=float(value), unit=UNIT_NORMAL.get(unit, unit), value_type="actual",
-                    capacity_type=CAPACITY_TYPE_BY_METRIC.get(metric), source_id=source_id, page=page,
-                    confidence=confidence, note=note)
-
-            for r in clean:
-                year = int(r["year"])
-                if r["value"] == "":
-                    gaps.append((year, r["metric"], r["method"]))  # a gap stays a gap
-                    continue
-                chosen = make(year, r["metric"], r["value"], r["unit"], r["confidence"],
-                              source_for(report_year(r["source_file"])), r["pdf_page"], r["method"])
-                s.add(chosen)
-                s.flush()
-                ids = [chosen.id]
-                if r["rejected_values"]:
-                    for part in r["rejected_values"].split("; "):
-                        m = REJECTED_RE.match(part.strip())
-                        if not m:
-                            raise LoadError(f"{r['year']} {r['metric']}: cannot parse rejected value {part!r}")
-                        rej = make(year, r["metric"], m["value"], r["unit"], "low", source_for(int(m["year"])), m["page"],
-                                   f"Rejected in favour of {chosen.value:g}. {r['method']}")
-                        rej.superseded_by = chosen.id  # never live: kept for the record
-                        s.add(rej)
-                        s.flush()
-                        ids.append(rej.id)
-                unresolved = "unresolved" in r["method"].lower()
-                if len(ids) > 1 or unresolved:
-                    s.add(Conflict(metric=r["metric"], entity_id=ghana.id, period=str(year), observation_ids=ids,
-                                   status="open" if unresolved else "resolved", resolution_note=r["method"]))
-
-            for r in extra:
-                if r["period_type"] != "annual" or r["value_type"] != "actual":
-                    raise LoadError("gridco_2025_extra.csv: only annual actuals are supported")
-                s.add(make(int(r["year"]), r["metric"], r["value"], r["unit"], r["confidence"], r["source_id"],
-                           r["pdf_page"], r["note"]))
-
         with Session(engine) as s:
-            n_src = len(s.scalars(select(Source)).all())
-            n_obs = len(s.scalars(select(Observation)).all())
+            return (len(s.scalars(select(Source)).all()), len(s.scalars(select(Observation)).all()), result.gaps)
     finally:
         engine.dispose()
-    return n_src, n_obs, gaps
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=load.__doc__)
     ap.add_argument("--db", default=str(ROOT / "data" / "processed" / "monitor.sqlite"))
     args = ap.parse_args()
     s, o, g = load(args.db)
-    print(f"Loaded {s} sources and {o} observations into {args.db}")
+    print(f"Rebuilt {args.db}: {s} sources and {o} observations")
     for y, m, why in g:
         print(f"  gap left blank: {y} {m} ({why})")

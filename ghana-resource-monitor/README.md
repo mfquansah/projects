@@ -4,7 +4,11 @@ See `CLAUDE.md` for the project brief, data rules and known discrepancies, and `
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m ingest.load                      # build data/processed/monitor.sqlite (Alembic migrations + CSVs)
+.venv/bin/python -m ingest.load                      # dev: delete and rebuild data/processed/monitor.sqlite from the CSVs
+.venv/bin/python -m ingest.update --dry-run          # preview an incremental update of the persistent DB
+.venv/bin/python -m ingest.update                    # apply it (logged; snapshot first; history never rewritten)
+.venv/bin/python -m ingest.raw S02 path/to/file.pdf  # store a source document by hash in data/raw/
+scripts/refresh.sh --build                           # ingest -> forecast -> scenario inputs -> site data -> site build
 .venv/bin/python -m model.baseline                   # peak-demand baseline forecast + backtest (stores a model run)
 .venv/bin/python -m model.scenario                   # seed scenario/EV assumptions (with rationale) into the DB
 .venv/bin/python -m unittest discover -s tests -t .  # tests

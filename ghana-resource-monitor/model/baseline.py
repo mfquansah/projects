@@ -9,6 +9,7 @@ Usage: python -m model.baseline [--db data/processed/monitor.sqlite] [--horizon 
 import argparse
 import json
 import math
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -145,14 +146,20 @@ def run(db_path, horizon=7, store=True):
                     row.value, row.rationale = fit["annual_growth"], why
                 else:
                     s.add(Assumption(name=name, value=fit["annual_growth"], unit="fraction/yr", rationale=why, source_id=None))
-                run_row = ModelRun(model_version=MODEL_VERSION, scenario_json={"kind": "baseline", "model": MODEL_OF_RECORD, "window_years": WINDOW,
-                                                                            "interval": "80% prediction interval"},
-                                   inputs_snapshot={"metric": METRIC, "source_ids": sources,
-                                                    "series": dict(zip(map(str, years), vals))})
-                s.add(run_row)
-                s.flush()
-                for y, (lo, mid, hi) in zip(target_years, intervals):
-                    s.add(ForecastOutput(run_id=run_row.id, metric=METRIC, period=str(y), p10=lo, p50=mid, p90=hi))
+                scenario_json = {"kind": "baseline", "model": MODEL_OF_RECORD, "window_years": WINDOW,
+                                 "interval": "80% prediction interval"}
+                snapshot = {"metric": METRIC, "source_ids": sources, "series": dict(zip(map(str, years), vals))}
+                prior = s.scalars(select(ModelRun).where(ModelRun.model_version == MODEL_VERSION)
+                                  .order_by(ModelRun.id.desc())).first()
+                if prior and prior.scenario_json == scenario_json and prior.inputs_snapshot == snapshot:
+                    result["run_id"], result["reused_run"] = prior.id, True  # same inputs, same model: nothing new to store
+                else:
+                    run_row = ModelRun(model_version=MODEL_VERSION, scenario_json=scenario_json, inputs_snapshot=snapshot)
+                    s.add(run_row)
+                    s.flush()
+                    for y, (lo, mid, hi) in zip(target_years, intervals):
+                        s.add(ForecastOutput(run_id=run_row.id, metric=METRIC, period=str(y), p10=lo, p50=mid, p90=hi))
+                    result["run_id"], result["reused_run"] = run_row.id, False
             s.commit()
     engine.dispose()
     return result
@@ -177,5 +184,9 @@ if __name__ == "__main__":
     ap.add_argument("--db", default=str(ROOT / "data" / "processed" / "monitor.sqlite"))
     ap.add_argument("--horizon", type=int, default=7)
     ap.add_argument("--no-store", action="store_true")
+    ap.add_argument("--no-print", action="store_true")
     a = ap.parse_args()
-    print(report(run(a.db, a.horizon, store=not a.no_store)))
+    res = run(a.db, a.horizon, store=not a.no_store)
+    if not a.no_print:
+        print(report(res))
+    print(f"model run {res.get('run_id')}{' (reused: inputs unchanged)' if res.get('reused_run') else ''}", file=sys.stderr)
