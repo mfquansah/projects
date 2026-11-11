@@ -1,0 +1,361 @@
+{
+  "generated_at": "2026-11-11T18:47:30+00:00",
+  "series": {
+    "electricity_access_national": [
+      {
+        "year": 2025,
+        "value": 89.4,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "11",
+        "confidence": "high",
+        "note": "Rural 76.7%; urban 100%"
+      }
+    ],
+    "energy_transmitted": [
+      {
+        "year": 2019,
+        "value": 16958.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "25",
+        "confidence": "medium",
+        "note": "Chart label blurry; derived from 25860 / 1.5249 (report: 2025 is 52.49% above 2019)"
+      },
+      {
+        "year": 2020,
+        "value": 18670.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "25",
+        "confidence": "medium",
+        "note": "Chart label blurry; consistent with stated YoY growth of 10.10%"
+      },
+      {
+        "year": 2021,
+        "value": 20388.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "25",
+        "confidence": "medium",
+        "note": "Chart label blurry; derived from chart growth rates (9.21%)"
+      },
+      {
+        "year": 2022,
+        "value": 21545.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "25",
+        "confidence": "medium",
+        "note": "Chart label blurry; derived from chart growth rates (5.68% and 9.31%)"
+      },
+      {
+        "year": 2023,
+        "value": 23551.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "25",
+        "confidence": "high",
+        "note": "Chart label"
+      },
+      {
+        "year": 2024,
+        "value": 23692.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "25, 33",
+        "confidence": "high",
+        "note": "Stated in text: 23692 GWh in 2024"
+      },
+      {
+        "year": 2025,
+        "value": 25860.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "11, 25",
+        "confidence": "high",
+        "note": "Stated in text: highest in company history, +9.15% on 2024"
+      }
+    ],
+    "system_peak_demand": [
+      {
+        "year": 2019,
+        "value": 2804.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Read from labeled chart (Figure 3); 2025 growth since 2019 of 52.7% is consistent"
+      },
+      {
+        "year": 2020,
+        "value": 3090.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Chart label"
+      },
+      {
+        "year": 2021,
+        "value": 3246.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Chart label; matches GRIDCo 2022 Supply Plan (3246.0 MW on 8 Dec 2021)"
+      },
+      {
+        "year": 2022,
+        "value": 3469.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Chart label; matches PURC Q1 2022 max system demand of 3469 MW"
+      },
+      {
+        "year": 2023,
+        "value": 3618.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Chart label; matches IES (3618 MW on 26 Dec 2023)"
+      },
+      {
+        "year": 2024,
+        "value": 3952.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Chart label; 4283 is +8.4% over 3952"
+      },
+      {
+        "year": 2025,
+        "value": 4283.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "11, 26",
+        "confidence": "high",
+        "note": "Stated in text and highlights: record peak, +8.4% on 2024 and +52.7% since 2019"
+      }
+    ],
+    "transmission_line_availability": [
+      {
+        "year": 2025,
+        "value": 99.61,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "11",
+        "confidence": "high",
+        "note": "Corporate highlights (average)"
+      }
+    ],
+    "transmission_losses": [
+      {
+        "year": 2019,
+        "value": 4.71,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Figure 4"
+      },
+      {
+        "year": 2020,
+        "value": 4.5,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Figure 4"
+      },
+      {
+        "year": 2021,
+        "value": 5.01,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Figure 4"
+      },
+      {
+        "year": 2022,
+        "value": 4.1,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Figure 4"
+      },
+      {
+        "year": 2023,
+        "value": 3.86,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Figure 4"
+      },
+      {
+        "year": 2024,
+        "value": 3.82,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Figure 4"
+      },
+      {
+        "year": 2025,
+        "value": 4.02,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Stated in text; PURC threshold is 4.10%"
+      }
+    ]
+  },
+  "derived": {
+    "peak_latest": 4283.0,
+    "peak_latest_year": 2025,
+    "peak_yoy_pct": 8.375506072874494,
+    "peak_growth_since_first_pct": 52.74607703281027,
+    "peak_first_year": 2019,
+    "peak_cagr_pct": 7.315308287599942,
+    "energy_latest": 25860.0,
+    "energy_yoy_pct": 9.1507681917947
+  },
+  "forecast": {
+    "model_version": "baseline-0.1",
+    "run_at": "2026-11-11T18:47:29",
+    "interval": "80% prediction interval",
+    "points": [
+      {
+        "year": 2026,
+        "p10": 4391.934498269808,
+        "p50": 4524.6129395261805,
+        "p90": 4661.299539096653
+      },
+      {
+        "year": 2027,
+        "p10": 4682.985298195322,
+        "p50": 4837.356749531948,
+        "p90": 4996.816951626975
+      },
+      {
+        "year": 2028,
+        "p10": 4991.7207920626015,
+        "p50": 5171.717588884576,
+        "p90": 5358.204902347162
+      },
+      {
+        "year": 2029,
+        "p10": 5319.498198401293,
+        "p50": 5529.189638900476,
+        "p90": 5747.146990690283
+      },
+      {
+        "year": 2030,
+        "p10": 5667.723314564454,
+        "p50": 5911.370359555717,
+        "p90": 6165.491430754369
+      },
+      {
+        "year": 2031,
+        "p10": 6037.856101394341,
+        "p50": 6319.967628164379,
+        "p90": 6615.260474959275
+      },
+      {
+        "year": 2032,
+        "p10": 6431.420274133782,
+        "p50": 6756.80737148886,
+        "p90": 7098.656892167596
+      }
+    ],
+    "backtest": {
+      "loglinear": {
+        "n": 6,
+        "mape": 0.018224872586593017,
+        "mean_signed_error_pct": -0.0037933990033409593
+      },
+      "linear": {
+        "n": 6,
+        "mape": 0.03159964512309464,
+        "mean_signed_error_pct": -0.024966145952282037
+      },
+      "cagr_endpoints": {
+        "n": 6,
+        "mape": 0.01989913517884346,
+        "mean_signed_error_pct": -0.005588811031954243
+      },
+      "last_yoy": {
+        "n": 6,
+        "mape": 0.02880784794797454,
+        "mean_signed_error_pct": -0.017100915090938272
+      }
+    }
+  },
+  "sources": [
+    {
+      "id": "S01",
+      "name": "2025 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(uploaded PDF: 2025_GRIDCo-_Annual_Report_.pdf)",
+      "tier": "primary",
+      "status": "have",
+      "notes": "Transmission company report; has NO plant capacity, fuel mix, gas, hydro or load-shedding totals"
+    }
+  ],
+  "capacity": null
+}

@@ -125,7 +125,7 @@ def run(db_path, horizon=7, store=True):
                                            "not a policy or planning assumption.", source_id=source)
                       ) if not s.scalars(select(Assumption).where(Assumption.name == "baseline_peak_growth_loglinear")).first() else None
                 run_row = ModelRun(model_version=MODEL_VERSION, scenario_json={"kind": "baseline", "model": "loglinear",
-                                                                            "interval": "80% t prediction interval"},
+                                                                            "interval": "80% prediction interval"},
                                    inputs_snapshot={"metric": METRIC, "source_id": source,
                                                     "series": dict(zip(map(str, years), vals))})
                 s.add(run_row)

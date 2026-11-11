@@ -1,0 +1,93 @@
+---
+import Base from '../layouts/Base.astro';
+import PeakChart from '../components/PeakChart.astro';
+import { energy, fmt, pct, source, peaks, energyTx, losses, forecast, latest } from '../lib/energy';
+
+const d = energy.derived;
+const s01 = source(latest.source_id)!;
+const f2030 = forecast.find((f) => f.year === 2030)!;
+const f2026 = forecast.find((f) => f.year === 2026)!;
+const bt = energy.forecast.backtest.loglinear;
+const lossNow = losses[losses.length - 1];
+const levers = [
+  ['Gas supply', "Most of Ghana's power comes from thermal plants. When gas runs short, available capacity falls below what the plants are rated for."],
+  ['Hydro levels', 'Akosombo, Bui and Kpong depend on rainfall. Dry years cut output and limit when plants can run.'],
+  ['New capacity', 'Plants and solar projects add supply, but projects slip. The model will test on-time and delayed cases.'],
+  ['Cooling and heat', 'Hotter evenings push air-conditioning load into the peak hours.'],
+  ['Electric vehicles', 'A small load today. The tool will show how much it would take for charging to matter, and how timing changes that.'],
+  ['Transmission and payments', 'Thin lines in some corridors and unpaid bills in the sector can cause cuts even when plants are available.'],
+];
+---
+<Base title="Energy" active="energy">
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <span class="eyebrow">Energy</span>
+      <span class="pill">Provisional: plant capacity not yet verified</span>
+    </div>
+    <h1 style="margin:0;font-size:44px;line-height:1.08;letter-spacing:-.02em;max-width:18ch;text-wrap:balance">Demand is growing faster than the capacity we can confirm.</h1>
+    <p class="muted" style="margin:0;max-width:62ch;font-size:17px">Ghana's peak electricity demand reached a record {fmt(d.peak_latest)} MW in {d.peak_latest_year}. This page tracks where it stands, where it is heading, and what could change the picture.</p>
+  </section>
+
+  <section aria-label="Latest figures" class="tiles">
+    <div class="card tile"><span class="eyebrow">{d.peak_latest_year} peak demand</span>
+      <span class="big">{fmt(d.peak_latest)} <small>MW</small></span>
+      <span class="sub">Record high, up {pct(d.peak_yoy_pct)} on {d.peak_latest_year - 1}</span></div>
+    <div class="card tile"><span class="eyebrow">Growth since {d.peak_first_year}</span>
+      <span class="big">+{pct(d.peak_growth_since_first_pct)}</span>
+      <span class="sub">About {pct(d.peak_cagr_pct)} a year, compounded</span></div>
+    <div class="card tile"><span class="eyebrow">Energy transmitted, {d.peak_latest_year}</span>
+      <span class="big">{fmt(d.energy_latest)} <small>GWh</small></span>
+      <span class="sub">Up {pct(d.energy_yoy_pct, 2)} on {d.peak_latest_year - 1}</span></div>
+    <div class="card tile"><span class="eyebrow">Reserve margin</span>
+      <span class="big" style="font-size:26px;padding:6px 0">Not yet verified</span>
+      <span class="sub" style="color:var(--warn);font-weight:600">Needs confirmed plant capacity. Shown once checked.</span></div>
+  </section>
+
+  <section style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+    <div class="card" style="flex:999 1 640px;min-width:0;display:flex;flex-direction:column;gap:10px;padding:20px 22px">
+      <h2 style="margin:0;font-size:21px">Peak demand: history and baseline projection</h2>
+      <p class="muted" style="margin:0;font-size:14px">If demand keeps growing the way it has, annual peak reaches about {fmt(f2026.p50)} MW in 2026 and {fmt(f2030.p50)} MW by 2030 (likely range {fmt(f2030.p10)} to {fmt(f2030.p90)} MW). This is a trend projection, not a prediction of any single year.</p>
+      <PeakChart />
+      <p class="src" style="margin:0">Actual: <a href="/data/#sources">{s01.name}, {s01.publisher}, p. {latest.page.split(',').pop()?.trim()}</a>. Projection: {energy.forecast.model_version}, constant-growth fit to {peaks.length} annual peaks; shaded band is an {energy.forecast.interval}. It excludes new demand sources such as EV charging. Capacity is not drawn because it has not been verified. In past tests, forecasts of this kind were off by about {pct(bt.mape * 100)} on average, but there were only {bt.n} test cases.</p>
+    </div>
+    <aside style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-size:18px">Early-warning level</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" aria-label="Levels: Adequate, Tight, Shortfall. None selected.">
+          <span class="lvl" style="color:#0b6a37;background:#e3f4ea">Adequate</span>
+          <span class="lvl" style="color:#8a5200;background:#fbefd9">Tight</span>
+          <span class="lvl" style="color:#a82a21;background:#fbe5e2">Shortfall</span>
+        </div>
+        <p class="muted" style="margin:0;font-size:13.5px"><b>Not assessed.</b> A level needs verified capacity as well as demand. It will appear here once the capacity data is loaded.</p>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-size:18px">Transmission losses</h2>
+        <span class="big" style="font-size:30px">{fmt(lossNow.value, 2)}<small>%</small></span>
+        <span class="sub">{lossNow.year}. The regulator's limit is 4.10%.</span>
+      </div>
+    </aside>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:24px">What changes the picture</h2>
+    <div class="levers">
+      {levers.map(([t, b]) => (<div class="card"><div style="font-weight:600;margin-bottom:4px">{t}</div><div class="muted" style="font-size:14px">{b}</div></div>))}
+    </div>
+  </section>
+
+  <section style="border-top:1px solid var(--border);padding-top:20px;display:flex;flex-wrap:wrap;gap:12px 32px;font-size:13.5px" class="muted">
+    <div style="flex:1 1 320px"><b style="color:var(--text)">Sources.</b> {s01.name}, {s01.publisher}, pp. 11 and 25 to 26. Capacity, generation and fuel data from the Electricity Supply Plan, PURC fact sheets and the Energy Commission Outlook are being verified. <a href="/data/">See all sources</a>.</div>
+    <div style="flex:1 1 320px"><b style="color:var(--text)">Method.</b> Every number carries its source, year and whether it is an actual or a forecast. Conflicting sources are shown side by side. <a href="/data/#methods">Read the method</a> or <a href="/data/energy.json">download the data</a>.</div>
+  </section>
+</Base>
+<style>
+  .tiles { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+  .tile { display:flex; flex-direction:column; gap:2px; padding:16px 18px; }
+  .tile .big { font-weight:700; font-size:34px; line-height:1.1; }
+  .big small { font-family:"Public Sans",sans-serif; font-weight:500; font-size:15px; color:var(--muted); }
+  .sub { font-size:13px; color:var(--muted); }
+  .lvl { font-size:13px; font-weight:600; border-radius:999px; padding:3px 12px; opacity:.55; }
+  .levers { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  @media (max-width:900px) { .tiles { grid-template-columns:repeat(2,minmax(0,1fr)); } .levers { grid-template-columns:1fr; } }
+  @media (max-width:480px) { .tiles { grid-template-columns:1fr; } h1 { font-size:32px !important; } }
+</style>

@@ -15,3 +15,12 @@ Layout: `data/` curated CSVs + raw files, `db/` models and write helpers, `migra
 
 Status: Phase 0 dataset v0 loaded; Phase 1 baseline forecast done. Scenario model is blocked on verified plant
 capacity (GRIDCo Supply Plan / PURC fact sheets not yet obtained).
+
+## Site (web/)
+Static Astro site; every number comes from `web/src/data/energy.json`, generated from the database.
+```bash
+.venv/bin/python -m ingest.load && .venv/bin/python -m model.baseline && .venv/bin/python -m ingest.export
+cd web && npm install && npm run dev      # or: npm run build
+```
+Deploy to Vercel with **Root Directory = `web`** (framework: Astro). `energy.json` is committed so Vercel needs no Python;
+re-run the three commands above and commit when the data changes.
