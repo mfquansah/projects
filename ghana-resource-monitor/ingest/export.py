@@ -14,8 +14,8 @@ from pathlib import Path
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from db.models import Assumption, ForecastOutput, ModelRun, Observation, Source
-from model.baseline import MODEL_VERSION, backtest, load_series
+from db.models import Assumption, Conflict, ForecastOutput, ModelRun, Observation, Source
+from model.baseline import MODEL_OF_RECORD, MODEL_VERSION, SENSITIVITY, backtest, load_series, predict_point
 from model.scenario import ASSUMPTIONS, growth_cases
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -51,18 +51,31 @@ def export(db_path, out_path):
         years, vals, _ = load_series(s)
         bt, _ = backtest(years, vals)
         peaks = series["system_peak_demand"]
-        first, last, prev = peaks[0], peaks[-1], peaks[-2]
-        n = last["year"] - first["year"]
+        by_year = {p["year"]: p for p in peaks}
+        SINCE = 2019  # GRIDCo's own headline comparison ("+52.7% since 2019")
+        last, prev, ref = peaks[-1], peaks[-2], by_year[SINCE]
+        en = series["energy_transmitted"]
         derived = {
             "peak_latest": last["value"], "peak_latest_year": last["year"],
             "peak_yoy_pct": (last["value"] / prev["value"] - 1) * 100,
-            "peak_growth_since_first_pct": (last["value"] / first["value"] - 1) * 100,
-            "peak_first_year": first["year"],
-            "peak_cagr_pct": ((last["value"] / first["value"]) ** (1 / n) - 1) * 100,
+            "peak_since_year": SINCE,
+            "peak_growth_since_pct": (last["value"] / ref["value"] - 1) * 100,
+            "peak_cagr_since_pct": ((last["value"] / ref["value"]) ** (1 / (last["year"] - SINCE)) - 1) * 100,
+            "peak_first_year": peaks[0]["year"],
+            "peak_cagr_full_pct": ((last["value"] / peaks[0]["value"]) ** (1 / (last["year"] - peaks[0]["year"])) - 1) * 100,
+            "energy_latest": en[-1]["value"], "energy_latest_confidence": en[-1]["confidence"],
+            "energy_yoy_pct": (en[-1]["value"] / en[-2]["value"] - 1) * 100,
+            "energy_yoy_confidence": "low" if "low" in (en[-1]["confidence"], en[-2]["confidence"]) else en[-1]["confidence"],
         }
-        en = series["energy_transmitted"]
-        derived["energy_latest"] = en[-1]["value"]
-        derived["energy_yoy_pct"] = (en[-1]["value"] / en[-2]["value"] - 1) * 100
+        target_years = [f.period for f in fc]
+        sens = predict_point(SENSITIVITY, years, vals, [int(y) for y in target_years])
+        by_id = {o.id: o for o in s.scalars(select(Observation)).all()}
+        conflicts = []
+        for c in s.scalars(select(Conflict).order_by(Conflict.metric, Conflict.period)).all():
+            conflicts.append({
+                "metric": c.metric, "year": int(c.period), "status": c.status, "note": c.resolution_note,
+                "values": [{"value": by_id[i].value, "unit": by_id[i].unit, "source_id": by_id[i].source_id,
+                            "page": by_id[i].page, "chosen": by_id[i].superseded_by is None} for i in c.observation_ids]})
 
         assumptions = s.scalars(select(Assumption).order_by(Assumption.name)).all()
         missing = set(ASSUMPTIONS) - {a.name for a in assumptions}
@@ -89,9 +102,12 @@ def export(db_path, out_path):
             "forecast": {
                 "model_version": run.model_version, "run_at": run.run_at.isoformat(timespec="seconds"),
                 "interval": run.scenario_json.get("interval"),
+                "model_key": MODEL_OF_RECORD, "sensitivity_model": SENSITIVITY,
+                "sensitivity": [{"year": int(y), "p50": v} for y, v in zip(target_years, sens)],
                 "points": [{"year": int(f.period), "p10": f.p10, "p50": f.p50, "p90": f.p90} for f in fc],
                 "backtest": bt,
             },
+            "conflicts": conflicts,
             "scenario": scenario,
             "sources": sources,
             "capacity": None,  # no verified capacity yet; the site must show "not yet verified", never a number

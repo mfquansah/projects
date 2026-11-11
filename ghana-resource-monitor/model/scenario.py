@@ -20,7 +20,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from db.models import Assumption
-from model.baseline import load_series, loglinear_interval
+from model.baseline import WINDOW, load_series, loglinear_interval
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -82,15 +82,18 @@ def evs_needed(share_of_peak: float, base_peak: float, kw: float, coincidence: f
     return share_of_peak * base_peak / per_vehicle_mw
 
 
-def growth_cases(years, vals, window=3):
-    """Low / central / high annual growth derived from the data: the slowest and fastest rolling
-    `window`-year compound growth actually observed, and the log-linear fit as central."""
-    cagr = [(vals[k] / vals[k - window]) ** (1 / window) - 1 for k in range(window, len(vals))]
-    _, fit = loglinear_interval(years, vals, [years[-1] + 1])
-    central = fit["annual_growth"]
-    return {"low": min(cagr + [central]), "central": central, "high": max(cagr + [central]),
-            "basis": f"slowest / fastest {window}-year compound growth observed, and the log-linear fit",
-            "window_cagrs": cagr}
+def growth_cases(years, vals, horizon=5):
+    """Low / central / high annual growth, tied to the baseline forecast band so the site tells one story.
+
+    Each case is the constant yearly growth that carries the latest actual peak to the baseline's p10 / p50 / p90
+    value `horizon` years later. (So low is roughly 'a slow outcome', high 'a fast outcome', and central the fit.)"""
+    (lo, mid, hi), fit = loglinear_interval(years, vals, [years[-1] + horizon], window=WINDOW)[0][0], \
+        loglinear_interval(years, vals, [years[-1] + horizon], window=WINDOW)[1]
+    base = vals[-1]
+    g = lambda v: (v / base) ** (1 / horizon) - 1
+    return {"low": g(lo), "central": g(mid), "high": g(hi),
+            "basis": f"the yearly growth that carries the {years[-1]} peak to the low, central and high ends of the "
+                     f"baseline projection for {years[-1] + horizon}"}
 
 
 def seed_assumptions(session: Session):

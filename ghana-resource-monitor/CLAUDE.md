@@ -98,9 +98,38 @@ urban growth / impervious surface, drainage; separate climate vs. urbanization e
 - Prefer primary documents (GRIDCo, Energy Commission, PURC, Ministry of Energy, VRA, BPA, DVLA) over news/AI summaries.
 - Do not fill gaps from memory.
 
-## Verified so far (GRIDCo 2025 Annual Report, pp. 25-26)
-Annual system peak (MW): 2019 2,804; 2020 3,090; 2021 3,246; 2022 3,469; 2023 3,618; 2024 3,952; **2025 4,283**.
-2025 energy transmitted 25,860 GWh (+9.15%); transmission losses 4.02%. See data/gridco_series.csv.
+## Verified so far (GRIDCo annual reports 2013-2025, via data/gridco/)
+Cleaned by the data owner: one value per (year, metric), with confidence, report, PDF page, method, and the rejected values
+(data/gridco/README.md, gridco_decisions.csv, build_clean.py; the raw extraction file is not in the repo yet).
+- **Annual system peak (MW), 13 values, no conflicts:** 2013 1,942.9; 2014 1,970; 2015 1,933; 2016 1,997; 2017 2,192.15; 2018 2,525;
+  2019 2,804; 2020 3,090; 2021 3,246; 2022 3,469; 2023 3,618; 2024 3,952; **2025 4,283**. Growth: 6.8%/yr 2013-2025, 7.3%/yr 2019-2025, 8.4% in 2025.
+  2013-2016 were load-shedding years (peaks are what was delivered), 2016-2019 a rebound, steady growth since.
+- Energy transmitted 2014-2023 and loss % 2013-2023 and 2025: use with confidence (loss volume / loss % cross-check settled the conflicts).
+  An earlier hand-built version of 2019-2022 energy was wrong (read from blurry charts); the cleaned values replace it.
+- **Use with a flag:** energy 2024 (23,692) and 2025 (25,860 GWh) are published headlines but loss volumes imply ~25,000 and ~26,900 (open conflicts);
+  energy 2013 has no cross-check; 2024 loss % (3.8) is a rounded chart label.
+- **Do not trend system availability** (definition changes between reports; 2024 blank). transformation_capacity is MVA of network
+  equipment, NOT generation capacity.
+- Still missing: generation capacity by plant, fuel mix, gas, hydro, official forecasts (need Supply Plans, PURC, Energy Commission).
+
+## Forecast model decisions (baseline-0.2)
+- Six simple models are backtested (rolling origin, same origins for all). Lowest error is the model of record: log-linear fit to all years
+  (3.0% mean error, 15 overlapping tests, so a rough guide only). Fits to only the last 7 or 5 years did worse in the backtest (6.9%, 7.0%),
+  partly because early test windows contained the rebound years. The 7-year fit is published as a labelled sensitivity (lower path: 5,911 MW in 2030
+  vs 6,147). Revisit as years are added; do not switch models without re-running the backtest.
+- Scenario growth cases are the growth that carries the 2025 peak to the baseline's p10/p50/p90 five years later (about 5.4% / 7.5% / 9.6%).
+- Capacity is never defaulted in the scenario tool; EV inputs are illustrative assumptions stored with rationale.
+
+## Data updates (decided)
+Data arrives **annually** (GRIDCo, Energy Commission) and sometimes **more often** (PURC monthly, later weather/satellite). Design for that:
+- Updating must be incremental and repeatable, never a manual edit of numbers in the site or database. A new data drop = new raw file
+  (hash-named, never overwritten) -> parse -> rows at confidence=medium -> review -> high -> export -> site rebuild.
+- A new year of an existing series is an insert. A changed value is a correction: insert the new row and supersede the old one (db/ops.py);
+  never edit or delete history. Disagreeing sources go in `conflicts`, side by side.
+- Every update is logged (`ingest_runs`); a failed or empty scheduled run must alert. The forecast is re-run (new `model_runs`) and the backtest
+  re-checked each time new actuals arrive, and the site shows the data date and model version.
+- v0 caveat: `ingest.load` currently rebuilds the database from the CSVs in data/ every time (fine while the curated CSVs are the source of truth).
+  Before the first scheduled/monthly source it must become an incremental load into a persistent database.
 
 ## Known discrepancies / traps (found while reviewing an AI-generated research report)
 - Installed capacity appears as ~5,200, 5,260, 5,507, 5,818 and "just under 6,000" MW: different boundaries

@@ -6,11 +6,24 @@ const names: Record<string, string> = {
   system_peak_demand: 'Annual system peak demand',
   energy_transmitted: 'Energy transmitted',
   transmission_losses: 'Transmission losses',
-  transmission_line_availability: 'Transmission line availability',
   electricity_access_national: 'National electricity access',
+  transmission_energy_losses: 'Transmission energy losses (GWh)',
+  system_availability: 'System availability (do not trend)',
+  system_availability_excluding_J2K: 'System availability excluding the J2K line',
+  transformation_capacity: 'Transformation capacity (network equipment, not generation)',
+  transmission_line_length: 'Transmission line length',
+  substations_or_BSPs: 'Substations and bulk supply points',
 };
+const metricNote: Record<string, string> = {
+  system_availability: 'The definition appears to change between reports: the same year is restated differently in later reports, and 2024 is blank. Do not read it as a trend until GRIDCo confirms the definition.',
+  transformation_capacity: 'This is transformer capacity on the transmission network (MVA). It is not generation capacity and says nothing about how much power plants can supply.',
+  system_peak_demand: 'Peaks up to 2016 were held down by load shedding, so they show what was delivered rather than what was wanted.',
+};
+const metricLabel = (m: string) => names[m] ?? m;
 const tierLabel: Record<string, string> = { primary: 'Primary document', secondary: 'Secondary', ai_summary: 'AI summary (not cited)' };
-const bt = energy.forecast.backtest;
+const bt = energy.forecast.backtest as Record<string, any>;
+const key = energy.forecast.model_key;
+const sens = energy.forecast.sensitivity;
 ---
 <Base title="Data and methods" active="data">
   <section style="display:flex;flex-direction:column;gap:10px">
@@ -32,31 +45,46 @@ const bt = energy.forecast.backtest;
     <p class="src" style="margin:0">Other sources are catalogued but not yet used for any figure: the Electricity Supply Plans, PURC monthly fact sheets and Energy Commission outlooks are being verified.</p>
   </section>
 
+  <section id="conflicts" class="card" style="display:flex;flex-direction:column;gap:10px">
+    <h2 style="margin:0;font-size:20px">Where sources disagree</h2>
+    <p class="muted" style="margin:0;max-width:70ch">When two reports give different values for the same year, both are kept. The value used on the site is marked. Nothing is averaged. A check that settled most cases: loss volume divided by loss percentage gives the energy total a report must have used.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Metric</th><th>Year</th><th>Status</th><th>Values (source, page)</th><th>Why</th></tr></thead>
+      <tbody>{energy.conflicts.map((c) => (
+        <tr><td>{metricLabel(c.metric)}</td><td>{c.year}</td>
+        <td>{c.status === 'open' ? <b style="color:var(--warn)">Unresolved</b> : 'Resolved'}</td>
+        <td>{c.values.map((v) => (<div>{v.chosen ? <b>{fmt(v.value, 2)} used</b> : <span class="muted">{fmt(v.value, 2)} rejected</span>} <span class="muted">({v.source_id}, p. {v.page})</span></div>))}</td>
+        <td class="muted">{c.note}</td></tr>))}</tbody>
+    </table></div>
+  </section>
+
   {Object.entries(energy.series).map(([metric, rows]) => (
-    <section class="card" style="display:flex;flex-direction:column;gap:10px">
-      <h2 style="margin:0;font-size:20px">{names[metric] ?? metric}</h2>
-      <div class="scroll"><table>
+    <details class="card" open={metric === 'system_peak_demand'}>
+      <summary style="font-weight:600;font-size:18px;cursor:pointer;font-family:'Bricolage Grotesque',system-ui,sans-serif">{metricLabel(metric)} <span class="muted" style="font-weight:400;font-size:14px">({(rows as any[]).length} values)</span></summary>
+      {metricNote[metric] && <p class="src" style="margin:8px 0 0"><b>Note.</b> {metricNote[metric]}</p>}
+      <div class="scroll" style="margin-top:8px"><table>
         <thead><tr><th>Year</th><th class="n">Value</th><th>Unit</th><th>Type</th><th>Source</th><th>Page</th><th>Confidence</th><th>Note</th></tr></thead>
         <tbody>{(rows as any[]).map((r) => (
-          <tr><td>{r.year}</td><td class="n">{fmt(r.value, r.unit === 'percent' ? 2 : 0)}</td><td>{r.unit}</td><td>{r.value_type}</td><td>{r.source_id}</td><td>{r.page}</td><td>{r.confidence}</td><td class="muted">{r.note}</td></tr>
+          <tr><td>{r.year}</td><td class="n">{fmt(r.value, r.unit === 'percent' || r.value % 1 !== 0 ? 2 : 0)}</td><td>{r.unit}</td><td>{r.value_type}</td><td>{r.source_id}</td><td>{r.page}</td><td>{r.confidence === 'low' ? <b style="color:var(--warn)">low</b> : r.confidence}</td><td class="muted">{r.note}</td></tr>
         ))}</tbody>
       </table></div>
-    </section>
+    </details>
   ))}
 
   <section id="methods" class="card" style="display:flex;flex-direction:column;gap:10px">
     <h2 style="margin:0;font-size:20px">Method: baseline peak-demand projection</h2>
-    <p style="margin:0;max-width:70ch">We fit a constant yearly growth rate to the {energy.series.system_peak_demand.length} annual peak-demand figures (log-linear regression). The result is {pct(energy.derived.peak_cagr_pct)} a year measured end to end. The shaded band on the chart is an {energy.forecast.interval}, so it widens the further ahead we look. It reflects only how well a straight growth line has fitted the past. It does not include new demand sources such as electric-vehicle charging, extra cooling load, or supply limits.</p>
-    <p style="margin:0;max-width:70ch"><b>How well it has worked.</b> We tested four simple methods by pretending to forecast earlier years, using only the data available at the time. There are just {bt.loglinear.n} such tests, so treat this as a rough guide.</p>
-    <div class="scroll"><table style="max-width:520px">
+    <p style="margin:0;max-width:70ch">We fit a constant yearly growth rate to the {energy.series.system_peak_demand.length} annual peak-demand figures from {energy.derived.peak_first_year} to {energy.derived.peak_latest_year} (log-linear regression), which gives about {pct(energy.scenario.assumptions.baseline_peak_growth_loglinear.value * 100)} a year. The shaded band on the chart is an {energy.forecast.interval}, so it widens the further ahead we look. It is wide because the history is not one steady trend: peaks were held down by load shedding to about 2016, rebounded quickly to 2019, and have grown at about {pct(energy.derived.peak_cagr_since_pct)} a year since. The projection does not include new demand sources such as electric-vehicle charging, extra cooling load, or supply limits.</p>
+    <p style="margin:0;max-width:70ch"><b>How the method was chosen.</b> We tested six simple methods by pretending to forecast earlier years, using only the data available at the time. The one with the lowest average miss is the one used. There are only {bt[key].n} such tests and they overlap, so the ranking is a rough guide, not proof.</p>
+    <div class="scroll"><table style="max-width:560px">
       <thead><tr><th>Method</th><th class="n">Tests</th><th class="n">Average miss</th></tr></thead>
       <tbody>{Object.entries(bt).sort((a: any, b: any) => a[1].mape - b[1].mape).map(([m, v]: any) => (
-        <tr><td>{m === 'loglinear' ? 'Constant growth (used)' : m}</td><td class="n">{v.n}</td><td class="n">{pct(v.mape * 100)}</td></tr>))}</tbody>
+        <tr><td>{m === key ? m + ' (used)' : m}</td><td class="n">{v.n}</td><td class="n">{pct(v.mape * 100)}</td></tr>))}</tbody>
     </table></div>
+    <p class="src" style="margin:0">Names ending _w7 or _w5 use only the last 7 or 5 years. They did worse in these tests, partly because early test windows still contained the rebound years, but that is an explanation, not proof. The 7-year version is shown below as a sensitivity because it describes only the steadier recent years.</p>
     <h3 style="margin:8px 0 0;font-size:16px">Projection values (forecast, {energy.forecast.model_version})</h3>
-    <div class="scroll"><table style="max-width:520px">
-      <thead><tr><th>Year</th><th class="n">Low (p10)</th><th class="n">Central (p50)</th><th class="n">High (p90)</th></tr></thead>
-      <tbody>{energy.forecast.points.map((p) => (<tr><td>{p.year}</td><td class="n">{fmt(p.p10)}</td><td class="n">{fmt(p.p50)}</td><td class="n">{fmt(p.p90)}</td></tr>))}</tbody>
+    <div class="scroll"><table style="max-width:680px">
+      <thead><tr><th>Year</th><th class="n">Low (p10)</th><th class="n">Central (p50)</th><th class="n">High (p90)</th><th class="n">Steady-years trend only</th></tr></thead>
+      <tbody>{energy.forecast.points.map((p) => (<tr><td>{p.year}</td><td class="n">{fmt(p.p10)}</td><td class="n">{fmt(p.p50)}</td><td class="n">{fmt(p.p90)}</td><td class="n muted">{fmt(sens.find((s) => s.year === p.year)!.p50)}</td></tr>))}</tbody>
     </table></div>
     <p class="src" style="margin:0">Peak demand is the highest load actually delivered. If supply shortages held some demand back, the true underlying peak is higher. Capacity and reserve margin are not shown because verified plant capacity has not been loaded yet.</p>
   </section>

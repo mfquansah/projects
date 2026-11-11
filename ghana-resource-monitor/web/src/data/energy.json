@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-11T18:50:03+00:00",
+  "generated_at": "2026-11-11T19:15:46+00:00",
   "series": {
     "electricity_access_national": [
       {
@@ -16,59 +16,125 @@
     ],
     "energy_transmitted": [
       {
-        "year": 2019,
-        "value": 16958.0,
+        "year": 2013,
+        "value": 12930.0,
         "unit": "GWh",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "25",
+        "source_id": "S14",
+        "page": "14",
         "confidence": "medium",
-        "note": "Chart label blurry; derived from 25860 / 1.5249 (report: 2025 is 52.49% above 2019)"
+        "note": "2013 report states 12.93 TWh transmitted; no loss GWh available to cross-check"
+      },
+      {
+        "year": 2014,
+        "value": 13071.28,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S15",
+        "page": "25",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2015,
+        "value": 11690.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S16",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2016,
+        "value": 13700.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S17",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2017,
+        "value": 14310.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S18",
+        "page": "14",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2018,
+        "value": 15960.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S19",
+        "page": "16",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2019,
+        "value": 17887.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S20",
+        "page": "18",
+        "confidence": "high",
+        "note": "Loss GWh / loss % = 17,898 GWh, matches the 2019 report (17,887); the 2020-report comparator (17,034) does not fit"
       },
       {
         "year": 2020,
-        "value": 18670.0,
+        "value": 19716.59,
         "unit": "GWh",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "25",
-        "confidence": "medium",
-        "note": "Chart label blurry; consistent with stated YoY growth of 10.10%"
+        "source_id": "S24",
+        "page": "26",
+        "confidence": "high",
+        "note": "Loss GWh / loss % = 19,711 GWh, matches the 2023-report series (19,716.59); the 2020 report headline (18,819) does not fit"
       },
       {
         "year": 2021,
-        "value": 20388.0,
+        "value": 21466.0,
         "unit": "GWh",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "25",
-        "confidence": "medium",
-        "note": "Chart label blurry; derived from chart growth rates (9.21%)"
+        "source_id": "S22",
+        "page": "19",
+        "confidence": "high",
+        "note": "Loss GWh / 5.01% = 21,477 GWh, matches 21,466; \"2022\" comparator label in the source is a typo for 2021"
       },
       {
         "year": 2022,
-        "value": 21545.0,
+        "value": 22478.46,
         "unit": "GWh",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "25",
-        "confidence": "medium",
-        "note": "Chart label blurry; derived from chart growth rates (5.68% and 9.31%)"
+        "source_id": "S23",
+        "page": "24",
+        "confidence": "high",
+        "note": "Loss GWh / loss % = 22,488 GWh, matches the 2022 report and the 2023 report p26 series; the 21,545 comparator does not fit"
       },
       {
         "year": 2023,
-        "value": 23551.0,
+        "value": 23550.99,
         "unit": "GWh",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "25",
+        "source_id": "S24",
+        "page": "26",
         "confidence": "high",
-        "note": "Chart label"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2024,
@@ -76,10 +142,10 @@
         "unit": "GWh",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "25, 33",
-        "confidence": "high",
-        "note": "Stated in text: 23692 GWh in 2024"
+        "source_id": "S25",
+        "page": "25",
+        "confidence": "low",
+        "note": "Published headline, and the 2025 growth of 9.15% is computed from it. But the same report says \"over 24,600\" and loss GWh / 3.8% implies about 25,000. Unresolved"
       },
       {
         "year": 2025,
@@ -88,91 +154,201 @@
         "value_type": "actual",
         "capacity_type": null,
         "source_id": "S01",
-        "page": "11, 25",
-        "confidence": "high",
-        "note": "Stated in text: highest in company history, +9.15% on 2024"
+        "page": "25",
+        "confidence": "low",
+        "note": "Published headline. Loss GWh (1,082) / 4.02% implies about 26,900, so the loss volume and the energy total may use different scopes. Unresolved"
       }
     ],
-    "system_peak_demand": [
+    "substations_or_BSPs": [
       {
         "year": 2019,
-        "value": 2804.0,
-        "unit": "MW",
+        "value": 63.0,
+        "unit": "count",
         "value_type": "actual",
-        "capacity_type": "peak_coincident",
-        "source_id": "S01",
-        "page": "26",
+        "capacity_type": null,
+        "source_id": "S20",
+        "page": "5",
         "confidence": "high",
-        "note": "Read from labeled chart (Figure 3); 2025 growth since 2019 of 52.7% is consistent"
-      },
-      {
-        "year": 2020,
-        "value": 3090.0,
-        "unit": "MW",
-        "value_type": "actual",
-        "capacity_type": "peak_coincident",
-        "source_id": "S01",
-        "page": "26",
-        "confidence": "high",
-        "note": "Chart label"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2021,
-        "value": 3246.0,
-        "unit": "MW",
+        "value": 68.0,
+        "unit": "count",
         "value_type": "actual",
-        "capacity_type": "peak_coincident",
-        "source_id": "S01",
-        "page": "26",
+        "capacity_type": null,
+        "source_id": "S22",
+        "page": "5",
         "confidence": "high",
-        "note": "Chart label; matches GRIDCo 2022 Supply Plan (3246.0 MW on 8 Dec 2021)"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2022,
-        "value": 3469.0,
-        "unit": "MW",
+        "value": 69.0,
+        "unit": "count",
         "value_type": "actual",
-        "capacity_type": "peak_coincident",
-        "source_id": "S01",
-        "page": "26",
+        "capacity_type": null,
+        "source_id": "S23",
+        "page": "6",
         "confidence": "high",
-        "note": "Chart label; matches PURC Q1 2022 max system demand of 3469 MW"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2023,
-        "value": 3618.0,
-        "unit": "MW",
+        "value": 66.0,
+        "unit": "count",
         "value_type": "actual",
-        "capacity_type": "peak_coincident",
-        "source_id": "S01",
-        "page": "26",
+        "capacity_type": null,
+        "source_id": "S24",
+        "page": "5",
         "confidence": "high",
-        "note": "Chart label; matches IES (3618 MW on 26 Dec 2023)"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2024,
-        "value": 3952.0,
-        "unit": "MW",
+        "value": 72.0,
+        "unit": "count",
         "value_type": "actual",
-        "capacity_type": "peak_coincident",
-        "source_id": "S01",
-        "page": "26",
+        "capacity_type": null,
+        "source_id": "S25",
+        "page": "9",
         "confidence": "high",
-        "note": "Chart label; 4283 is +8.4% over 3952"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2025,
-        "value": 4283.0,
-        "unit": "MW",
+        "value": 72.0,
+        "unit": "count",
         "value_type": "actual",
-        "capacity_type": "peak_coincident",
+        "capacity_type": null,
         "source_id": "S01",
-        "page": "11, 26",
+        "page": "8",
         "confidence": "high",
-        "note": "Stated in text and highlights: record peak, +8.4% on 2024 and +52.7% since 2019"
+        "note": "Single reported value, no conflict"
       }
     ],
-    "transmission_line_availability": [
+    "system_availability": [
+      {
+        "year": 2013,
+        "value": 97.59,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S14",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2014,
+        "value": 99.79,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S15",
+        "page": "18",
+        "confidence": "low",
+        "note": "Same-year narrative used; the 2016 report restates 99.17. Definitions may differ between reports"
+      },
+      {
+        "year": 2015,
+        "value": 99.46,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S16",
+        "page": "25",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2016,
+        "value": 99.39,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S17",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2017,
+        "value": 99.48,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S18",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2018,
+        "value": 99.48,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S19",
+        "page": "17",
+        "confidence": "low",
+        "note": "Same-year narrative used; the 2021 report restates 99.85. Definitions may differ"
+      },
+      {
+        "year": 2019,
+        "value": 99.43,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S20",
+        "page": "20",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2020,
+        "value": 99.15,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S21",
+        "page": "17",
+        "confidence": "low",
+        "note": "Same-year narrative used; the 2021 and 2024 charts show 99.69. Definitions may differ"
+      },
+      {
+        "year": 2021,
+        "value": 99.22,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S22",
+        "page": "19",
+        "confidence": "low",
+        "note": "Same-year narrative used; the chart on p20 of the same report shows 98.89"
+      },
+      {
+        "year": 2022,
+        "value": 99.26,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S23",
+        "page": "25",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2023,
+        "value": 99.53,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S24",
+        "page": "27",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
       {
         "year": 2025,
         "value": 99.61,
@@ -182,20 +358,503 @@
         "source_id": "S01",
         "page": "11",
         "confidence": "high",
-        "note": "Corporate highlights (average)"
+        "note": "Single reported value, no conflict"
+      }
+    ],
+    "system_availability_excluding_J2K": [
+      {
+        "year": 2024,
+        "value": 99.86,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S25",
+        "page": "27",
+        "confidence": "medium",
+        "note": "Different scope: Explicitly excludes J2K; not interchangeable with overall system availability."
+      }
+    ],
+    "system_peak_demand": [
+      {
+        "year": 2013,
+        "value": 1942.9,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S14",
+        "page": "14",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2014,
+        "value": 1970.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S15",
+        "page": "17",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2015,
+        "value": 1933.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S16",
+        "page": "16",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2016,
+        "value": 1997.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S17",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2017,
+        "value": 2192.15,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S18",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2018,
+        "value": 2525.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S19",
+        "page": "16",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2019,
+        "value": 2804.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S20",
+        "page": "19",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2020,
+        "value": 3090.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S22",
+        "page": "20",
+        "confidence": "high",
+        "note": "Chart value read from the 2021 report p20 and the 2025 report p26 series; both agree"
+      },
+      {
+        "year": 2021,
+        "value": 3246.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S22",
+        "page": "20",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2022,
+        "value": 3469.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S23",
+        "page": "26",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2023,
+        "value": 3618.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S24",
+        "page": "27",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2024,
+        "value": 3952.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S25",
+        "page": "26",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2025,
+        "value": 4283.0,
+        "unit": "MW",
+        "value_type": "actual",
+        "capacity_type": "peak_coincident",
+        "source_id": "S01",
+        "page": "26",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      }
+    ],
+    "transformation_capacity": [
+      {
+        "year": 2019,
+        "value": 8959.6,
+        "unit": "MVA",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S20",
+        "page": "5",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2021,
+        "value": 9152.8,
+        "unit": "MVA",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S22",
+        "page": "5",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2022,
+        "value": 9642.0,
+        "unit": "MVA",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S23",
+        "page": "6",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2023,
+        "value": 9784.8,
+        "unit": "MVA",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S24",
+        "page": "5",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2024,
+        "value": 9799.8,
+        "unit": "MVA",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S25",
+        "page": "9",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2025,
+        "value": 10493.8,
+        "unit": "MVA",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "8",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      }
+    ],
+    "transmission_energy_losses": [
+      {
+        "year": 2015,
+        "value": 440.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S16",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2016,
+        "value": 610.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S17",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2017,
+        "value": 590.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S18",
+        "page": "14",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2018,
+        "value": 707.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S19",
+        "page": "55",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2019,
+        "value": 843.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S20",
+        "page": "59",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2020,
+        "value": 887.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S21",
+        "page": "65",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2021,
+        "value": 1076.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S22",
+        "page": "62",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2022,
+        "value": 922.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S23",
+        "page": "75",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2023,
+        "value": 908.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S24",
+        "page": "75",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2024,
+        "value": 951.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S25",
+        "page": "72",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2025,
+        "value": 1082.0,
+        "unit": "GWh",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "84",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      }
+    ],
+    "transmission_line_length": [
+      {
+        "year": 2019,
+        "value": 6229.6,
+        "unit": "circuit_km",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S20",
+        "page": "5",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2021,
+        "value": 6472.2,
+        "unit": "circuit_km",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S22",
+        "page": "5",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2022,
+        "value": 6472.2,
+        "unit": "circuit_km",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S23",
+        "page": "6",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2023,
+        "value": 6639.2,
+        "unit": "circuit_km",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S24",
+        "page": "5",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2024,
+        "value": 6719.6,
+        "unit": "circuit_km",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S25",
+        "page": "9",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2025,
+        "value": 6777.71,
+        "unit": "circuit_km",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S01",
+        "page": "8",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
       }
     ],
     "transmission_losses": [
+      {
+        "year": 2013,
+        "value": 4.49,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S14",
+        "page": "14",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2014,
+        "value": 4.32,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S15",
+        "page": "17",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2015,
+        "value": 3.79,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S16",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2016,
+        "value": 4.43,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S17",
+        "page": "15",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2017,
+        "value": 4.1,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S18",
+        "page": "14",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
+      {
+        "year": 2018,
+        "value": 4.43,
+        "unit": "percent",
+        "value_type": "actual",
+        "capacity_type": null,
+        "source_id": "S19",
+        "page": "16",
+        "confidence": "high",
+        "note": "Single reported value, no conflict"
+      },
       {
         "year": 2019,
         "value": 4.71,
         "unit": "percent",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "26",
+        "source_id": "S20",
+        "page": "19",
         "confidence": "high",
-        "note": "Figure 4"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2020,
@@ -203,10 +862,10 @@
         "unit": "percent",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "26",
+        "source_id": "S21",
+        "page": "19",
         "confidence": "high",
-        "note": "Figure 4"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2021,
@@ -214,10 +873,10 @@
         "unit": "percent",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "26",
+        "source_id": "S23",
+        "page": "25",
         "confidence": "high",
-        "note": "Figure 4"
+        "note": "5.01% x 21,466 GWh = 1,076 GWh, which equals the audited loss volume; 5.15% does not"
       },
       {
         "year": 2022,
@@ -225,10 +884,10 @@
         "unit": "percent",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "26",
+        "source_id": "S23",
+        "page": "25",
         "confidence": "high",
-        "note": "Figure 4"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2023,
@@ -236,21 +895,21 @@
         "unit": "percent",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
-        "page": "26",
+        "source_id": "S24",
+        "page": "27",
         "confidence": "high",
-        "note": "Figure 4"
+        "note": "Single reported value, no conflict"
       },
       {
         "year": 2024,
-        "value": 3.82,
+        "value": 3.8,
         "unit": "percent",
         "value_type": "actual",
         "capacity_type": null,
-        "source_id": "S01",
+        "source_id": "S25",
         "page": "26",
-        "confidence": "high",
-        "note": "Figure 4"
+        "confidence": "medium",
+        "note": "Rounded chart label; do not infer more precision"
       },
       {
         "year": 2025,
@@ -261,7 +920,7 @@
         "source_id": "S01",
         "page": "26",
         "confidence": "high",
-        "note": "Stated in text; PURC threshold is 4.10%"
+        "note": "Single reported value, no conflict"
       }
     ]
   },
@@ -269,99 +928,353 @@
     "peak_latest": 4283.0,
     "peak_latest_year": 2025,
     "peak_yoy_pct": 8.375506072874494,
-    "peak_growth_since_first_pct": 52.74607703281027,
-    "peak_first_year": 2019,
-    "peak_cagr_pct": 7.315308287599942,
+    "peak_since_year": 2019,
+    "peak_growth_since_pct": 52.74607703281027,
+    "peak_cagr_since_pct": 7.315308287599942,
+    "peak_first_year": 2013,
+    "peak_cagr_full_pct": 6.8090704633542165,
     "energy_latest": 25860.0,
-    "energy_yoy_pct": 9.1507681917947
+    "energy_latest_confidence": "low",
+    "energy_yoy_pct": 9.1507681917947,
+    "energy_yoy_confidence": "low"
   },
   "forecast": {
-    "model_version": "baseline-0.1",
-    "run_at": "2026-11-11T18:50:02",
+    "model_version": "baseline-0.2",
+    "run_at": "2026-11-11T19:15:45",
     "interval": "80% prediction interval",
-    "points": [
+    "model_key": "loglinear",
+    "sensitivity_model": "loglinear_w7",
+    "sensitivity": [
       {
         "year": 2026,
-        "p10": 4391.934498269808,
-        "p50": 4524.6129395261805,
-        "p90": 4661.299539096653
+        "p50": 4524.6129395261805
       },
       {
         "year": 2027,
-        "p10": 4682.985298195322,
-        "p50": 4837.356749531948,
-        "p90": 4996.816951626975
+        "p50": 4837.356749531948
       },
       {
         "year": 2028,
-        "p10": 4991.7207920626015,
-        "p50": 5171.717588884576,
-        "p90": 5358.204902347162
+        "p50": 5171.717588884576
       },
       {
         "year": 2029,
-        "p10": 5319.498198401293,
-        "p50": 5529.189638900476,
-        "p90": 5747.146990690283
+        "p50": 5529.189638900476
       },
       {
         "year": 2030,
-        "p10": 5667.723314564454,
-        "p50": 5911.370359555717,
-        "p90": 6165.491430754369
+        "p50": 5911.370359555717
       },
       {
         "year": 2031,
-        "p10": 6037.856101394341,
-        "p50": 6319.967628164379,
-        "p90": 6615.260474959275
+        "p50": 6319.967628164379
       },
       {
         "year": 2032,
-        "p10": 6431.420274133782,
-        "p50": 6756.80737148886,
-        "p90": 7098.656892167596
+        "p50": 6756.80737148886
+      }
+    ],
+    "points": [
+      {
+        "year": 2026,
+        "p10": 4203.392951119798,
+        "p50": 4581.654474397834,
+        "p90": 4993.95558941913
+      },
+      {
+        "year": 2027,
+        "p10": 4512.185161160174,
+        "p50": 4931.031986067825,
+        "p90": 5388.758568004355
+      },
+      {
+        "year": 2028,
+        "p10": 4842.415320652755,
+        "p50": 5307.051542951572,
+        "p90": 5816.270231804085
+      },
+      {
+        "year": 2029,
+        "p10": 5195.597152936296,
+        "p50": 5711.7447542667915,
+        "p90": 6279.168145177829
+      },
+      {
+        "year": 2030,
+        "p10": 5573.356650075561,
+        "p50": 6147.298151121785,
+        "p90": 6780.343863024265
+      },
+      {
+        "year": 2031,
+        "p10": 5977.438478402124,
+        "p50": 6616.065000200848,
+        "p90": 7322.922058510884
+      },
+      {
+        "year": 2032,
+        "p10": 6409.71305216495,
+        "p50": 7120.578018311165,
+        "p90": 7910.280991085989
       }
     ],
     "backtest": {
       "loglinear": {
-        "n": 6,
-        "mape": 0.018224872586593017,
-        "mean_signed_error_pct": -0.0037933990033409593
+        "n": 15,
+        "mape": 0.029735115262175663,
+        "mean_signed_error_pct": -0.02467037129211956
       },
-      "linear": {
-        "n": 6,
-        "mape": 0.03159964512309464,
-        "mean_signed_error_pct": -0.024966145952282037
+      "loglinear_w7": {
+        "n": 15,
+        "mape": 0.06863623589174545,
+        "mean_signed_error_pct": 0.029771196674933362
       },
-      "cagr_endpoints": {
-        "n": 6,
-        "mape": 0.01989913517884346,
-        "mean_signed_error_pct": -0.005588811031954243
+      "loglinear_w5": {
+        "n": 15,
+        "mape": 0.06993761710499911,
+        "mean_signed_error_pct": 0.05769030368435976
+      },
+      "linear_w7": {
+        "n": 15,
+        "mape": 0.03902611957558076,
+        "mean_signed_error_pct": -0.02373427579168822
+      },
+      "cagr_endpoints_w7": {
+        "n": 15,
+        "mape": 0.03705951822904888,
+        "mean_signed_error_pct": 0.023679238803507977
       },
       "last_yoy": {
-        "n": 6,
-        "mape": 0.02880784794797454,
-        "mean_signed_error_pct": -0.017100915090938272
+        "n": 15,
+        "mape": 0.04675581939192713,
+        "mean_signed_error_pct": 0.018412970271954095
       }
     }
   },
+  "conflicts": [
+    {
+      "metric": "energy_transmitted",
+      "year": 2019,
+      "status": "resolved",
+      "note": "Loss GWh / loss % = 17,898 GWh, matches the 2019 report (17,887); the 2020-report comparator (17,034) does not fit",
+      "values": [
+        {
+          "value": 17887.0,
+          "unit": "GWh",
+          "source_id": "S20",
+          "page": "18",
+          "chosen": true
+        },
+        {
+          "value": 17034.0,
+          "unit": "GWh",
+          "source_id": "S21",
+          "page": "16",
+          "chosen": false
+        }
+      ]
+    },
+    {
+      "metric": "energy_transmitted",
+      "year": 2020,
+      "status": "resolved",
+      "note": "Loss GWh / loss % = 19,711 GWh, matches the 2023-report series (19,716.59); the 2020 report headline (18,819) does not fit",
+      "values": [
+        {
+          "value": 19716.59,
+          "unit": "GWh",
+          "source_id": "S24",
+          "page": "26",
+          "chosen": true
+        },
+        {
+          "value": 18819.0,
+          "unit": "GWh",
+          "source_id": "S21",
+          "page": "16",
+          "chosen": false
+        }
+      ]
+    },
+    {
+      "metric": "energy_transmitted",
+      "year": 2022,
+      "status": "resolved",
+      "note": "Loss GWh / loss % = 22,488 GWh, matches the 2022 report and the 2023 report p26 series; the 21,545 comparator does not fit",
+      "values": [
+        {
+          "value": 22478.46,
+          "unit": "GWh",
+          "source_id": "S23",
+          "page": "24",
+          "chosen": true
+        },
+        {
+          "value": 21545.0,
+          "unit": "GWh",
+          "source_id": "S24",
+          "page": "25",
+          "chosen": false
+        }
+      ]
+    },
+    {
+      "metric": "energy_transmitted",
+      "year": 2024,
+      "status": "open",
+      "note": "Published headline, and the 2025 growth of 9.15% is computed from it. But the same report says \"over 24,600\" and loss GWh / 3.8% implies about 25,000. Unresolved",
+      "values": [
+        {
+          "value": 23692.0,
+          "unit": "GWh",
+          "source_id": "S25",
+          "page": "25",
+          "chosen": true
+        }
+      ]
+    },
+    {
+      "metric": "energy_transmitted",
+      "year": 2025,
+      "status": "open",
+      "note": "Published headline. Loss GWh (1,082) / 4.02% implies about 26,900, so the loss volume and the energy total may use different scopes. Unresolved",
+      "values": [
+        {
+          "value": 25860.0,
+          "unit": "GWh",
+          "source_id": "S01",
+          "page": "25",
+          "chosen": true
+        }
+      ]
+    },
+    {
+      "metric": "system_availability",
+      "year": 2014,
+      "status": "resolved",
+      "note": "Same-year narrative used; the 2016 report restates 99.17. Definitions may differ between reports",
+      "values": [
+        {
+          "value": 99.79,
+          "unit": "percent",
+          "source_id": "S15",
+          "page": "18",
+          "chosen": true
+        },
+        {
+          "value": 99.17,
+          "unit": "percent",
+          "source_id": "S17",
+          "page": "15",
+          "chosen": false
+        }
+      ]
+    },
+    {
+      "metric": "system_availability",
+      "year": 2018,
+      "status": "resolved",
+      "note": "Same-year narrative used; the 2021 report restates 99.85. Definitions may differ",
+      "values": [
+        {
+          "value": 99.48,
+          "unit": "percent",
+          "source_id": "S19",
+          "page": "17",
+          "chosen": true
+        },
+        {
+          "value": 99.85,
+          "unit": "percent",
+          "source_id": "S22",
+          "page": "20",
+          "chosen": false
+        }
+      ]
+    },
+    {
+      "metric": "system_availability",
+      "year": 2020,
+      "status": "resolved",
+      "note": "Same-year narrative used; the 2021 and 2024 charts show 99.69. Definitions may differ",
+      "values": [
+        {
+          "value": 99.15,
+          "unit": "percent",
+          "source_id": "S21",
+          "page": "17",
+          "chosen": true
+        },
+        {
+          "value": 99.69,
+          "unit": "percent",
+          "source_id": "S22",
+          "page": "20",
+          "chosen": false
+        }
+      ]
+    },
+    {
+      "metric": "system_availability",
+      "year": 2021,
+      "status": "resolved",
+      "note": "Same-year narrative used; the chart on p20 of the same report shows 98.89",
+      "values": [
+        {
+          "value": 99.22,
+          "unit": "percent",
+          "source_id": "S22",
+          "page": "19",
+          "chosen": true
+        },
+        {
+          "value": 98.89,
+          "unit": "percent",
+          "source_id": "S22",
+          "page": "20",
+          "chosen": false
+        }
+      ]
+    },
+    {
+      "metric": "transmission_losses",
+      "year": 2021,
+      "status": "resolved",
+      "note": "5.01% x 21,466 GWh = 1,076 GWh, which equals the audited loss volume; 5.15% does not",
+      "values": [
+        {
+          "value": 5.01,
+          "unit": "percent",
+          "source_id": "S23",
+          "page": "25",
+          "chosen": true
+        },
+        {
+          "value": 5.15,
+          "unit": "percent",
+          "source_id": "S22",
+          "page": "20",
+          "chosen": false
+        }
+      ]
+    }
+  ],
   "scenario": {
     "base_year": 2025,
     "base_peak": 4283.0,
     "end_year": 2040,
     "growth": {
-      "low": 0.05399049496754471,
-      "central": 0.06912056659557386,
-      "high": 0.07351659779992903
+      "low": 0.05408043452075573,
+      "central": 0.07494746683659992,
+      "high": 0.09622759195201636
     },
-    "growth_basis": "slowest / fastest 3-year compound growth observed, and the log-linear fit",
+    "growth_basis": "the yearly growth that carries the 2025 peak to the low, central and high ends of the baseline projection for 2030",
     "assumptions": {
       "baseline_peak_growth_loglinear": {
-        "value": 0.06912056659557386,
+        "value": 0.07625575294302611,
         "unit": "fraction/yr",
-        "rationale": "Fitted log-linear growth of annual peak, 2019-2025; not a policy or planning assumption.",
-        "source_id": "S01"
+        "rationale": "Fitted log-linear growth of annual peak, 2013-2025; not a policy or planning assumption.",
+        "source_id": null
       },
       "capacity_addition_delay": {
         "value": 2.0,
@@ -425,6 +1338,114 @@
       "tier": "secondary",
       "status": "secondary",
       "notes": "Find the DVLA primary data; definitions conflict with other counts"
+    },
+    {
+      "id": "S14",
+      "name": "2013 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2013-Annual-Report-Final.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S15",
+      "name": "2014 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2014-Annual-Report-Final.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S16",
+      "name": "2015 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2015-Annual-Report-RV.-1-Final-for-AGM.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S17",
+      "name": "2016 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2016-Annual-Report-Final-for-AGM.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S18",
+      "name": "2017 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2017_GRIDCo_Annual_Report.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S19",
+      "name": "2018 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2018_GRIDCo_Annual_Report.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S20",
+      "name": "2019 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2019_Annual-Report_Final_26-07-23.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S21",
+      "name": "2020 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2020-Annual-Report-02-09-2022.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S22",
+      "name": "2021 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: 2021-Annual-Report-Approved-for-printing-030723.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S23",
+      "name": "2022 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: GRIDCo_2022_Annual-Report_Final_5-12-24.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S24",
+      "name": "2023 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: GRIDCo_2023_Annual_Report_Final_5-12-24.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
+    },
+    {
+      "id": "S25",
+      "name": "2024 Annual Report",
+      "publisher": "GRIDCo",
+      "url": "(user-held PDF; not in repo)",
+      "tier": "primary",
+      "status": "have (cleaned extract received)",
+      "notes": "File: FINAL-\u2013-GRIDCo-AR-2024-FINAL-1.pdf. Values reach the project via data/gridco/gridco_clean_2013_2025.csv."
     }
   ],
   "capacity": null

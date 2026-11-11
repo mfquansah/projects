@@ -7,7 +7,8 @@ const d = energy.derived;
 const s01 = source(latest.source_id)!;
 const f2030 = forecast.find((f) => f.year === 2030)!;
 const f2026 = forecast.find((f) => f.year === 2026)!;
-const bt = energy.forecast.backtest.loglinear;
+const bt = (energy.forecast.backtest as any)[energy.forecast.model_key];
+const f2030s = energy.forecast.sensitivity.find((f) => f.year === 2030)!;
 const lossNow = losses[losses.length - 1];
 const levers = [
   ['Gas supply', "Most of Ghana's power comes from thermal plants. When gas runs short, available capacity falls below what the plants are rated for."],
@@ -32,12 +33,13 @@ const levers = [
     <div class="card tile"><span class="eyebrow">{d.peak_latest_year} peak demand</span>
       <span class="big">{fmt(d.peak_latest)} <small>MW</small></span>
       <span class="sub">Record high, up {pct(d.peak_yoy_pct)} on {d.peak_latest_year - 1}</span></div>
-    <div class="card tile"><span class="eyebrow">Growth since {d.peak_first_year}</span>
-      <span class="big">+{pct(d.peak_growth_since_first_pct)}</span>
-      <span class="sub">About {pct(d.peak_cagr_pct)} a year, compounded</span></div>
+    <div class="card tile"><span class="eyebrow">Growth since {d.peak_since_year}</span>
+      <span class="big">+{pct(d.peak_growth_since_pct)}</span>
+      <span class="sub">About {pct(d.peak_cagr_since_pct)} a year, compounded. {pct(d.peak_cagr_full_pct)} a year since {d.peak_first_year}.</span></div>
     <div class="card tile"><span class="eyebrow">Energy transmitted, {d.peak_latest_year}</span>
       <span class="big">{fmt(d.energy_latest)} <small>GWh</small></span>
-      <span class="sub">Up {pct(d.energy_yoy_pct, 2)} on {d.peak_latest_year - 1}</span></div>
+      <span class="sub">Up {pct(d.energy_yoy_pct, 2)} on {d.peak_latest_year - 1}</span>
+      {d.energy_latest_confidence === 'low' && <span class="sub" style="color:var(--warn);font-weight:600">Low confidence: the published total and the loss figures disagree. <a href="/data/#conflicts">Details</a></span>}</div>
     <div class="card tile"><span class="eyebrow">Reserve margin</span>
       <span class="big" style="font-size:26px;padding:6px 0">Not yet verified</span>
       <span class="sub" style="color:var(--warn);font-weight:600">Needs confirmed plant capacity. Shown once checked.</span></div>
@@ -48,7 +50,7 @@ const levers = [
       <h2 style="margin:0;font-size:21px">Peak demand: history and baseline projection</h2>
       <p class="muted" style="margin:0;font-size:14px">If demand keeps growing the way it has, annual peak reaches about {fmt(f2026.p50)} MW in 2026 and {fmt(f2030.p50)} MW by 2030 (likely range {fmt(f2030.p10)} to {fmt(f2030.p90)} MW). This is a trend projection, not a prediction of any single year.</p>
       <PeakChart />
-      <p class="src" style="margin:0">Actual: <a href="/data/#sources">{s01.name}, {s01.publisher}, p. {latest.page.split(',').pop()?.trim()}</a>. Projection: {energy.forecast.model_version}, constant-growth fit to {peaks.length} annual peaks; shaded band is an {energy.forecast.interval}. It excludes new demand sources such as EV charging. Capacity is not drawn because it has not been verified. In past tests, forecasts of this kind were off by about {pct(bt.mape * 100)} on average, but there were only {bt.n} test cases.</p>
+      <p class="src" style="margin:0">Actual: <a href="/data/#sources">{s01.name}, {s01.publisher}, p. {latest.page.split(',').pop()?.trim()}</a>. Projection: {energy.forecast.model_version}, constant-growth fit to {peaks.length} annual peaks ({peaks[0].year} to {latest.year}); shaded band is an {energy.forecast.interval}. Peaks before 2017 were held down by load shedding, so they show what was delivered, not what was wanted. A fit to only the steadier years since 2019 gives a lower path, about {fmt(f2030s.p50)} MW in 2030. The projection excludes new demand sources such as EV charging. Capacity is not drawn because it has not been verified. In past tests, forecasts of this kind were off by about {pct(bt.mape * 100)} on average, but there were only {bt.n} test cases.</p>
     </div>
     <aside style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:14px">
       <div class="card" style="display:flex;flex-direction:column;gap:8px">

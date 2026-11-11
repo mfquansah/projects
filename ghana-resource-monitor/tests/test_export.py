@@ -31,7 +31,12 @@ class ExportTest(unittest.TestCase):
             self.assertEqual(json.loads(out.read_text())["derived"]["peak_latest"], 4283.0)
             self.assertAlmostEqual(p["derived"]["peak_yoy_pct"], 8.4, places=1)  # GRIDCo: +8.4%
             self.assertAlmostEqual(p["derived"]["energy_yoy_pct"], 9.15, places=2)  # GRIDCo: +9.15%
-            self.assertAlmostEqual(p["derived"]["peak_growth_since_first_pct"], 52.7, places=1)  # GRIDCo: +52.7%
+            self.assertAlmostEqual(p["derived"]["peak_growth_since_pct"], 52.7, places=1)  # GRIDCo: +52.7% since 2019
+            self.assertAlmostEqual(p["derived"]["peak_cagr_full_pct"], 6.8, places=1)  # data owner's README: 6.8% 2013-2025
+            self.assertEqual(p["derived"]["energy_latest_confidence"], "low")  # unresolved: must be flagged on the site
+            self.assertEqual({c["status"] for c in p["conflicts"]}, {"open", "resolved"})
+            for rows in p["series"].values():  # rejected values never appear as live series points
+                self.assertEqual(len({r["year"] for r in rows}), len(rows))
             self.assertIsNone(p["capacity"])  # unverified capacity must not reach the site
             self.assertNotIn("S13", {s["id"] for s in p["sources"]})  # AI summary never cited
 

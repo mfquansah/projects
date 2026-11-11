@@ -30,14 +30,14 @@ class BaselineMath(unittest.TestCase):
         self.assertAlmostEqual(fit["annual_growth"], 0.0691, places=3)
 
     def test_backtest_never_peeks_at_future(self):
-        years = list(range(2019, 2026))
-        vals = [2804, 3090, 3246, 3469, 3618, 3952, 4283]
+        years = list(range(2013, 2026))
+        vals = [1942.9, 1970, 1933, 1997, 2192.15, 2525, 2804, 3090, 3246, 3469, 3618, 3952, 4283]
         summary, rows = backtest(years, vals)
         self.assertEqual(set(summary), set(MODELS))
         for r in rows:
             self.assertGreater(r["target"], r["origin"])
         # Changing a value after the origin must not change that origin's forecast
-        vals2 = vals[:5] + [99999, 99999]
+        vals2 = vals[:11] + [99999, 99999]
         _, rows2 = backtest(years, vals2)
         pick = lambda rs: [r["forecast"] for r in rs if r["origin"] == 2023 and r["h"] == 1 and r["model"] == "loglinear"]
         self.assertEqual(pick(rows), pick(rows2))
@@ -48,6 +48,10 @@ class BaselineRun(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             db = Path(tmp) / "t.sqlite"
             load(db)
+            eng0 = create_engine(f"sqlite:///{db}")
+            with Session(eng0) as s0:
+                before = len(s0.scalars(select(Observation)).all())
+            eng0.dispose()
             res = run(db, horizon=3)
             self.assertEqual(sorted(res["forecast"]), [2026, 2027, 2028])
             engine = create_engine(f"sqlite:///{db}")
@@ -58,7 +62,7 @@ class BaselineRun(unittest.TestCase):
                 self.assertEqual(len(outs), 3)
                 self.assertTrue(all(o.p10 < o.p50 < o.p90 for o in outs))
                 # forecasts never overwrite observations
-                self.assertEqual(len(s.scalars(select(Observation)).all()), 23)
+                self.assertEqual(len(s.scalars(select(Observation)).all()), before)
             engine.dispose()
 
 
