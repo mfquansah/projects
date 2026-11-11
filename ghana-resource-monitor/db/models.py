@@ -95,8 +95,10 @@ class Observation(Base):
         CheckConstraint(_in("confidence", CONFIDENCE), name="ck_obs_confidence"),
         CheckConstraint("period_end >= period_start", name="ck_obs_period_order"),
         # One live (non-superseded) fact per source; conflicts across sources coexist.
+        # capacity_type is part of the identity: a plant's installed and dependable MW are different facts.
+        # COALESCE because NULLs never collide in a plain unique index.
         Index("uq_obs_live_fact", "metric", "entity_id", "period_start", "period_end",
-              "period_type", "value_type", "source_id", unique=True,
+              "period_type", "value_type", func.coalesce(capacity_type, ""), "source_id", unique=True,
               sqlite_where=(superseded_by.is_(None)), postgresql_where=(superseded_by.is_(None))),
         Index("ix_obs_metric_period", "metric", "period_start"),
     )

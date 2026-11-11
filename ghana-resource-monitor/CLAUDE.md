@@ -137,7 +137,8 @@ Data arrives **annually** (GRIDCo, Energy Commission) and sometimes **more often
   `python -m ingest.load` is the dev shortcut (delete the DB, apply to an empty one: same code path).
 - **To add a new year or month of an existing series:** add the row(s) to the curated CSV (and the source to `data/source_register.csv`), run
   `python -m ingest.update --dry-run`, read the plan, then `scripts/refresh.sh`, review the diff of `web/src/data/energy.json`, commit.
-- **Not built yet:** parsing PDFs into `observations` + `review_queue` (needs the documents); alerts beyond the exit code; automated schedule.
+- **Not needed:** PDF parsing. Data comes as curated CSV; `ingest.raw` only files a source document by hash if a copy is wanted.
+- **Not built yet:** alerts beyond the exit code; automated schedule; export/site support for plant-level capacity (the loader accepts it already).
 - **Open decision, where the persistent database lives for scheduled runs.** A GitHub Actions job starts with an empty disk, so either
   (A) hosted Postgres is the store of record (`DATABASE_URL` is already honoured; migrations are SQLite-tested only, so test them on Postgres first), or
   (B) the committed curated CSVs stay the record and the database is rebuilt each run (simple, but superseded history lives only in git).
@@ -161,8 +162,9 @@ Data arrives **annually** (GRIDCo, Energy Commission) and sometimes **more often
 ## First tasks for Claude Code
 1. Scaffold repo: `data/` (raw + processed), `ingest/`, `model/`, `api/`, `web/`, `tests/`, `design/`. Create the schema above with Alembic (SQLite locally, Postgres-compatible).
 2. Load data/gridco_series.csv and data/source_register.csv into the schema with provenance columns.
-3. Fetch and parse the GRIDCo 2025 Electricity Supply Plan and PURC monthly fact sheets (PDFs) into plant-level capacity
-   and monthly generation tables, with page references. Flag every conflict.
+3. Supply-side data arrives as curated CSV (the data owner extracts it from the source documents; we do not parse PDFs). Drop files in
+   `data/observations/` using the layout in `data/templates/` (plant capacity installed vs dependable, monthly generation, official forecasts),
+   run `python -m ingest.update`. Disagreeing sources are stored side by side and flagged automatically.
 4. Build the peak-demand baseline forecast and backtest it against 2019-2025 actuals and against the official forecasts.
 5. Build the scenario model (available capacity and gap) and an EV module with explicit per-vehicle assumptions.
 6. Only then: API, site, assistant.

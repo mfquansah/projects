@@ -22,14 +22,20 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import math
 from alembic import command
 from alembic.config import Config
+
+from db.models import CAPACITY_TYPES, CONFIDENCE, ENTITY_KINDS, PERIOD_TYPES, VALUE_TYPES
 
 ROOT = Path(__file__).resolve().parent.parent
 
 SOURCE_COLS = ["source_id", "title", "publisher", "date", "url", "status",
                "contains", "reliability", "notes"]
 CLEAN_COLS = ["year", "metric", "value", "unit", "confidence", "source_file", "pdf_page", "method", "rejected_values"]
+# Free-form observations (plants, regions, monthly series, forecasts ...): one file per source or topic in data/observations/
+OBS_FILE_COLS = ["entity_kind", "entity_name", "parent_name", "fuel", "metric", "period_type", "year", "month", "value",
+                 "unit", "value_type", "capacity_type", "source_id", "page", "table_ref", "confidence", "note"]
 EXTRA_COLS = ["year", "metric", "value", "unit", "period_type", "value_type", "source_id", "pdf_page", "confidence", "note"]
 
 # Only an annual system peak maps to a capacity_type: GRIDCo's annual peak is the coincident peak. Network asset
@@ -63,6 +69,16 @@ class Rec:
     note: str
     rejected: list = field(default_factory=list)
     unresolved: bool = False
+    # Defaults describe the GRIDCo national annual series; observation files set them explicitly.
+    entity_kind: str = "national"
+    entity_name: str = "Ghana"
+    parent_name: str = ""
+    fuel: str = ""
+    period_type: str = "annual"
+    month: int | None = None
+    value_type: str = "actual"
+    capacity_type: str | None = None
+    table_ref: str | None = None
 
 
 def resolve_url(db_path=None) -> str:
@@ -94,7 +110,7 @@ def read_csv(path, expected_cols):
             if len(row) != len(header):
                 raise LoadError(f"{path.name} line {n}: {len(row)} columns, expected "
                                 f"{len(header)} (unquoted comma?): {row[:2]}")
-            rows.append(dict(zip(header, row)))
+            rows.append({**dict(zip(header, row)), "_line": n})
         return rows
 
 
@@ -110,6 +126,64 @@ def report_year(source_file: str) -> int:
     if not m:
         raise LoadError(f"cannot read a report year from file name {source_file!r}")
     return int(m.group())
+
+
+def read_observation_files(data_dir, sources):
+    """Validate and parse data/observations/*.csv. Every problem names the file and line."""
+    by_id = {r["source_id"]: r for r in sources}
+    recs = []
+    for path in sorted((data_dir / "observations").glob("*.csv")):
+        for r in read_csv(path, OBS_FILE_COLS):
+            where = f"{path.name} line {r['_line']}"
+
+            def bad(msg):
+                raise LoadError(f"{where}: {msg}")
+
+            def choice(field_, allowed, optional=False):
+                v = r[field_].strip()
+                if v == "" and optional:
+                    return None
+                if v not in allowed:
+                    bad(f"{field_} {v!r} must be one of {list(allowed)}" + (" or blank" if optional else ""))
+                return v
+
+            kind = choice("entity_kind", ENTITY_KINDS)
+            if not r["entity_name"].strip():
+                bad("entity_name is required")
+            if not r["metric"].strip() or not r["unit"].strip():
+                bad("metric and unit are required")
+            ptype = choice("period_type", PERIOD_TYPES)
+            if ptype == "hourly":
+                bad("hourly periods are not supported yet")
+            try:
+                year = int(r["year"])
+                value = float(r["value"])
+            except ValueError:
+                bad(f"year {r['year']!r} and value {r['value']!r} must be numbers (a blank value is a gap: leave the row out)")
+            if not (1900 <= year <= 2100) or not math.isfinite(value):
+                bad("year out of range or value not finite")
+            month = None
+            if ptype == "monthly":
+                if not r["month"].strip().isdigit() or not 1 <= int(r["month"]) <= 12:
+                    bad(f"monthly rows need month 1-12, got {r['month']!r}")
+                month = int(r["month"])
+            elif r["month"].strip():
+                bad("month must be blank unless period_type is monthly (never mix a monthly and an annual value)")
+            src = r["source_id"].strip()
+            if src not in by_id:
+                bad(f"source {src!r} is not in data/source_register.csv")
+            if source_tier(by_id[src]["status"]) == "ai_summary":
+                bad(f"source {src} is an AI-generated summary and may not be cited")
+            if not r["page"].strip():
+                bad("page is required: every value must say where in the source it came from")
+            recs.append(Rec(
+                year=year, metric=r["metric"].strip(), value=value, unit=UNIT_NORMAL.get(r["unit"].strip(), r["unit"].strip()),
+                confidence=choice("confidence", CONFIDENCE), source_id=src, page=r["page"].strip(), note=r["note"],
+                entity_kind=kind, entity_name=r["entity_name"].strip(), parent_name=r["parent_name"].strip(),
+                fuel=r["fuel"].strip(), period_type=ptype, month=month,
+                value_type=choice("value_type", VALUE_TYPES), capacity_type=choice("capacity_type", CAPACITY_TYPES, optional=True),
+                table_ref=r["table_ref"].strip() or None))
+    return recs
 
 
 def read_inputs(data_dir=ROOT / "data"):
@@ -154,6 +228,7 @@ def read_inputs(data_dir=ROOT / "data"):
         recs.append(Rec(year=int(r["year"]), metric=r["metric"], value=float(r["value"]),
                         unit=UNIT_NORMAL.get(r["unit"], r["unit"]), confidence=r["confidence"],
                         source_id=r["source_id"], page=r["pdf_page"], note=r["note"]))
+    recs += read_observation_files(data_dir, sources)
     return sources, recs, gaps
 
 

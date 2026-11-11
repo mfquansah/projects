@@ -221,3 +221,88 @@ class RawStoreTests(IngestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ObservationFileTests(IngestCase):
+    COLS = ["entity_kind", "entity_name", "parent_name", "fuel", "metric", "period_type", "year", "month", "value", "unit",
+            "value_type", "capacity_type", "source_id", "page", "table_ref", "confidence", "note"]
+
+    def write(self, *rows, name="plants.csv"):
+        d = self.data / "observations"
+        d.mkdir(exist_ok=True)
+        with open(d / name, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(self.COLS)
+            w.writerows(rows)
+
+    @staticmethod
+    def row(**kw):
+        base = dict(entity_kind="plant", entity_name="Test Plant", parent_name="", fuel="gas", metric="generation_capacity",
+                    period_type="annual", year=2025, month="", value=100, unit="MW", value_type="actual",
+                    capacity_type="installed", source_id="S02", page="12", table_ref="Table 3", confidence="medium", note="")
+        base.update(kw)
+        return [base[c] for c in ObservationFileTests.COLS]
+
+    def test_plant_capacity_loads_idempotently(self):
+        self.write(self.row(), self.row(value=90, capacity_type="dependable"))
+        r = self.update()
+        self.assertEqual((r.status, r.stats["obs_inserted"], r.stats["entities_added"]), ("success", 2, 1))
+        with Session(self.engine) as s:
+            from db.models import Entity
+            plant = s.scalars(select(Entity).where(Entity.kind == "plant")).one()
+            self.assertEqual((plant.name, plant.attrs, plant.parent_id is not None), ("Test Plant", {"fuel": "gas"}, True))
+            got = {o.capacity_type: o.value for o in s.scalars(select(Observation).where(Observation.metric == "generation_capacity"))}
+            self.assertEqual(got, {"installed": 100.0, "dependable": 90.0})
+        self.assertEqual(self.update().status, "no_change")
+
+    def test_changed_value_supersedes(self):
+        self.write(self.row())
+        self.update()
+        self.write(self.row(value=105))
+        r = self.update()
+        self.assertEqual((r.stats["obs_superseded"], r.stats["obs_inserted"]), (1, 0))
+        self.assertEqual([o.value for o in self.live("generation_capacity", 2025)], [105.0])
+
+    def test_monthly_rows_get_month_bounds(self):
+        self.write(self.row(metric="generation", period_type="monthly", month=2, year=2024, value=300, unit="GWh", capacity_type=""))
+        self.update()
+        with Session(self.engine) as s:
+            o = s.scalars(select(Observation).where(Observation.metric == "generation")).one()
+            self.assertEqual((o.period_start, o.period_end, o.period_type), (date(2024, 2, 1), date(2024, 2, 29), "monthly"))
+
+    def test_disagreeing_sources_are_both_kept_and_flagged_then_clear(self):
+        self.write(self.row(value=100, source_id="S02"), self.row(value=110, source_id="S04"))
+        r = self.update()
+        self.assertEqual(r.stats["conflicts_added"], 1)
+        self.assertEqual(len(self.live("generation_capacity", 2025)), 2)  # side by side, not averaged
+        with Session(self.engine) as s:
+            c = s.scalars(select(Conflict).where(Conflict.metric == "generation_capacity")).one()
+            self.assertEqual(c.status, "open")
+            self.assertIn("Auto: sources disagree", c.resolution_note)
+        self.write(self.row(value=100, source_id="S02"), self.row(value=100, source_id="S04"))  # S04 corrected to agree
+        self.assertEqual(self.update().stats["conflicts_updated"], 1)
+        with Session(self.engine) as s:
+            self.assertEqual(s.scalars(select(Conflict).where(Conflict.metric == "generation_capacity")).one().status, "resolved")
+
+    def test_invalid_rows_name_the_file_and_line_and_load_nothing(self):
+        n = self.count_obs()
+        cases = [
+            (self.row(source_id="S777"), "not in data/source_register.csv"),
+            (self.row(source_id="S13"), "AI-generated"),
+            (self.row(page=""), "page is required"),
+            (self.row(capacity_type="rated"), "capacity_type"),
+            (self.row(value_type="guess"), "value_type"),
+            (self.row(period_type="monthly", month=""), "month 1-12"),
+            (self.row(month=3), "month must be blank"),
+            (self.row(value="n/a"), "must be numbers"),
+            (self.row(parent_name="No Such Place"), "parent"),
+            (self.row(period_type="hourly"), "hourly"),
+        ]
+        for row, fragment in cases:
+            self.write(row)
+            with self.assertRaises(LoadError, msg=fragment) as cm:
+                self.update()
+            self.assertIn(fragment, str(cm.exception))
+            if fragment != "parent":
+                self.assertIn("plants.csv line 2", str(cm.exception))
+        self.assertEqual(self.count_obs(), n)

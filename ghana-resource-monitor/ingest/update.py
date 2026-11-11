@@ -15,12 +15,13 @@ Usage: python -m ingest.update [--db PATH] [--dry-run] [--expect-changes] [--no-
 (DATABASE_URL overrides --db, for a hosted Postgres.)
 """
 import argparse
+import calendar
 import hashlib
 import math
 import sqlite3
 import sys
 import traceback
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -33,7 +34,7 @@ from db.ops import supersede
 from ingest.load import CAPACITY_TYPE_BY_METRIC, ROOT, LoadError, migrate, read_inputs, resolve_url, source_tier
 
 BACKUPS_KEPT = 10
-CHANGE_KEYS = ("obs_inserted", "obs_superseded", "rejected_inserted", "conflicts_added", "conflicts_updated",
+CHANGE_KEYS = ("entities_added", "entities_updated", "obs_inserted", "obs_superseded", "rejected_inserted", "conflicts_added", "conflicts_updated",
                "sources_added", "sources_updated")
 
 
@@ -52,12 +53,23 @@ class Result:
 
 
 def _fact_key(o: Observation):
-    return (o.metric, o.entity_id, o.period_start, o.period_end, o.period_type, o.value_type, o.source_id)
+    return (o.metric, o.entity_id, o.period_start, o.period_end, o.period_type, o.value_type, o.capacity_type or "", o.source_id)
 
 
 def _same(a: Observation, b: Observation) -> bool:
     return (math.isclose(a.value, b.value, abs_tol=1e-9) and a.unit == b.unit and a.confidence == b.confidence
-            and a.page == b.page and a.note == b.note and a.capacity_type == b.capacity_type)
+            and a.page == b.page and a.note == b.note and a.capacity_type == b.capacity_type
+            and a.table_ref == b.table_ref)
+
+
+def _bounds(rec):
+    if rec.period_type == "monthly":
+        return date(rec.year, rec.month, 1), date(rec.year, rec.month, calendar.monthrange(rec.year, rec.month)[1])
+    return date(rec.year, 1, 1), date(rec.year, 12, 31)
+
+
+def _period_label(o: Observation) -> str:
+    return f"{o.period_start.year}-{o.period_start.month:02d}" if o.period_type == "monthly" else str(o.period_start.year)
 
 
 def apply(s: Session, sources, recs):
@@ -78,28 +90,58 @@ def apply(s: Session, sources, recs):
             for k, v in changed.items():
                 setattr(cur, k, v)
             st["sources_updated"] += bool(changed)
-
-    ghana = s.scalars(select(Entity).where(Entity.kind == "national", Entity.name == "Ghana")).first()
-    if ghana is None:
-        ghana = Entity(kind="national", name="Ghana")
-        s.add(ghana)
     s.flush()
 
+    # Entities: the national entity first, then anything the observation files name (plants, regions ...).
+    entities = {(e.kind, e.name, e.parent_id): e for e in s.scalars(select(Entity))}
+    ghana = entities.get(("national", "Ghana", None))
+    if ghana is None:
+        ghana = entities[("national", "Ghana", None)] = Entity(kind="national", name="Ghana")
+        s.add(ghana)
+        st["entities_added"] += 1
+    s.flush()
+
+    def entity_for(rec) -> Entity:
+        if rec.entity_kind == "national" and rec.entity_name == "Ghana":
+            return ghana
+        if rec.parent_name:
+            parents = [e for e in entities.values() if e.name == rec.parent_name]
+            if len(parents) != 1:
+                raise LoadError(f"{rec.entity_kind} {rec.entity_name!r}: parent {rec.parent_name!r} matches {len(parents)} entities")
+            parent = parents[0]
+        else:
+            parent = ghana
+        key = (rec.entity_kind, rec.entity_name, parent.id)
+        attrs = {"fuel": rec.fuel} if rec.fuel else None
+        e = entities.get(key)
+        if e is None:
+            e = entities[key] = Entity(kind=rec.entity_kind, name=rec.entity_name, parent_id=parent.id, attrs=attrs)
+            s.add(e)
+            s.flush()
+            st["entities_added"] += 1
+        elif attrs and e.attrs != attrs:  # entity descriptions (e.g. fuel) are reference data, updated in place
+            e.attrs = attrs
+            st["entities_updated"] += 1
+        return e
+
     live = {_fact_key(o): o for o in s.scalars(select(Observation).where(Observation.superseded_by.is_(None)))}
-    rejected_rows = {(o.metric, o.period_start, o.source_id, o.value): o
+    rejected_rows = {(o.metric, o.entity_id, o.period_start, o.source_id, o.value): o
                      for o in s.scalars(select(Observation).where(Observation.superseded_by.is_not(None)))}
 
-    def make(year, rec_metric, value, unit, confidence, source_id, page, note):
+    def make(rec, entity_id, value=None, confidence=None, source_id=None, page=None, note=None):
+        start, end = _bounds(rec)
         return Observation(
-            metric=rec_metric, entity_id=ghana.id, period_start=date(year, 1, 1), period_end=date(year, 12, 31),
-            period_type="annual", value=float(value), unit=unit, value_type="actual",
-            capacity_type=CAPACITY_TYPE_BY_METRIC.get(rec_metric), source_id=source_id, page=page,
-            confidence=confidence, note=note)
+            metric=rec.metric, entity_id=entity_id, period_start=start, period_end=end, period_type=rec.period_type,
+            value=float(rec.value if value is None else value), unit=rec.unit, value_type=rec.value_type,
+            capacity_type=rec.capacity_type or CAPACITY_TYPE_BY_METRIC.get(rec.metric),
+            source_id=source_id or rec.source_id, page=rec.page if page is None else page,
+            table_ref=rec.table_ref, confidence=confidence or rec.confidence, note=rec.note if note is None else note)
 
-    conflicts = {(c.metric, c.period): c for c in s.scalars(select(Conflict))}
+    conflicts = {(c.metric, c.entity_id, c.period): c for c in s.scalars(select(Conflict))}
     seen = set()
     for rec in recs:
-        new = make(rec.year, rec.metric, rec.value, rec.unit, rec.confidence, rec.source_id, rec.page, rec.note)
+        ent = entity_for(rec)
+        new = make(rec, ent.id)
         key = _fact_key(new)
         cur = live.get(key)
         if cur is None:
@@ -117,37 +159,61 @@ def apply(s: Session, sources, recs):
 
         ids = [chosen.id]
         for rj in rec.rejected:
-            ident = (rec.metric, date(rec.year, 1, 1), rj.source_id, rj.value)
+            ident = (rec.metric, ent.id, _bounds(rec)[0], rj.source_id, rj.value)
             row = rejected_rows.get(ident)
             if row is None:
-                row = make(rec.year, rec.metric, rj.value, rec.unit, "low", rj.source_id, rj.page,
-                           f"Rejected in favour of {chosen.value:g}. {rec.note}")
+                row = make(rec, ent.id, value=rj.value, confidence="low", source_id=rj.source_id, page=rj.page,
+                           note=f"Rejected in favour of {chosen.value:g}. {rec.note}")
                 row.superseded_by = chosen.id  # never live: kept for the record
                 s.add(row)
                 s.flush()
                 rejected_rows[ident] = row
                 st["rejected_inserted"] += 1
             ids.append(row.id)
-        c = conflicts.get((rec.metric, str(rec.year)))
+        ckey = (rec.metric, ent.id, _period_label(chosen))
+        c = conflicts.get(ckey)
         if len(ids) > 1 or rec.unresolved:
             status = "open" if rec.unresolved else "resolved"
             if c is None:
-                c = conflicts[(rec.metric, str(rec.year))] = Conflict(
-                    metric=rec.metric, entity_id=ghana.id, period=str(rec.year), observation_ids=ids,
-                    status=status, resolution_note=rec.note)
+                c = conflicts[ckey] = Conflict(metric=rec.metric, entity_id=ent.id, period=ckey[2], observation_ids=ids,
+                                               status=status, resolution_note=rec.note)
                 s.add(c)
                 st["conflicts_added"] += 1
             elif (c.observation_ids, c.status, c.resolution_note) != (ids, status, rec.note):
                 c.observation_ids, c.status, c.resolution_note = ids, status, rec.note  # a conflict's status may change
                 st["conflicts_updated"] += 1
-        elif c is not None and c.status == "open":  # no longer flagged in the inputs: the conflict has been resolved
-            c.observation_ids, c.status, c.resolution_note = ids, "resolved", rec.note
+        elif c is not None and c.status == "open" and not (c.resolution_note or "").startswith("Auto:"):
+            c.observation_ids, c.status, c.resolution_note = ids, "resolved", rec.note  # no longer flagged: resolved
+            st["conflicts_updated"] += 1
+
+    # Different sources giving different live values for the same fact are kept side by side and flagged, never averaged.
+    groups = defaultdict(list)
+    for o in live.values():
+        groups[(o.metric, o.entity_id, o.period_start, o.period_end, o.period_type, o.value_type, o.capacity_type)].append(o)
+    for obs in groups.values():
+        vals = [o.value for o in obs]
+        disagree = len({o.source_id for o in obs}) > 1 and max(vals) - min(vals) > 1e-9
+        ckey = (obs[0].metric, obs[0].entity_id, _period_label(obs[0]))
+        c = conflicts.get(ckey)
+        ids = sorted(o.id for o in obs)
+        auto = c is not None and (c.resolution_note or "").startswith("Auto:")
+        if disagree and c is None:
+            span = ", ".join(f"{o.source_id}={o.value:g}" for o in sorted(obs, key=lambda o: o.source_id))
+            conflicts[ckey] = Conflict(metric=ckey[0], entity_id=ckey[1], period=ckey[2], observation_ids=ids, status="open",
+                                       resolution_note=f"Auto: sources disagree ({span}). Both are kept; nothing is averaged.")
+            s.add(conflicts[ckey])
+            st["conflicts_added"] += 1
+        elif disagree and auto and (c.observation_ids, c.status) != (ids, "open"):
+            c.observation_ids, c.status = ids, "open"
+            st["conflicts_updated"] += 1
+        elif not disagree and auto and c.status == "open":
+            c.status, c.resolution_note, c.observation_ids = "resolved", "Auto: sources now agree.", ids
             st["conflicts_updated"] += 1
 
     metrics_in = {r.metric for r in recs}
     for key, o in live.items():
         if o.metric in metrics_in and key not in seen:
-            warnings.append(f"live row not in the inputs (kept): {o.metric} {o.period_start.year} {o.source_id}")
+            warnings.append(f"live row not in the inputs (kept): {o.metric} {_period_label(o)} {o.source_id}")
     s.flush()
     return st, warnings
 
@@ -210,8 +276,10 @@ def run(url, data_dir=ROOT / "data", dry_run=False, backup=True, job="curated-cs
             raise
         finally:
             if run_id is not None:
-                inputs = {p.name: _sha(p) for p in [data_dir / "source_register.csv", data_dir / "gridco_2025_extra.csv",
-                                                    data_dir / "gridco" / "gridco_clean_2013_2025.csv"] if p.exists()}
+                inputs = {str(p.relative_to(data_dir)): _sha(p) for p in
+                          [data_dir / "source_register.csv", data_dir / "gridco_2025_extra.csv",
+                           data_dir / "gridco" / "gridco_clean_2013_2025.csv",
+                           *sorted((data_dir / "observations").glob("*.csv"))] if p.exists()}
                 err = traceback.format_exc() if res.status == "failed" else None
                 with Session(engine) as ls, ls.begin():
                     row = ls.get(IngestRun, run_id)
@@ -230,6 +298,7 @@ def run(url, data_dir=ROOT / "data", dry_run=False, backup=True, job="curated-cs
 def summary(res: Result) -> str:
     st = res.stats
     lines = [f"{'DRY RUN: ' if res.dry_run else ''}status={res.status}",
+             f"  entities: {st['entities_added']} added, {st['entities_updated']} updated",
              f"  observations: {st['obs_inserted']} inserted, {st['obs_superseded']} superseded, {st['obs_unchanged']} unchanged",
              f"  rejected values: {st['rejected_inserted']} stored; conflicts: {st['conflicts_added']} added, {st['conflicts_updated']} updated",
              f"  sources: {st['sources_added']} added, {st['sources_updated']} updated"]
