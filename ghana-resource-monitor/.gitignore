@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+data/processed/*.sqlite
+data/processed/backups/
+data/raw/*
+!data/raw/.gitkeep

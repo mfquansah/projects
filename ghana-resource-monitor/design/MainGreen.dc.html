@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Theme 1 in green</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:"Public Sans",system-ui,sans-serif;background:#f4f1ea;color:#1b2a21}
+a{color:#1f4d36}a:hover{color:#1b2a21}
+</style>
+</helmet>
+<div style="background:#f4f1ea;font-family:'Public Sans',system-ui,sans-serif;color:#1b2a21;font-size:15px;line-height:1.5">
+
+<header style="background:#1f4d36;color:#eaf0ec">
+<div style="max-width:1200px;margin:0 auto;padding:14px 24px;display:flex;flex-wrap:wrap;gap:16px 32px;align-items:center;justify-content:space-between">
+<div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px;letter-spacing:-.01em">Ghana Resource Monitor</div>
+<nav style="display:flex;flex-wrap:wrap;gap:6px 22px;font-size:14px;align-items:center">
+<a href="Main.dc.html" style="color:#ffffff;font-weight:600;text-decoration:none;border-bottom:2px solid #8fdcae;padding:4px 0">Energy</a>
+<a href="Flood.dc.html" style="color:#cfe3d6;text-decoration:none;padding:4px 0">Flooding</a>
+<span style="color:#a9c4b4;padding:4px 0">Heat <span style="font-size:11px;border:1px solid #7fa08c;border-radius:4px;padding:0 5px;margin-left:4px">soon</span></span>
+<span style="color:#a9c4b4;padding:4px 0">Water <span style="font-size:11px;border:1px solid #7fa08c;border-radius:4px;padding:0 5px;margin-left:4px">soon</span></span>
+<a href="Ask.dc.html" style="color:#0f2a1a;background:#8fdcae;text-decoration:none;padding:8px 14px;border-radius:8px;font-weight:600">Ask the monitor</a>
+<a href="Main.dc.html#data" style="color:#cfe3d6;text-decoration:none;padding:4px 0">Data and methods</a>
+</nav>
+</div>
+</header>
+
+<main style="max-width:1200px;margin:0 auto;padding:32px 24px 56px;display:flex;flex-direction:column;gap:28px">
+
+<section style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+<span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5d6358">Energy</span>
+<span style="font-size:12.5px;font-weight:600;color:#8a5200;background:#fbefd9;border-radius:999px;padding:2px 10px">Prototype data</span>
+</div>
+<h1 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:44px;line-height:1.08;letter-spacing:-.02em;max-width:18ch;text-wrap:balance">Demand is growing faster than the capacity we can confirm.</h1>
+<p style="margin:0;max-width:62ch;color:#5d6358;font-size:17px">Ghana's peak electricity demand reached a record 4,283 MW in 2025. This page tracks where it stands, where it is heading, and what could change the picture.</p>
+</section>
+
+<section aria-label="Latest figures" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px">
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#5d6358">2025 peak demand</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:34px;line-height:1.1">4,283 <span style="font-family:'Public Sans',sans-serif;font-weight:500;font-size:15px;color:#5d6358">MW</span></span>
+<span style="font-size:13px;color:#5d6358">Record high, up 8.4% on 2024</span>
+</div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#5d6358">Growth since 2019</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:34px;line-height:1.1">+52.7%</span>
+<span style="font-size:13px;color:#5d6358">About 7.3% a year, compounded</span>
+</div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#5d6358">Energy transmitted, 2025</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:34px;line-height:1.1">25,860 <span style="font-family:'Public Sans',sans-serif;font-weight:500;font-size:15px;color:#5d6358">GWh</span></span>
+<span style="font-size:13px;color:#5d6358">Up 9.15% on 2024</span>
+</div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#5d6358">Reserve margin, 2025</span>
+<span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:34px;line-height:1.1">16.0<span style="font-family:'Public Sans',sans-serif;font-weight:500;font-size:15px;color:#5d6358">%</span></span>
+<span style="font-size:13px;color:#8a5200;font-weight:600">Below the 18% target. Capacity to be verified.</span>
+</div>
+</section>
+
+<section style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+<div style="flex:999 1 640px;min-width:0;background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:20px 22px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:21px">Peak demand and the capacity we can count on</h2>
+<a href="Main.dc.html" style="font-size:13.5px;font-weight:600">Open the forecast tool</a>
+</div>
+<p style="margin:0;color:#5d6358;font-size:14px">On a central 7% growth path and today's capacity estimate, demand overtakes capacity around 2028. Move the scenario sliders in the forecast tool to test other cases.</p>
+<svg viewBox="0 0 720 300" role="img" aria-label="Line chart: peak demand rose from 2,804 MW in 2019 to 4,283 MW in 2025 and is projected to reach about 6,000 MW by 2030, crossing a dashed 4,968 MW capacity line around 2028." style="width:100%;height:auto;display:block">
+<line x1="50" x2="690" y1="230" y2="230" stroke="#d9d4c6"/><line x1="50" x2="690" y1="170" y2="170" stroke="#d9d4c6"/><line x1="50" x2="690" y1="110" y2="110" stroke="#d9d4c6"/><line x1="50" x2="690" y1="50" y2="50" stroke="#d9d4c6"/>
+<text x="42" y="234" text-anchor="end" font-size="11" fill="#5d6358">3,000</text><text x="42" y="174" text-anchor="end" font-size="11" fill="#5d6358">4,000</text><text x="42" y="114" text-anchor="end" font-size="11" fill="#5d6358">5,000</text><text x="42" y="54" text-anchor="end" font-size="11" fill="#5d6358">6,000</text>
+<text x="42" y="14" text-anchor="end" font-size="11" fill="#5d6358">MW</text>
+<line x1="388.2" x2="388.2" y1="20" y2="260" stroke="#bdb8a8" stroke-dasharray="3 3"/>
+<text x="382" y="30" text-anchor="end" font-size="11" fill="#5d6358">Actual</text><text x="394" y="30" font-size="11" fill="#5d6358">Projected</text>
+<polyline points="388.2,153 444.5,135 500.9,115.8 557.3,95.2 613.6,73.2 670,49.6" fill="none" stroke="#2f8f5b" stroke-width="2.5" stroke-dasharray="6 4"/>
+<polyline points="50,241.8 106.4,224.6 162.7,215.2 219.1,201.9 275.5,192.9 331.8,172.9 388.2,153" fill="none" stroke="#2f8f5b" stroke-width="2.5"/>
+<line x1="388.2" x2="690" y1="111.9" y2="111.9" stroke="#52514e" stroke-width="2.5"/>
+<circle cx="50" cy="241.8" r="4" fill="#2f8f5b" stroke="#fff" stroke-width="2"/><circle cx="106.4" cy="224.6" r="4" fill="#2f8f5b" stroke="#fff" stroke-width="2"/><circle cx="162.7" cy="215.2" r="4" fill="#2f8f5b" stroke="#fff" stroke-width="2"/><circle cx="219.1" cy="201.9" r="4" fill="#2f8f5b" stroke="#fff" stroke-width="2"/><circle cx="275.5" cy="192.9" r="4" fill="#2f8f5b" stroke="#fff" stroke-width="2"/><circle cx="331.8" cy="172.9" r="4" fill="#2f8f5b" stroke="#fff" stroke-width="2"/><circle cx="388.2" cy="153" r="5" fill="#2f8f5b" stroke="#fff" stroke-width="2"/>
+<circle cx="511.6" cy="111.9" r="6" fill="#fff" stroke="#c0352b" stroke-width="3"/>
+<text x="521" y="134" font-size="12" font-weight="600" fill="#c0352b">Crossover, about 2028</text>
+<text x="521" y="148" font-size="11" fill="#5d6358">provisional</text>
+<text x="696" y="50" font-size="12" font-weight="600" fill="#1b2a21">Peak demand</text>
+<text x="696" y="106" font-size="12" font-weight="600" fill="#1b2a21">Capacity</text>
+<text x="696" y="120" font-size="11" fill="#5d6358">4,968 MW</text>
+<text x="50" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2019</text><text x="162.7" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2021</text><text x="275.5" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2023</text><text x="388.2" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2025</text><text x="500.9" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2027</text><text x="613.6" y="282" text-anchor="middle" font-size="11" fill="#5d6358">2029</text>
+</svg>
+<p style="margin:0;font-size:12.5px;color:#5d6358">History: GRIDCo 2025 Annual Report. Projection: 7% a year from 2025, no new plants, no EV load. Capacity is a placeholder until checked against the Electricity Supply Plan.</p>
+</div>
+
+<aside style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:14px">
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:18px">Ask the monitor</h2>
+<p style="margin:0;color:#5d6358;font-size:14px">Plain questions, answers from the data and the model, with sources.</p>
+<a href="Ask.dc.html" style="display:block;text-decoration:none;color:#1b2a21;background:#eaf0ec;border:1px solid #d9d4c6;border-radius:8px;padding:10px 12px;font-size:14px">What does the energy forecast look like over the next couple of years?</a>
+<a href="Ask.dc.html" style="display:block;text-decoration:none;color:#1b2a21;background:#eaf0ec;border:1px solid #d9d4c6;border-radius:8px;padding:10px 12px;font-size:14px">What can be done to head this off?</a>
+<a href="Ask.dc.html" style="display:inline-block;align-self:flex-start;text-decoration:none;color:#fff;background:#1f4d36;border-radius:8px;padding:10px 16px;font-weight:600;font-size:14px;min-height:44px;box-sizing:border-box;line-height:24px">Open the assistant</a>
+</div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:18px">Early-warning level</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="font-size:13px;font-weight:600;color:#0b6a37;background:#e3f4ea;border-radius:999px;padding:3px 12px">Adequate</span>
+<span style="font-size:13px;font-weight:700;color:#8a5200;background:#fbefd9;border:2px solid #8a5200;border-radius:999px;padding:1px 12px">Tight</span>
+<span style="font-size:13px;font-weight:600;color:#a82a21;background:#fbe5e2;border-radius:999px;padding:3px 12px">Shortfall</span>
+</div>
+<p style="margin:0;font-size:13.5px;color:#5d6358">Today's level is shown as Tight on placeholder capacity. It will update when the capacity data is verified and loaded.</p>
+</div>
+</aside>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:24px">What changes the picture</h2>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px"><div style="font-weight:600;margin-bottom:4px">Gas supply</div><div style="font-size:14px;color:#5d6358">Most of Ghana's power comes from thermal plants. When gas runs short, available capacity falls below what the plants are rated for.</div></div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px"><div style="font-weight:600;margin-bottom:4px">Hydro levels</div><div style="font-size:14px;color:#5d6358">Akosombo, Bui and Kpong depend on rainfall. Dry years cut output and limit when plants can run.</div></div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px"><div style="font-weight:600;margin-bottom:4px">New capacity</div><div style="font-size:14px;color:#5d6358">Plants and solar projects add supply, but projects slip. The model tests on-time and delayed cases.</div></div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px"><div style="font-weight:600;margin-bottom:4px">Cooling and heat</div><div style="font-size:14px;color:#5d6358">Hotter evenings push air-conditioning load into the peak hours.</div></div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px"><div style="font-weight:600;margin-bottom:4px">Electric vehicles</div><div style="font-size:14px;color:#5d6358">A small load today. The tool shows how much it would take for charging to matter, and how timing changes that.</div></div>
+<div style="background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:16px 18px"><div style="font-weight:600;margin-bottom:4px">Transmission and payments</div><div style="font-size:14px;color:#5d6358">Thin lines in some corridors and unpaid bills in the sector can cause cuts even when plants are available.</div></div>
+</div>
+</section>
+
+<section style="display:flex;flex-wrap:wrap;gap:14px">
+<a href="Flood.dc.html" style="flex:1 1 300px;text-decoration:none;color:#1b2a21;background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#1f4d36">Next module</span><span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px">Flooding</span><span style="font-size:14px;color:#5d6358">Where Ghana floods, how often, and how much is climate versus how we build.</span></a>
+<div style="flex:1 1 300px;background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#5d6358">Planned</span><span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px">Heat</span><span style="font-size:14px;color:#5d6358">Urban heat and its link to cooling demand.</span></div>
+<div style="flex:1 1 300px;background:#fff;border:1px solid #d9d4c6;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#5d6358">Planned</span><span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px">Water and galamsey</span><span style="font-size:14px;color:#5d6358">River turbidity and illegal mining, from satellite data.</span></div>
+</section>
+
+<section id="data" style="border-top:1px solid #d9d4c6;padding-top:20px;display:flex;flex-wrap:wrap;gap:12px 32px;font-size:13.5px;color:#5d6358">
+<div style="flex:1 1 320px"><b style="color:#1b2a21">Sources.</b> GRIDCo 2025 Annual Report, pp. 11 and 25 to 26. Capacity, generation and fuel data from the Electricity Supply Plan, PURC fact sheets and the Energy Commission Outlook are being verified.</div>
+<div style="flex:1 1 320px"><b style="color:#1b2a21">Method.</b> Every number carries its source, year and whether it is an actual or a forecast. Conflicting sources are shown side by side. Downloads and the full method will live on this page.</div>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flooding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:"Public Sans",system-ui,sans-serif;background:#f3f6f4;color:#12201a}
+a{color:#1f5fb0}a:hover{color:#12201a}
+</style>
+</helmet>
+<div style="background:#f3f6f4;font-family:'Public Sans',system-ui,sans-serif;color:#12201a;font-size:15px;line-height:1.5">
+
+<header style="background:#12201a;color:#eaf0ec">
+<div style="max-width:1200px;margin:0 auto;padding:14px 24px;display:flex;flex-wrap:wrap;gap:16px 32px;align-items:center;justify-content:space-between">
+<div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px;letter-spacing:-.01em">Ghana Resource Monitor</div>
+<nav style="display:flex;flex-wrap:wrap;gap:6px 22px;font-size:14px;align-items:center">
+<a href="Main.dc.html" style="color:#c9d6cf;text-decoration:none;padding:4px 0">Energy</a>
+<a href="Flood.dc.html" style="color:#ffffff;font-weight:600;text-decoration:none;border-bottom:2px solid #5fb0ff;padding:4px 0">Flooding</a>
+<span style="color:#8fa097;padding:4px 0">Heat <span style="font-size:11px;border:1px solid #5b6b62;border-radius:4px;padding:0 5px;margin-left:4px">soon</span></span>
+<span style="color:#8fa097;padding:4px 0">Water <span style="font-size:11px;border:1px solid #5b6b62;border-radius:4px;padding:0 5px;margin-left:4px">soon</span></span>
+<a href="Ask.dc.html" style="color:#c9d6cf;text-decoration:none;padding:4px 0">Ask the monitor</a>
+<a href="Main.dc.html#data" style="color:#c9d6cf;text-decoration:none;padding:4px 0">Data and methods</a>
+</nav>
+</div>
+</header>
+
+<main style="max-width:1200px;margin:0 auto;padding:32px 24px 56px;display:flex;flex-direction:column;gap:26px">
+
+<section style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+<span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#56655d">Flooding</span>
+<span style="font-size:12.5px;font-weight:600;color:#1f5fb0;background:#e1edfb;border-radius:999px;padding:2px 10px">Planned module. Layout only, no data yet.</span>
+</div>
+<h1 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:44px;line-height:1.08;letter-spacing:-.02em;max-width:20ch;text-wrap:balance">Where Ghana floods, and why.</h1>
+<p style="margin:0;max-width:64ch;color:#56655d;font-size:17px">Satellite radar shows where water has stood after heavy rain. Rainfall records and land cover show what changed around it. Together they help separate a changing climate from the way we build and drain our cities.</p>
+</section>
+
+<section aria-label="Filters" style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:14px 18px">
+<div style="display:flex;flex-direction:column;gap:4px;flex:0 1 220px">
+<label for="region" style="font-size:13px;font-weight:600">Area</label>
+<select id="region" style="min-height:44px;padding:8px 10px;border:1px solid #b9c4be;border-radius:8px;font:inherit;background:#fff;color:#12201a"><option>Greater Accra</option><option>Kumasi</option><option>Takoradi</option><option>Tamale</option><option>All of Ghana</option></select>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px;flex:0 1 200px">
+<label for="years" style="font-size:13px;font-weight:600">Years</label>
+<select id="years" style="min-height:44px;padding:8px 10px;border:1px solid #b9c4be;border-radius:8px;font:inherit;background:#fff;color:#12201a"><option>Last 10 years</option><option>Last 5 years</option><option>Since 2015 (radar archive)</option></select>
+</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<span style="font-size:13px;font-weight:600">Map layer</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button type="button" aria-pressed="true" style="min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid #1f5fb0;background:#1f5fb0;color:#fff;font:600 14px 'Public Sans',sans-serif;cursor:pointer">Flood extent</button>
+<button type="button" aria-pressed="false" style="min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid #b9c4be;background:#fff;color:#12201a;font:500 14px 'Public Sans',sans-serif;cursor:pointer">Rainfall</button>
+<button type="button" aria-pressed="false" style="min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid #b9c4be;background:#fff;color:#12201a;font:500 14px 'Public Sans',sans-serif;cursor:pointer">Built-up area</button>
+</div>
+</div>
+</section>
+
+<section style="display:flex;flex-wrap:wrap;gap:16px;align-items:stretch">
+<div style="flex:999 1 620px;min-width:0;background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:20px">Flood extent map</h2>
+<div style="min-height:420px;border:2px dashed #b9c4be;border-radius:8px;background:#eaf0ec;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px;text-align:center">
+<div style="font-weight:600;font-size:16px">Map of flooded areas appears here</div>
+<div style="color:#56655d;font-size:14px;max-width:46ch">Radar images from Sentinel-1 show standing water through cloud, so floods can be mapped within days of heavy rain. [data pending]</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;color:#56655d">
+<span style="display:inline-flex;gap:6px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#2a78d6;display:inline-block"></span>Flooded in the latest event</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#0b3d7a;display:inline-block"></span>Flooded more than once</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#b9c4be;display:inline-block"></span>Built-up area</span>
+</div>
+</div>
+
+<aside style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:14px">
+<div style="background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:18px">Latest event</h2>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:14px">
+<div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #d8dfdb;padding-bottom:8px"><span style="color:#56655d">Date</span><span style="color:#56655d">[date]</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #d8dfdb;padding-bottom:8px"><span style="color:#56655d">Rainfall</span><span style="color:#56655d">[mm in 24 hours]</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #d8dfdb;padding-bottom:8px"><span style="color:#56655d">Area flooded</span><span style="color:#56655d">[km²]</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#56655d">People affected</span><span style="color:#56655d">[from NADMO reports]</span></div>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:18px">Early-warning level</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="font-size:13px;font-weight:600;color:#0b6a37;background:#e3f4ea;border-radius:999px;padding:3px 12px">Normal</span>
+<span style="font-size:13px;font-weight:600;color:#8a5200;background:#fbefd9;border-radius:999px;padding:3px 12px">Watch</span>
+<span style="font-size:13px;font-weight:600;color:#a82a21;background:#fbe5e2;border-radius:999px;padding:3px 12px">Warning</span>
+</div>
+<p style="margin:0;font-size:13.5px;color:#56655d">Will rise with forecast rainfall, soil wetness and how close recent flood levels have come to the same streets before.</p>
+</div>
+</aside>
+</section>
+
+<section style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+<div style="background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h3 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:17px">Heavy-rain days per year</h3>
+<div style="height:170px;border:2px dashed #b9c4be;border-radius:8px;background:#eaf0ec;display:flex;align-items:center;justify-content:center;color:#56655d;font-size:13.5px;text-align:center;padding:12px">Rainfall trend chart [data pending]</div>
+<p style="margin:0;font-size:13.5px;color:#56655d">Is the rain getting heavier? Uses satellite rainfall estimates checked against Ghana Meteorological Agency stations.</p>
+</div>
+<div style="background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h3 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:17px">Built-up area and flooded area</h3>
+<div style="height:170px;border:2px dashed #b9c4be;border-radius:8px;background:#eaf0ec;display:flex;align-items:center;justify-content:center;color:#56655d;font-size:13.5px;text-align:center;padding:12px">Urban growth against flood extent [data pending]</div>
+<p style="margin:0;font-size:13.5px;color:#56655d">As roads and roofs replace soil and wetland, more rain runs off instead of soaking in.</p>
+</div>
+<div style="background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h3 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:17px">Climate or construction?</h3>
+<div style="height:170px;border:2px dashed #b9c4be;border-radius:8px;background:#eaf0ec;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#56655d;font-size:13.5px;text-align:center;padding:12px"><span>Change in flood risk explained by</span><span>Rainfall: [range]</span><span>Urban growth and drainage: [range]</span></div>
+<p style="margin:0;font-size:13.5px;color:#56655d">Shown as a range, not a single number, because the two causes overlap.</p>
+</div>
+</section>
+
+<section style="display:flex;flex-wrap:wrap;gap:16px">
+<div style="flex:1 1 360px;background:#fff;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:18px">Where the data comes from</h2>
+<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:13px">
+<span style="background:#eaf0ec;border:1px solid #d8dfdb;border-radius:6px;padding:3px 9px">Sentinel-1 radar (flood extent)</span>
+<span style="background:#eaf0ec;border:1px solid #d8dfdb;border-radius:6px;padding:3px 9px">CHIRPS and GPM (rainfall)</span>
+<span style="background:#eaf0ec;border:1px solid #d8dfdb;border-radius:6px;padding:3px 9px">Sentinel-2 and Landsat (built-up area)</span>
+<span style="background:#eaf0ec;border:1px solid #d8dfdb;border-radius:6px;padding:3px 9px">Elevation model (low ground)</span>
+<span style="background:#eaf0ec;border:1px solid #d8dfdb;border-radius:6px;padding:3px 9px">Ghana Meteorological Agency (stations)</span>
+<span style="background:#eaf0ec;border:1px solid #d8dfdb;border-radius:6px;padding:3px 9px">NADMO (event reports)</span>
+</div>
+</div>
+<div style="flex:1 1 360px;background:#eaf0ec;border:1px solid #d8dfdb;border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px">
+<h2 style="margin:0;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:18px">Why this module needs care</h2>
+<p style="margin:0;font-size:14px;color:#56655d">Separating climate change from poor drainage and planning is hard, and the answer differs by place. We will show the uncertainty and explain the method, the same way the energy module does.</p>
+</div>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1560}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+year,metric,chosen,confidence,rejected,why
+2013,energy_transmitted,12930.0,medium,,2013 report states 12.93 TWh transmitted; no loss GWh available to cross-check
+2014,system_availability,99.79,low,99.17 (2016 report p15),Same-year narrative used; the 2016 report restates 99.17. Definitions may differ between reports
+2018,system_availability,99.48,low,99.85 (2021 report p20),Same-year narrative used; the 2021 report restates 99.85. Definitions may differ
+2019,energy_transmitted,17887.0,high,17034 (2020 report p16),"Loss GWh / loss % = 17,898 GWh, matches the 2019 report (17,887); the 2020-report comparator (17,034) does not fit"
+2020,energy_transmitted,19716.59,high,18819.0 (2020 report p16),"Loss GWh / loss % = 19,711 GWh, matches the 2023-report series (19,716.59); the 2020 report headline (18,819) does not fit"
+2020,system_availability,99.15,low,99.69 (2021 report p20),Same-year narrative used; the 2021 and 2024 charts show 99.69. Definitions may differ
+2020,system_peak_demand,3090,high,,Chart value read from the 2021 report p20 and the 2025 report p26 series; both agree
+2021,energy_transmitted,21466.0,high,,"Loss GWh / 5.01% = 21,477 GWh, matches 21,466; ""2022"" comparator label in the source is a typo for 2021"
+2021,system_availability,99.22,low,98.89 (2021 report p20),Same-year narrative used; the chart on p20 of the same report shows 98.89
+2021,transmission_losses,5.01,high,5.15 (2021 report p20),"5.01% x 21,466 GWh = 1,076 GWh, which equals the audited loss volume; 5.15% does not"
+2022,energy_transmitted,22478.46,high,21545 (2023 report p25),"Loss GWh / loss % = 22,488 GWh, matches the 2022 report and the 2023 report p26 series; the 21,545 comparator does not fit"
+2024,energy_transmitted,23692.0,low,,"Published headline, and the 2025 growth of 9.15% is computed from it. But the same report says ""over 24,600"" and loss GWh / 3.8% implies about 25,000. Unresolved"
+2024,system_availability,,none,,"Chart label not reliably resolved; blank rather than guessed. p27 gives 99.86% excluding J2K line, a different scope."
+2024,transmission_losses,3.8,medium,,Rounded chart label; do not infer more precision
+2025,energy_transmitted,25860.0,low,,"Published headline. Loss GWh (1,082) / 4.02% implies about 26,900, so the loss volume and the energy total may use different scopes. Unresolved"
