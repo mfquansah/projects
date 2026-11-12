@@ -6,77 +6,107 @@
   <title>Michael Fiifi Quansah — Portfolio</title>
   <meta name="description" content="Portfolio of Michael Fiifi Quansah">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Newsreader:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="logo" href="#top">Michael Fiifi Quansah</a>
-    <nav>
-      <a href="#about">About</a>
-      <a href="#writing">Writing</a>
-      <a href="#projects">Projects</a>
-      <a href="experience.html">Experience</a>
-      <a href="#contact">Contact</a>
-      <button id="theme-toggle" aria-label="Toggle dark mode">◐</button>
-    </nav>
+    <div class="container">
+      <a class="logo" href="#top" aria-label="Home">mq</a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#projects">Projects</a>
+        <a href="#writing">Writing</a>
+        <a href="experience.html">Experience</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+        <button id="theme-toggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"></circle><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"></path></svg>
+        </button>
+      </nav>
+    </div>
   </header>
 
-  <main id="top">
+  <main id="top" class="container">
     <section class="hero">
       <p class="eyebrow">Hi, I'm</p>
       <h1>Michael Fiifi Quansah</h1>
-      <p class="lead">I live at the intersection of product analytics and technical product management.</p>
-      <p class="lead">This is my corner of the internet: a catalog of what I write, build and read.</p>
-      <a class="btn" href="#writing">Read my writing</a> <a class="btn ghost" href="#projects">See what I've built</a>
-    </section>
-
-    <section id="about">
-      <h2>About Me</h2>
-      <p>I like solving problems, tinkering with ideas, and building things I wish existed.</p>
-      <p>My curiosity usually starts with a problem I've run into, a question I can't stop thinking about, or a gap I keep noticing.</p>
-      <p>My background is in data analytics and product management, and I like bringing the two together to turn ideas into useful products.</p>
-      <p>AI has made building easier than ever, so I'm experimenting with my own ideas more. I still care about doing it thoughtfully: understanding the problem, making deliberate decisions, and documenting enough of the journey to learn from it.</p>
-      <p>This site is where I share what I'm building, thinking about, and learning. Right now, that's <a href="https://ghresourcemonitor.vercel.app/" target="_blank" rel="noopener">Ghana Resource Monitor</a>, a tool to track resource use in Ghana, where I'm from, and <a href="https://dwene-analytics.vercel.app/" target="_blank" rel="noopener">Dwene</a>, a platform for learning causal inference.</p>
-    </section>
-
-    <section id="writing">
-      <h2>Writing</h2>
-      <p class="section-intro">Essays and notes on building good products, growing a career, and using data to improve our work.</p>
-      <ul class="tags">
-        <li>Product</li><li>Career</li><li>Tools &amp; AI</li><li>Data</li>
-      </ul>
-      <ul class="writing-list">
-        <li><a href="https://medium.com/my-data-blog/lessons-from-an-almost-start-up-building-an-e-commerce-delivery-platform-in-ghana-a67174b8824e" target="_blank" rel="noopener">Lessons from an almost start-up: building an e-commerce delivery platform in Ghana</a> <span class="tag">Product</span></li>
-        <li><a href="https://medium.com/my-data-blog/useful-frameworks-for-figuring-out-how-to-measure-products-2001feab778a" target="_blank" rel="noopener">Useful frameworks for figuring out how to measure products</a> <span class="tag">Data</span></li>
-        <li><a href="https://medium.com/my-data-blog/data-driven-career-exploration-uncovering-my-ideal-path-485e4492837d" target="_blank" rel="noopener">Data-driven career exploration: uncovering my ideal path</a> <span class="tag">Career</span></li>
-      </ul>
+      <p class="tagline">I live at the intersection of product analytics and technical product management.</p>
+      <p class="lead">This is my corner of the internet: a catalog of what I write and build.</p>
+      <div class="actions">
+        <a class="btn1" href="#writing">Read my writing</a>
+        <a class="link" href="#projects">See what I've built
+          <svg width="18" height="18" viewBox="0 0 28 28" aria-hidden="true"><path d="M5 14h18M16 7l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2"></path></svg>
+        </a>
+      </div>
     </section>
 
     <section id="projects">
-      <h2>Projects</h2>
+      <h2>Selected work</h2>
       <p class="section-intro">When I have an idea, I build it. Things I've made, in no particular order.</p>
       <div class="grid">
         <article class="card">
           <h3>Ghana Resource Monitor</h3>
           <p>An open data project on the pressures facing Ghana's critical resources, starting with electricity, with other resources to follow.</p>
-          <a href="https://ghresourcemonitor.vercel.app/" target="_blank" rel="noopener">Visit project →</a>
+          <a class="link" href="https://ghresourcemonitor.vercel.app/" target="_blank" rel="noopener">Visit project
+            <svg width="16" height="16" viewBox="0 0 28 28" aria-hidden="true"><path d="M5 14h18M16 7l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4"></path></svg>
+          </a>
         </article>
         <article class="card">
           <h3>Dwene</h3>
           <p>An interactive learning and experimentation project on causal inference, starting with difference-in-differences. Work through short, scenario-based lessons, then design simulated studies where you know the true answer and see whether the method finds it.</p>
-          <a href="https://dwene-analytics.vercel.app/" target="_blank" rel="noopener">Visit project →</a>
+          <a class="link" href="https://dwene-analytics.vercel.app/" target="_blank" rel="noopener">Visit project
+            <svg width="16" height="16" viewBox="0 0 28 28" aria-hidden="true"><path d="M5 14h18M16 7l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4"></path></svg>
+          </a>
         </article>
+      </div>
+    </section>
+
+    <section id="writing">
+      <h2>Writing</h2>
+      <p class="section-intro">Essays and notes on building good products, growing a career, and using data to improve our work.</p>
+      <div class="chips">
+        <span>Product</span><span>Career</span><span>Tools &amp; AI</span><span>Data</span>
+      </div>
+      <div class="writing-list">
+        <div class="row">
+          <a class="ul" href="https://medium.com/my-data-blog/lessons-from-an-almost-start-up-building-an-e-commerce-delivery-platform-in-ghana-a67174b8824e" target="_blank" rel="noopener">Lessons from an almost start-up: building an e-commerce delivery platform in Ghana</a>
+          <span class="tag">Product</span>
+        </div>
+        <div class="row">
+          <a class="ul" href="https://medium.com/my-data-blog/useful-frameworks-for-figuring-out-how-to-measure-products-2001feab778a" target="_blank" rel="noopener">Useful frameworks for figuring out how to measure products</a>
+          <span class="tag">Data</span>
+        </div>
+        <div class="row">
+          <a class="ul" href="https://medium.com/my-data-blog/data-driven-career-exploration-uncovering-my-ideal-path-485e4492837d" target="_blank" rel="noopener">Data-driven career exploration: uncovering my ideal path</a>
+          <span class="tag">Career</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <h2>About me</h2>
+      <div class="prose">
+        <p>I like solving problems, tinkering with ideas, and building things I wish existed.</p>
+        <p>My curiosity usually starts with a problem I've run into, a question I can't stop thinking about, or a gap I keep noticing.</p>
+        <p>My background is in data analytics and product management, and I like bringing the two together to turn ideas into useful products.</p>
+        <p>AI has made building easier than ever, so I'm experimenting with my own ideas more. I still care about doing it thoughtfully: understanding the problem, making deliberate decisions, and documenting enough of the journey to learn from it.</p>
+        <p>This site is where I share what I'm building, thinking about, and learning. Right now, that's <a class="ul" href="https://ghresourcemonitor.vercel.app/" target="_blank" rel="noopener">Ghana Resource Monitor</a>, a tool to track resource use in Ghana, where I'm from, and <a class="ul" href="https://dwene-analytics.vercel.app/" target="_blank" rel="noopener">Dwene</a>, a platform for learning causal inference.</p>
       </div>
     </section>
 
     <section id="contact">
       <h2>Contact</h2>
-      <p>Want to work together? <a href="mailto:mfquansah@gmail.com">mfquansah@gmail.com</a></p>
+      <p>Want to work together?</p>
+      <div>
+        <a class="pill" href="mailto:mfquansah@gmail.com">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>mfquansah@gmail.com</a>
+      </div>
     </section>
   </main>
 
-  <footer><p>© <span id="year"></span> Michael Fiifi Quansah</p></footer>
+  <footer>
+    <div class="container"><span>© <span id="year"></span> Michael Fiifi Quansah</span></div>
+  </footer>
   <script src="script.js"></script>
 </body>
 </html>

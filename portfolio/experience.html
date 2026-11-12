@@ -6,23 +6,27 @@
   <title>Experience — Michael Fiifi Quansah</title>
   <meta name="description" content="Where Michael Fiifi Quansah has worked">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Newsreader:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="logo" href="index.html">Michael Fiifi Quansah</a>
-    <nav>
-      <a href="index.html#writing">Writing</a>
-      <a href="index.html#projects">Projects</a>
-      <a href="index.html#reading">Reading</a>
-      <a href="experience.html">Experience</a>
-      <a href="index.html#contact">Contact</a>
-      <button id="theme-toggle" aria-label="Toggle dark mode">◐</button>
-    </nav>
+    <div class="container">
+      <a class="logo" href="index.html" aria-label="Home">mq</a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#writing">Writing</a>
+        <a href="experience.html">Experience</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#contact">Contact</a>
+        <button id="theme-toggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"></circle><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"></path></svg>
+        </button>
+      </nav>
+    </div>
   </header>
 
-  <main>
+  <main class="container">
     <section class="hero">
       <h1>Experience</h1>
       <p class="lead">Where I've worked.</p>
@@ -54,7 +58,9 @@
     </section>
   </main>
 
-  <footer><p>© <span id="year"></span> Michael Fiifi Quansah</p></footer>
+  <footer>
+    <div class="container"><span>© <span id="year"></span> Michael Fiifi Quansah</span></div>
+  </footer>
   <script src="script.js"></script>
 </body>
 </html>
