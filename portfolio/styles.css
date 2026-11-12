@@ -85,5 +85,14 @@ h1{font-weight:600;font-size:clamp(36px,5vw,48px);line-height:1.08;letter-spacin
 footer{border-top:1px solid var(--line);margin-top:0}
 footer .container{padding-top:24px;padding-bottom:24px;font-size:14px;color:var(--muted)}
 
-.cta{display:inline-flex;align-items:center;gap:8px;min-height:52px;font-weight:500;font-size:16px;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:5px;text-decoration-thickness:1.5px}
-.cta:hover{text-decoration-color:currentColor}
+.cta{display:inline-flex;align-items:center;gap:8px;min-height:52px;font-weight:500;font-size:16px}
+
+/* animated underline on hover */
+.cta,.link,.nav a{position:relative}
+.cta::after,.link::after,.nav a::after{content:"";position:absolute;left:0;right:0;height:1.5px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.cta::after{bottom:10px}
+.link::after{bottom:8px}
+.nav a{padding:4px 0}
+.nav a::after{bottom:0}
+.cta:hover::after,.link:hover::after,.nav a:hover::after{transform:scaleX(1)}
+@media (prefers-reduced-motion:reduce){.cta::after,.link::after,.nav a::after{transition:none}}
