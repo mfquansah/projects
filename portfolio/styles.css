@@ -1,4 +1,4 @@
-:root{--bg:#fff;--fg:#1a1a1a;--muted:#666;--card:#f5f5f7;--accent:#4f46e5}
+:root{--bg:#faf8f5;--fg:#1a1a1a;--muted:#6b6862;--card:#f0ede8;--accent:#4f46e5}
 :root[data-theme="dark"]{--bg:#0f0f12;--fg:#ececf1;--muted:#9a9aa6;--card:#1a1a20;--accent:#818cf8}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
