@@ -35,3 +35,6 @@ footer{text-align:center;color:var(--muted);padding:2rem 0}
 .timeline h3{margin:.1rem 0}
 .timeline p{margin:0;color:var(--muted)}
 .dates{font-size:.85rem;color:var(--muted)}
+.writing-list{list-style:none;padding:0}
+.writing-list li{padding:.7rem 0;border-bottom:1px solid var(--card)}
+.writing-list .tag{margin-left:.5rem}
