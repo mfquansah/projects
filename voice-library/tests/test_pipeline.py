@@ -21,6 +21,17 @@ def test_import_limit(session, audio_folder, tmp_path):
     assert import_folder(session, audio_folder, tmp_path / "audio", limit=1).added == 1
 
 
+def test_filename_date_beats_file_times(tmp_path):
+    from vl.ingest.importer import best_date
+    f = tmp_path / "20241103 101530.m4a"
+    f.write_bytes(b"x")  # file times are 'now'; the name says 2024
+    assert best_date(f) == (dt.datetime(2024, 11, 3, 10, 15, 30), "filename")
+    g = tmp_path / "New Recording 5.m4a"
+    g.write_bytes(b"x")
+    d, src = best_date(g)
+    assert src in ("birthtime", "mtime") and d is not None
+
+
 def test_filename_dates():
     assert date_from_filename("20241103 101530.m4a") == dt.datetime(2024, 11, 3, 10, 15, 30)
     assert date_from_filename("New Recording 12.m4a") is None
@@ -77,7 +88,7 @@ def test_filters(session, audio_folder, tmp_path, fakes):
     t, e, m = fakes
     import_folder(session, audio_folder, tmp_path / "audio")
     process_notes(session, t, e, m)
-    # Linux has no birthtime; dates come from the filename here
+    # dates come from the filename (it outranks file times, which can be the export time)
     only_2026 = search(session, "baby idea app", m, since=dt.datetime(2026, 1, 1))
     assert {h.category for h in only_2026} == {"Family memories"}
     ideas = search(session, "baby idea app", m, category="Ideas")

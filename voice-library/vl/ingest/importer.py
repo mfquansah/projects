@@ -1,7 +1,7 @@
 """Import audio files from a folder into the library.
 
 Idempotent: files are keyed by sha256, so re-importing the same folder adds nothing.
-The recorded date is the best available: file birth time, else modified time, else a date in the filename.
+The recorded date is the best available: a date in the filename, else file birth time, else modified time.
 Whether dates survive Voice Memos drag-out export is NOT verified yet; date_source records which one was used.
 """
 from __future__ import annotations
@@ -50,13 +50,18 @@ def date_from_filename(name: str) -> dt.datetime | None:
 
 
 def best_date(path: Path) -> tuple[dt.datetime | None, str]:
+    """Order matters: a date in the filename is explicit; file times are filesystem metadata.
+
+    A file dragged out of Voice Memos is a COPY, so its birth/modified time may be the export time, not the
+    recording time. Hence filename first, then birth time, then modified time. `date_source` records which was used.
+    """
+    from_name = date_from_filename(path.name)
+    if from_name:
+        return from_name, "filename"
     st = path.stat()
     birth = getattr(st, "st_birthtime", None)  # macOS exposes this; Linux usually does not
     if birth:
         return dt.datetime.fromtimestamp(birth), "birthtime"
-    from_name = date_from_filename(path.name)
-    if from_name:
-        return from_name, "filename"
     return dt.datetime.fromtimestamp(st.st_mtime), "mtime"
 
 
