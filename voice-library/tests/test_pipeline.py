@@ -184,3 +184,25 @@ def test_redate_fixes_export_time_dates_without_guessing(session, tmp_path):
     assert by_name["New Recording 1.m4a"].recorded_at == real.astimezone().replace(tzinfo=None)
     assert by_name["New Recording 2.m4a"].recorded_at == dt.datetime(2026, 11, 15, 6, 40)  # not guessed
     assert redate_notes(session) == (0, 2)  # idempotent
+
+
+def test_metadata_found_when_moov_is_after_big_audio_block(tmp_path):
+    """Phone recordings put 'moov' after 'mdat'; the date must still be found past the first MB."""
+    from vl.ingest.importer import metadata_date
+    utc = dt.datetime(2022, 8, 9, 10, 0, 0, tzinfo=dt.timezone.utc)
+    full = _mp4_with_creation(utc)
+    ftyp_len = int.from_bytes(full[:4], "big")
+    ftyp, moov = full[:ftyp_len], full[ftyp_len:]
+    mdat = _atom(b"mdat", b"\x01" * (3 << 20))  # 3 MB of fake audio
+    f = tmp_path / "long.m4a"
+    f.write_bytes(ftyp + mdat + moov)
+    assert metadata_date(f) == utc.astimezone().replace(tzinfo=None)
+    # 64-bit-size mdat, as used for very large files
+    big = (1).to_bytes(4, "big") + b"mdat" + (16 + 2048).to_bytes(8, "big") + b"\x02" * 2048
+    g = tmp_path / "big.m4a"
+    g.write_bytes(ftyp + big + moov)
+    assert metadata_date(g) == utc.astimezone().replace(tzinfo=None)
+    # truncated file (moov cut off) is safely None
+    h = tmp_path / "cut.m4a"
+    h.write_bytes((ftyp + mdat + moov)[:-10])
+    assert metadata_date(h) is None

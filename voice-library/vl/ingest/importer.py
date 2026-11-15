@@ -70,36 +70,70 @@ def _atoms(data: bytes, start: int, end: int):
         pos += size
 
 
+def _find_moov(f) -> bytes | None:
+    """Walk the file's TOP-LEVEL atoms by seeking, skipping big 'mdat' audio blocks, and return the 'moov' payload.
+
+    Phone recordings usually put 'moov' AFTER the audio, so reading only the file's start would miss it.
+    """
+    size_total = f.seek(0, 2)
+    pos = 0
+    for _ in range(64):  # a sane file has a handful of top-level atoms
+        if pos + 8 > size_total:
+            return None
+        f.seek(pos)
+        hdr = f.read(8)
+        if len(hdr) < 8:
+            return None
+        size = int.from_bytes(hdr[:4], "big")
+        kind = hdr[4:8]
+        header = 8
+        if size == 1:
+            ext = f.read(8)
+            if len(ext) < 8:
+                return None
+            size, header = int.from_bytes(ext, "big"), 16
+        elif size == 0:
+            size = size_total - pos
+        if size < header or pos + size > size_total:
+            return None
+        if kind == b"moov":
+            if size - header > (32 << 20):  # implausibly large metadata block
+                return None
+            f.seek(pos + header)
+            return f.read(size - header)
+        pos += size
+    return None
+
+
 def metadata_date(path: Path) -> dt.datetime | None:
     """Recording time stored INSIDE an .m4a (the MP4 'mvhd' creation time, UTC), as local naive time.
 
     A drag-out export is a byte copy, so this survives even when file times are the export time.
-    Returns None if absent or implausible (0 or outside 2007..tomorrow). Only the 'moov' atom is read.
+    Returns None if absent or implausible (0 or outside 2007..tomorrow).
     """
     try:
         with path.open("rb") as f:
-            head = f.read(1 << 20)  # moov is normally within the first MB; otherwise we just return None
+            moov = _find_moov(f)
     except OSError:
         return None
-    for kind, ps, pe in _atoms(head, 0, len(head)):
-        if kind != b"moov":
+    if moov is None:
+        return None
+    for kind, s2, e2 in _atoms(moov, 0, len(moov)):
+        if kind != b"mvhd" or e2 - s2 < 12:
             continue
-        for k2, s2, e2 in _atoms(head, ps, pe):
-            if k2 != b"mvhd" or e2 - s2 < 12:
-                continue
-            version = head[s2]
-            width = 8 if version == 1 else 4
-            raw = int.from_bytes(head[s2 + 4:s2 + 4 + width], "big")
-            if raw == 0:
-                return None
-            try:
-                when = _MP4_EPOCH + dt.timedelta(seconds=raw)
-            except OverflowError:
-                return None
-            now = dt.datetime.now(dt.timezone.utc)
-            if not (dt.datetime(2007, 1, 1, tzinfo=dt.timezone.utc) <= when <= now + dt.timedelta(days=1)):
-                return None
-            return when.astimezone().replace(tzinfo=None)
+        version = moov[s2]
+        width = 8 if version == 1 else 4
+        raw = int.from_bytes(moov[s2 + 4:s2 + 4 + width], "big")
+        if raw == 0:
+            return None
+        try:
+            when = _MP4_EPOCH + dt.timedelta(seconds=raw)
+        except OverflowError:
+            return None
+        now = dt.datetime.now(dt.timezone.utc)
+        if not (dt.datetime(2007, 1, 1, tzinfo=dt.timezone.utc) <= when <= now + dt.timedelta(days=1)):
+            return None
+        return when.astimezone().replace(tzinfo=None)
     return None
 
 
