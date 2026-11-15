@@ -17,6 +17,9 @@ from vl.db import Category, Embedding, Enrichment, Note
 from vl.index.embeddings import Embedder, cosine_scores, from_blob
 
 RRF_K = 60
+# Meaning search always has a 'nearest' note; without a cutoff, nonsense queries return unrelated notes.
+# 0.25 is a starting guess for all-MiniLM-L6-v2 on normalized vectors: tune it during the pilot.
+MIN_SIMILARITY = 0.25
 
 
 @dataclass
@@ -28,6 +31,7 @@ class Hit:
     recorded_at: dt.datetime | None
     path: str
     score: float
+    why: str | None = None  # filled in by the LLM rerank step
 
 
 def fts_query(q: str) -> str | None:
@@ -55,14 +59,16 @@ def _candidate_ids(
 def search(
     s: Session, q: str, embedder: Embedder | None = None, *, limit: int = 10,
     category: str | None = None, since: dt.datetime | None = None, until: dt.datetime | None = None,
+    keyword_q: str | None = None, min_similarity: float = MIN_SIMILARITY,
 ) -> list[Hit]:
+    """`q` drives meaning search; `keyword_q` (default: q) drives keyword search."""
     allowed = _candidate_ids(s, category, since, until)
     if allowed is not None and not allowed:
         return []
 
     scores: dict[int, float] = {}
 
-    match = fts_query(q)
+    match = fts_query(q if keyword_q is None else keyword_q)
     if match:
         rows = s.execute(
             text("SELECT note_id FROM notes_fts WHERE notes_fts MATCH :m ORDER BY rank LIMIT 100"),
@@ -82,7 +88,7 @@ def search(
         if embs:
             matrix = np.stack([from_blob(e.vector) for e in embs])
             sims = cosine_scores(embedder.embed([q])[0], matrix)
-            order = np.argsort(-sims)[:50]
+            order = [i for i in np.argsort(-sims)[:50] if sims[i] >= min_similarity]
             for rank, idx in enumerate(order, start=1):
                 nid = embs[idx].note_id
                 scores[nid] = scores.get(nid, 0.0) + 1.0 / (RRF_K + rank)

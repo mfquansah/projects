@@ -83,3 +83,24 @@
 - Why: user wanted to discuss before executing; no further reason recorded.
 - Reversible? yes
 - Source: confirmed
+
+### 2026-11-15 - Build the natural-language query layer now
+- Decision: build `ask` (LLM parses question into filters, hybrid search, optional LLM rerank) before running the pilot.
+- Alternatives considered/rejected: wait for pilot results to see what's missing (my recommendation).
+- Why: user asked to build it now; they chose it over my suggestion to wait, reason not recorded.
+- Reversible? yes
+- Source: confirmed
+
+### 2026-11-15 - LLM translates and explains; it never searches or invents notes
+- Decision: the LLM only produces filters and reranks database results. Invented ids are ignored, bad dates/categories are dropped with a visible note, LLM failure falls back to plain search, and empty filtered searches relax category then dates with a stated note.
+- Alternatives considered/rejected: letting the LLM answer from transcripts directly.
+- Why: keeps every result verifiable against the user's own notes. This was my design choice, not discussed with the user.
+- Reversible? yes
+- Source: inferred
+
+### 2026-11-15 - Minimum similarity cutoff on meaning search (0.25, untuned)
+- Decision: drop semantic matches below cosine 0.25. Found by a test: without it any query, even nonsense, returned unrelated notes.
+- Alternatives considered/rejected: no cutoff.
+- Why: nearest-neighbour search always returns something. The value 0.25 is a guess for all-MiniLM-L6-v2 and has not been tested on real notes; tune during the pilot.
+- Reversible? yes
+- Source: inferred

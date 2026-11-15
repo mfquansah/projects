@@ -1,4 +1,4 @@
-"""Command line: `python -m vl.cli import|process|search|status`.
+"""Command line: `python -m vl.cli import|process|search|ask|status`.
 
 Data lives in $VL_HOME (default ~/VoiceLibrary): library.db and audio/ (copies of imported files).
 Original recordings are never modified or deleted.
@@ -16,6 +16,7 @@ from vl.db import Enrichment, Note, Status, Transcript, make_session_factory
 from vl.ingest.importer import import_folder
 from vl.pipeline import process_notes
 from vl.index.search import search
+from vl.ask import ask
 
 
 def home() -> Path:
@@ -62,6 +63,30 @@ def cmd_search(args: argparse.Namespace) -> None:
         print(f"{i}. {h.title}  [{h.category or 'uncategorized'}]  {when}\n   {h.summary}\n   {h.path}")
 
 
+def cmd_ask(args: argparse.Namespace) -> None:
+    from vl.enrich.query import ClaudeQueryParser, ClaudeReranker
+    from vl.index.embeddings import SentenceTransformerEmbedder
+
+    factory = make_session_factory(home() / "library.db")
+    with factory() as s:
+        res = ask(s, args.question, ClaudeQueryParser(args.llm_model), SentenceTransformerEmbedder(),
+                  None if args.no_rerank else ClaudeReranker(args.llm_model), limit=args.limit)
+    q = res.query
+    when = f"{q.since:%Y-%m-%d} to {q.until:%Y-%m-%d}" if q.since and q.until else (
+        f"from {q.since:%Y-%m-%d}" if q.since else (f"before {q.until:%Y-%m-%d}" if q.until else "any date"))
+    print(f"Searching for: {q.semantic_text} | category: {q.category or 'any'} | {when}")
+    for n in res.notes:
+        print(f"  note: {n}")
+    if not res.hits:
+        print("No matches.")
+    for i, h in enumerate(res.hits, 1):
+        d = h.recorded_at.strftime("%Y-%m-%d %H:%M") if h.recorded_at else "date unknown"
+        print(f"{i}. {h.title}  [{h.category or 'uncategorized'}]  {d}\n   {h.summary}")
+        if h.why:
+            print(f"   why: {h.why}")
+        print(f"   {h.path}")
+
+
 def cmd_status(_: argparse.Namespace) -> None:
     factory = make_session_factory(home() / "library.db")
     with factory() as s:
@@ -96,6 +121,13 @@ def main() -> None:
     a.add_argument("--limit", type=int, default=10)
     a.add_argument("--keyword-only", action="store_true", help="skip meaning search (no model download)")
     a.set_defaults(func=cmd_search)
+
+    a = sub.add_parser("ask", help="ask a question in plain language")
+    a.add_argument("question")
+    a.add_argument("--limit", type=int, default=5)
+    a.add_argument("--no-rerank", action="store_true", help="skip the LLM rerank step")
+    a.add_argument("--llm-model", default="claude-haiku-5-5")
+    a.set_defaults(func=cmd_ask)
 
     a = sub.add_parser("status", help="counts and any failures")
     a.set_defaults(func=cmd_status)
