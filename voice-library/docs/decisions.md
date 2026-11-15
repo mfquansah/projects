@@ -104,3 +104,10 @@
 - Why: nearest-neighbour search always returns something. The value 0.25 is a guess for all-MiniLM-L6-v2 and has not been tested on real notes; tune during the pilot.
 - Reversible? yes
 - Source: inferred
+
+### 2026-11-15 - Pin av below 19
+- Decision: require `av>=14,<19` in requirements.txt.
+- Alternatives considered/rejected: upgrading av (already at 19.0.2, which caused the failure); patching faster-whisper.
+- Why: pilot run failed all 19 notes with "open() got an unexpected keyword argument 'metadata_errors'". Reproduced in the cloud session: faster-whisper 1.2.1 calls av.open(metadata_errors="ignore"), which av 19 no longer accepts. av 18.1.0 through 14 decode fine (verified on a WAV file, not on real m4a).
+- Reversible? yes (drop the pin once faster-whisper supports av 19)
+- Source: confirmed
