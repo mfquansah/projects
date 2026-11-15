@@ -124,3 +124,63 @@ def test_suggested_category_is_never_applied(session, audio_folder, tmp_path, fa
     assert en.suggested_category == "Songs"
     from vl.db import Category
     assert session.query(Category).filter_by(name="Songs").first() is None
+
+
+# --- dates stored inside the audio (MP4 mvhd) ---
+
+def _atom(kind: bytes, payload: bytes) -> bytes:
+    return (len(payload) + 8).to_bytes(4, "big") + kind + payload
+
+
+def _mp4_with_creation(when_utc: dt.datetime, version: int = 0) -> bytes:
+    secs = int((when_utc - dt.datetime(1904, 1, 1, tzinfo=dt.timezone.utc)).total_seconds())
+    width = 8 if version == 1 else 4
+    body = bytes([version]) + b"\0\0\0" + secs.to_bytes(width, "big") + b"\0" * 20
+    return _atom(b"ftyp", b"M4A \0\0\0\0") + _atom(b"moov", _atom(b"mvhd", body))
+
+
+def test_metadata_date_is_read_and_beats_file_times(tmp_path):
+    from vl.ingest.importer import best_date, metadata_date
+    utc = dt.datetime(2024, 11, 3, 15, 30, 0, tzinfo=dt.timezone.utc)
+    for version in (0, 1):
+        f = tmp_path / f"New Recording {version}.m4a"
+        f.write_bytes(_mp4_with_creation(utc, version))
+        expected = utc.astimezone().replace(tzinfo=None)
+        assert metadata_date(f) == expected
+        assert best_date(f) == (expected, "metadata")
+
+
+def test_metadata_date_rejects_garbage(tmp_path):
+    from vl.ingest.importer import metadata_date
+    zero = tmp_path / "zero.m4a"
+    zero.write_bytes(_mp4_with_creation(dt.datetime(1904, 1, 1, tzinfo=dt.timezone.utc)))
+    future = tmp_path / "future.m4a"
+    future.write_bytes(_mp4_with_creation(dt.datetime(2035, 1, 1, tzinfo=dt.timezone.utc)))
+    junk = tmp_path / "junk.m4a"
+    junk.write_bytes(b"not an mp4 at all" * 10)
+    empty = tmp_path / "empty.m4a"
+    empty.write_bytes(b"")
+    assert metadata_date(zero) is None and metadata_date(future) is None
+    assert metadata_date(junk) is None and metadata_date(empty) is None
+    assert metadata_date(tmp_path / "missing.m4a") is None
+
+
+def test_redate_fixes_export_time_dates_without_guessing(session, tmp_path):
+    from vl.ingest.importer import import_folder, redate_notes
+    folder = tmp_path / "exp"
+    folder.mkdir()
+    real = dt.datetime(2023, 5, 6, 12, 0, 0, tzinfo=dt.timezone.utc)
+    (folder / "New Recording 1.m4a").write_bytes(_mp4_with_creation(real))
+    (folder / "New Recording 2.m4a").write_bytes(b"plain bytes, no metadata")
+    # simulate the old importer: both notes carry export-time dates
+    import_folder(session, folder, tmp_path / "audio")
+    for n in session.query(Note).all():
+        n.recorded_at, n.date_source = dt.datetime(2026, 11, 15, 6, 40), "birthtime"
+    session.commit()
+    changed, unchanged = redate_notes(session)
+    assert (changed, unchanged) == (1, 1)
+    by_name = {n.original_name: n for n in session.query(Note)}
+    assert by_name["New Recording 1.m4a"].date_source == "metadata"
+    assert by_name["New Recording 1.m4a"].recorded_at == real.astimezone().replace(tzinfo=None)
+    assert by_name["New Recording 2.m4a"].recorded_at == dt.datetime(2026, 11, 15, 6, 40)  # not guessed
+    assert redate_notes(session) == (0, 2)  # idempotent

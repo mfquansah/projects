@@ -1,4 +1,4 @@
-"""Command line: `python -m vl.cli import|process|search|ask|status`.
+"""Command line: `python -m vl.cli import|redate|process|search|ask|status`.
 
 Data lives in $VL_HOME (default ~/VoiceLibrary): library.db and audio/ (copies of imported files).
 Original recordings are never modified or deleted.
@@ -13,7 +13,7 @@ from pathlib import Path
 from sqlalchemy import func
 
 from vl.db import Enrichment, Note, Status, Transcript, make_session_factory
-from vl.ingest.importer import import_folder
+from vl.ingest.importer import import_folder, redate_notes
 from vl.pipeline import process_notes
 from vl.index.search import search
 from vl.ask import ask
@@ -30,6 +30,13 @@ def cmd_import(args: argparse.Namespace) -> None:
     with factory() as s:
         r = import_folder(s, Path(args.folder).expanduser(), home() / "audio", args.limit)
     print(f"Imported {r.added}, skipped {r.skipped} already in library, failed {r.failed}.")
+
+
+def cmd_redate(_: argparse.Namespace) -> None:
+    factory = make_session_factory(home() / "library.db")
+    with factory() as s:
+        changed, unchanged = redate_notes(s)
+    print(f"Updated {changed} dates from filenames/audio metadata; left {unchanged} unchanged. Run `status` to review.")
 
 
 def cmd_process(args: argparse.Namespace) -> None:
@@ -110,6 +117,9 @@ def main() -> None:
     a.add_argument("folder")
     a.add_argument("--limit", type=int, help="import at most N new files (use 25 for the pilot)")
     a.set_defaults(func=cmd_import)
+
+    a = sub.add_parser("redate", help="re-derive dates for imported notes from audio metadata")
+    a.set_defaults(func=cmd_redate)
 
     a = sub.add_parser("process", help="transcribe, enrich and index imported notes")
     a.add_argument("--limit", type=int)
