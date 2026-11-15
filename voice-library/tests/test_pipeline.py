@@ -1,3 +1,4 @@
+import pytest
 import datetime as dt
 
 from vl.db import Enrichment, Note, Status, Transcript
@@ -206,3 +207,46 @@ def test_metadata_found_when_moov_is_after_big_audio_block(tmp_path):
     h = tmp_path / "cut.m4a"
     h.write_bytes((ftyp + mdat + moov)[:-10])
     assert metadata_date(h) is None
+
+
+# --- Claude enrichment robustness (fake client, no network) ---
+
+class _Msg:
+    def __init__(self, text, stop="end_turn"):
+        self.content = [type("B", (), {"type": "text", "text": text})()]
+        self.stop_reason = stop
+
+
+class _FakeClient:
+    def __init__(self, replies):
+        self.replies, self.calls = list(replies), []
+        self.messages = self
+
+    def create(self, **kw):
+        self.calls.append(kw)
+        return self.replies.pop(0)
+
+
+GOOD = '{"title":"T","summary":"S","category":"Ideas","tags":["a"],"junk_score":0.1}'
+
+
+def test_enricher_retries_once_then_succeeds():
+    from vl.enrich.llm import ClaudeEnricher
+    c = _FakeClient([_Msg("Sure, happy to chat about that!"), _Msg(GOOD)])
+    r = ClaudeEnricher(client=c).enrich("hello there", CATS, None)
+    assert r.title == "T" and len(c.calls) == 2
+    assert "do not answer" in c.calls[1]["messages"][0]["content"].lower()
+
+
+def test_enricher_failure_message_shows_reply_and_stop_reason():
+    from vl.enrich.llm import ClaudeEnricher, EnrichmentError
+    c = _FakeClient([_Msg("I can't help with that."), _Msg('{"title": "cut off', stop="max_tokens")])
+    with pytest.raises(EnrichmentError) as e:
+        ClaudeEnricher(client=c).enrich("hello", CATS, None)
+    assert "max_tokens" in str(e.value) and "cut off" in str(e.value)
+
+
+def test_enricher_does_not_call_api_for_empty_transcript():
+    from vl.enrich.llm import ClaudeEnricher
+    c = _FakeClient([])
+    assert ClaudeEnricher(client=c).enrich("   ", CATS, None).junk_score == 0.7 and c.calls == []
