@@ -35,6 +35,7 @@ class Hit:
     score: float
     why: str | None = None  # filled in by the LLM rerank step
     duration_s: float | None = None  # see effective_duration
+    sound_info: str | None = None  # e.g. 'baby_laugh 0.72 at 1:20', set when a sound filter matched
 
 
 def fts_query(q: str) -> str | None:
@@ -62,10 +63,12 @@ def _candidate_ids(
 def search(
     s: Session, q: str, embedder: Embedder | None = None, *, limit: int = 10,
     category: str | None = None, since: dt.datetime | None = None, until: dt.datetime | None = None,
-    keyword_q: str | None = None, min_similarity: float = MIN_SIMILARITY,
+    keyword_q: str | None = None, min_similarity: float = MIN_SIMILARITY, only_ids: set[int] | None = None,
 ) -> list[Hit]:
     """`q` drives meaning search; `keyword_q` (default: q) drives keyword search."""
     allowed = _candidate_ids(s, category, since, until)
+    if only_ids is not None:
+        allowed = set(only_ids) if allowed is None else allowed & only_ids
     if allowed is not None and not allowed:
         return []
 

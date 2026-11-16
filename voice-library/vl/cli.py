@@ -1,4 +1,4 @@
-"""Command line: `python -m vl.cli import|redate|process|search|ask|evalgen|eval|status`.
+"""Command line: `python -m vl.cli import|redate|process|sounds|search|ask|evalgen|eval|status`.
 
 Data lives in $VL_HOME (default ~/VoiceLibrary): library.db and audio/ (copies of imported files).
 Original recordings are never modified or deleted.
@@ -17,6 +17,7 @@ from vl.db import Enrichment, Note, Status, Transcript, make_session_factory
 from vl.ingest.importer import import_folder, redate_notes
 from vl.pipeline import process_notes
 from vl.index.search import search
+from vl.sounds.store import run_sounds, sounds_coverage
 from vl.ask import ask
 from vl.eval import (
     Counting, EvalSetError, check_expected_exist, format_report, load_questions, run_mode, to_json,
@@ -41,6 +42,18 @@ def cmd_redate(_: argparse.Namespace) -> None:
     with factory() as s:
         changed, unchanged = redate_notes(s)
     print(f"Updated {changed} dates from filenames/audio metadata; left {unchanged} unchanged. Run `status` to review.")
+
+
+def cmd_sounds(args: argparse.Namespace) -> None:
+    from vl.sounds.tagger import AudioSetTagger
+
+    factory = make_session_factory(home() / "library.db")
+    with factory() as s:
+        analyzed, total = sounds_coverage(s)
+        print(f"{analyzed} of {total} notes already checked for sounds.")
+        tagger = AudioSetTagger(threshold=args.threshold, device=args.device)
+        r = run_sounds(s, tagger, limit=args.limit, progress=print)
+    print(f"Checked {r['analyzed']} notes, found {r['events']} sound events, errors {r['errors']}.")
 
 
 def cmd_process(args: argparse.Namespace) -> None:
@@ -95,6 +108,8 @@ def cmd_ask(args: argparse.Namespace) -> None:
         d = h.recorded_at.strftime("%Y-%m-%d %H:%M") if h.recorded_at else "date unknown"
         length = f"  {int(h.duration_s // 60)}:{int(h.duration_s % 60):02d}" if h.duration_s else ""
         print(f"{i}. {h.title}  [{h.category or 'uncategorized'}]  {d}{length}\n   {h.summary}")
+        if h.sound_info:
+            print(f"   sound: {h.sound_info}")
         if h.why:
             print(f"   why: {h.why}")
         print(f"   {h.path}")
@@ -169,6 +184,8 @@ def cmd_status(_: argparse.Namespace) -> None:
         total = s.query(func.count(Note.id)).scalar()
         print(f"Notes: {total}, transcribed: {s.query(func.count(Transcript.note_id)).scalar()}, "
               f"enriched: {s.query(func.count(Enrichment.note_id)).scalar()}")
+        analyzed, total_n = sounds_coverage(s)
+        print(f"Sounds checked: {analyzed} of {total_n}")
         by_src = dict(s.query(Note.date_source, func.count(Note.id)).group_by(Note.date_source).all())
         print(f"Date sources: {by_src}")
         weak = by_src.get("birthtime", 0) + by_src.get("mtime", 0)
@@ -190,6 +207,12 @@ def main() -> None:
 
     a = sub.add_parser("redate", help="re-derive dates for imported notes from audio metadata")
     a.set_defaults(func=cmd_redate)
+
+    a = sub.add_parser("sounds", help="detect baby crying/laughing etc. in imported notes")
+    a.add_argument("--limit", type=int, help="check at most N notes (try 3 first: it can be slow)")
+    a.add_argument("--threshold", type=float, default=0.3, help="minimum confidence to keep a sound (untuned)")
+    a.add_argument("--device", default=None, help='e.g. "mps" on Apple Silicon (may be faster); default CPU')
+    a.set_defaults(func=cmd_sounds)
 
     a = sub.add_parser("process", help="transcribe, enrich and index imported notes")
     a.add_argument("--limit", type=int)

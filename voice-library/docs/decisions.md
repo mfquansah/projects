@@ -132,3 +132,11 @@
 - Why: the user's first real query ("longest voice note") returned an unrelated note, and they asked to build this next. The transcript-timing fallback is my choice; I never confirmed whether stored durations were populated on their Mac.
 - Reversible? yes
 - Source: confirmed (need), inferred (design)
+
+### 2026-11-16 - Sound tagging with a local AudioSet model; sound is a filter in `ask`
+- Decision: `vl sounds` runs an AST model trained on AudioSet over each note in 10 s windows, locally, and stores baby cry / crying / whimper, baby laughter / giggle / laughter, and babbling events (label, start, end, confidence). `ask` applies a sound as a filter: notes with that sound, ranked by confidence (a transcript match adds a small bonus), never reranked by Claude, and never relaxed to unrelated notes. If sounds haven't been analyzed, or the sound is unknown, the sound part is ignored and `ask` says so.
+- Alternatives considered/rejected: YAMNet (faster, less accurate; not tested), PANNs, using only transcripts.
+- Why: finding the baby clips is the main reason for the project (user, earlier), and transcripts can't find clips with no speech. Choice of AST over the alternatives was mine; it was not compared.
+- Reversible? yes (model, cutoffs and labels are isolated in vl/sounds/)
+- Source: inferred (model choice), confirmed (need)
+- Not verified: speed on real notes, accuracy on real home recordings, the model's exact label names (HF blocked from the build session, so labels are matched by keyword), and the 0.3 cutoffs.

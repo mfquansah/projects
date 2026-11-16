@@ -15,8 +15,12 @@ from vl.enrich.query import QueryParser, Reranker, StructuredQuery
 from vl.index.embeddings import Embedder
 from vl.index.search import Hit, _candidate_ids, make_hit, search
 from vl.pipeline import accepted_category_names
+from vl.sounds.labels import group_for
+from vl.sounds.store import sound_scores, sounds_coverage
 
 RERANK_TOP = 10
+MIN_SOUND_CONFIDENCE = 0.3  # untuned: tune on real recordings
+TOPIC_BONUS = 0.2  # a transcript match nudges a sound match up; sound confidence stays the main signal
 
 
 @dataclass
@@ -43,7 +47,40 @@ def ask(
     keyword_q = " ".join(sq.keywords) or sq.semantic_text
     category, since, until = sq.category, sq.since, sq.until
 
+    sound_map = None
+    if sq.sound:
+        group = group_for(sq.sound)
+        analyzed, total = sounds_coverage(s)
+        if group is None:
+            notes.append(f"I don't know how to detect '{sq.sound}', so that part of the question was ignored.")
+        elif analyzed == 0:
+            notes.append("Sound detection hasn't been run on your notes yet (run: python -m vl.cli sounds), "
+                         "so the sound part of the question was ignored.")
+        else:
+            sound_map = sound_scores(s, group, MIN_SOUND_CONFIDENCE)
+            if analyzed < total:
+                notes.append(f"Only {analyzed} of {total} notes have been checked for sounds so far.")
+
     def run() -> list[Hit]:
+        if sound_map is not None:
+            ids = set(sound_map)
+            allowed = _candidate_ids(s, category, since, until)
+            if allowed is not None:
+                ids &= allowed
+            if not ids:
+                return []
+            topical: set[int] = set()
+            if sq.semantic_text.strip():
+                topical = {h.note_id for h in search(s, sq.semantic_text, embedder, limit=50, only_ids=ids,
+                                                     keyword_q=keyword_q)}
+            ranked = sorted(ids, key=lambda i: -(sound_map[i][0] + (TOPIC_BONUS if i in topical else 0)))
+            out = []
+            for i in ranked:
+                h = make_hit(s, i, score=sound_map[i][0])
+                conf, label, start = sound_map[i]
+                h.sound_info = f"{label} {conf:.2f} at {int(start // 60)}:{int(start % 60):02d}"
+                out.append(h)
+            return out
         if sq.sort and not sq.semantic_text.strip():
             # pure property question ("my longest note"): every note that passes the filters is a candidate
             ids = _candidate_ids(s, category, since, until)
@@ -67,10 +104,13 @@ def ask(
             notes.append("Nothing matched in that date range, so I searched all dates. "
                          "Recorded dates may be inaccurate; check them.")
 
+    if sound_map is not None and not hits:
+        notes.append(f"No notes contain '{sq.sound}' sounds above the confidence cutoff ({MIN_SOUND_CONFIDENCE}).")
+
     if sq.sort:  # deterministic order: never rerank, Claude would scramble it
         return AskResult(hits=_sort_hits(hits, sq.sort, notes)[: sq.count or limit], query=sq, notes=notes)
 
-    if reranker and len(hits) > 1:
+    if reranker and len(hits) > 1 and sound_map is None:  # sound results are ordered by confidence; keep that
         hits = _rerank(s, question, hits, reranker, notes)
     return AskResult(hits=hits, query=sq, notes=notes)
 

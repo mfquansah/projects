@@ -30,6 +30,19 @@ search, then asks Claude to rerank the top results with a one-line reason. If th
 says so; if a filter finds nothing it relaxes the category, then the dates, and tells you. Only the question and short transcript
 snippets are sent; audio never is. Add `--no-rerank` to skip the second call.
 
+## Sound detection (baby laughing, crying, babbling)
+```bash
+python -m vl.cli sounds --limit 3      # try 3 notes first: the first run downloads the model, and long notes are slow
+python -m vl.cli sounds                # then the rest (resumable: skips notes already checked)
+python -m vl.cli ask "the recording of my baby laughing"
+```
+A model trained on AudioSet listens to each note in 10-second windows, locally (audio never leaves your Mac), and keeps baby cry, laughter,
+giggle and babbling sounds above a confidence cutoff. `ask` then finds notes by sound even when nobody speaks, ranks them by confidence,
+and shows where in the note it heard it (`sound: baby_laugh 0.82 at 1:10`).
+**Not yet verified on real audio:** speed (long notes may take minutes each on CPU; try `--device mps`), the cutoffs (`--threshold` and
+`MIN_SOUND_CONFIDENCE`, both 0.3, are guesses), and the model's label names (matched by keyword, and it stops with a clear message
+if it can't find baby cry/laugh labels). Adult laughter can be mistaken for baby laughter.
+
 ## Ordering questions
 `ask` understands "my longest note", "my 3 newest", "the shortest note about the dashboard". Notes are matched on topic first, then ordered.
 Lengths come from the audio file when known, otherwise from the end of the last transcribed speech (approximate), and notes with neither are

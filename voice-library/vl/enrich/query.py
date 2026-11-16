@@ -89,8 +89,6 @@ def parse_structured(raw: str, question: str, categories: list[str]) -> Structur
         category = None
     sound = data.get("sound")
     sound = None if sound in (None, "", "null") else str(sound)
-    if sound:
-        notes.append(f"Sound '{sound}' recognized, but sound tagging isn't built yet, so it was not applied.")
     sort = data.get("sort")
     sort = str(sort).lower() if sort not in (None, "", "null") else None
     if sort not in (None, "longest", "shortest", "newest", "oldest"):

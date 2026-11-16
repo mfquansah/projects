@@ -122,7 +122,7 @@ def test_parse_structured_validates_everything():
     assert sq.since == dt.datetime(2026, 10, 25) and sq.until == dt.datetime(2026, 11, 8)
     assert sq.sound == "baby_laugh"
     assert any("Ignored unknown category" in n for n in sq.notes)
-    assert any("sound tagging isn't built yet" in n for n in sq.notes)
+    assert not any("sound tagging" in n for n in sq.notes)  # the sound filter is applied later, by `ask`
 
 
 def test_parse_structured_drops_bad_dates():
