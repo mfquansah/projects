@@ -162,3 +162,10 @@
 - Reversible? yes
 - Source: confirmed
 - Not verified: how often Claude's labels are right on real notes, and whether "match" is used strictly enough; check during the recording tests.
+
+### 2026-11-16 - Single-box local web page (milestone 3), curation features included
+- Decision: `vl serve` runs a FastAPI app and one HTML page on 127.0.0.1 only. One search box: typing runs local search; Enter runs `ask`. Also built the confirmed-but-missing pieces: accept/dismiss suggested categories (dismissals remembered), create a category by hand or from a tag, a review queue for likely-junk notes with Keep/Archive, an Archived list with Restore, and a server-wide "Use Claude" switch (Claude off = everything local). Archive hides a note from search, ask, sorting, sound results and counts; it never deletes the audio or data.
+- Alternatives considered/rejected: a separate search and ask form (user: one form only); real deletion (unsafe for irreplaceable recordings); exposing the page on the network (family audio, no login).
+- Why: the user asked for one box (confirmed), and asked to build as fully as possible before testing details. Archive-not-delete, localhost-only and the Host-header check are my safety choices, not discussed with the user.
+- Reversible? yes
+- Source: confirmed (single box, categories flow, review queue, privacy), inferred (safety choices, layout)

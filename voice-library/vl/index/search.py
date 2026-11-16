@@ -37,6 +37,7 @@ class Hit:
     strength: str | None = None  # 'match' | 'partial' | 'related' from the rerank step; None = not judged
     duration_s: float | None = None  # see effective_duration
     sound_info: str | None = None  # e.g. 'baby_laugh 0.72 at 1:20', set when a sound filter matched
+    sound_start_s: float | None = None  # where that sound starts, so a player can jump there
 
 
 def fts_query(q: str) -> str | None:

@@ -1,4 +1,4 @@
-"""Command line: `python -m vl.cli import|redate|process|sounds|search|ask|evalgen|eval|status`.
+"""Command line: `python -m vl.cli import|redate|process|sounds|serve|search|ask|evalgen|eval|status`.
 
 Data lives in $VL_HOME (default ~/VoiceLibrary): library.db and audio/ (copies of imported files).
 Original recordings are never modified or deleted.
@@ -71,6 +71,35 @@ def cmd_sounds(args: argparse.Namespace) -> None:
         tagger = AudioSetTagger(threshold=args.threshold, device=args.device)
         r = run_sounds(s, tagger, limit=args.limit, progress=print)
     print(f"Checked {r['analyzed']} notes, found {r['events']} sound events, errors {r['errors']}.")
+
+
+def cmd_serve(args: argparse.Namespace) -> None:
+    if args.host not in ("127.0.0.1", "localhost"):
+        raise SystemExit("For privacy the page only runs on this computer (127.0.0.1). "
+                         "Phone access is planned but not built; it needs login first.")
+    import uvicorn
+
+    from vl.api.main import create_app
+    from vl.enrich.query import ClaudeQueryParser, ClaudeReranker
+    from vl.index.embeddings import SentenceTransformerEmbedder
+
+    parser = reranker = None
+    reason = None
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        parser, reranker = ClaudeQueryParser(args.llm_model), ClaudeReranker(args.llm_model)
+    else:
+        reason = "ANTHROPIC_API_KEY isn't set. Set it and restart to let Claude understand questions."
+    factory = make_session_factory(home() / "library.db")
+    app = create_app(factory, embedder=SentenceTransformerEmbedder(), parser=parser, reranker=reranker,
+                     audio_root=home() / "audio", claude_unavailable_reason=reason)
+    url = f"http://127.0.0.1:{args.port}"
+    print(f"Voice Note Library running at {url}  (Ctrl+C to stop)")
+    if reason:
+        print(f"  note: {reason}")
+    if args.open:
+        import webbrowser
+        webbrowser.open(url)
+    uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
 
 
 def cmd_process(args: argparse.Namespace) -> None:
@@ -241,6 +270,13 @@ def main() -> None:
     a.add_argument("--inspect", metavar="FILE", help="show what the model hears in ONE audio file (no cutoff), for debugging")
     a.add_argument("--windows", type=int, default=3, help="with --inspect: how many 10-second windows to show")
     a.set_defaults(func=cmd_sounds)
+
+    a = sub.add_parser("serve", help="open the library in your browser (local only)")
+    a.add_argument("--port", type=int, default=8765)
+    a.add_argument("--host", default="127.0.0.1")
+    a.add_argument("--open", action="store_true", help="open the page in your browser")
+    a.add_argument("--llm-model", default="claude-haiku-5-5")
+    a.set_defaults(func=cmd_serve)
 
     a = sub.add_parser("process", help="transcribe, enrich and index imported notes")
     a.add_argument("--limit", type=int)

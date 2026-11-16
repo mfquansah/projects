@@ -121,6 +121,13 @@ def parse_structured(raw: str, question: str, categories: list[str]) -> Structur
     )
 
 
+class LocalParser:
+    """No LLM: use the question as-is. `ask` still infers baby sounds from keywords, so sound search works offline."""
+
+    def parse(self, question: str, categories: list[str], today: dt.date) -> StructuredQuery:
+        return StructuredQuery(semantic_text=question)
+
+
 class ClaudeQueryParser:
     def __init__(self, model: str = "claude-haiku-5-5") -> None:
         import anthropic  # lazy

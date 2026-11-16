@@ -84,6 +84,7 @@ def ask(
                 h = make_hit(s, i, score=sound_map[i][0])
                 conf, label, start = sound_map[i]
                 h.sound_info = f"{label} {conf:.2f} at {int(start // 60)}:{int(start % 60):02d}"
+                h.sound_start_s = start
                 out.append(h)
             return out
         if sq.sort and not sq.semantic_text.strip():
@@ -115,7 +116,7 @@ def ask(
     if sq.sort:  # deterministic order: never rerank, Claude would scramble it
         return AskResult(hits=_sort_hits(hits, sq.sort, notes)[: sq.count or limit], query=sq, notes=notes)
 
-    if reranker and len(hits) > 1 and sound_map is None:  # sound results are ordered by confidence; keep that
+    if reranker and hits and sound_map is None:  # even ONE result gets judged; sound results keep their confidence order
         hits = _rerank(s, question, hits, reranker, notes)
     return AskResult(hits=hits, query=sq, notes=notes, verdict=verdict_for(hits))
 

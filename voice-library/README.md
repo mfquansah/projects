@@ -30,6 +30,18 @@ search, then asks Claude to rerank the top results with a one-line reason. If th
 says so; if a filter finds nothing it relaxes the category, then the dates, and tells you. Only the question and short transcript
 snippets are sent; audio never is. Add `--no-rerank` to skip the second call.
 
+## The web page (one search box)
+```bash
+python -m vl.cli serve --open        # then use http://127.0.0.1:8765
+```
+One box: type for instant results (local, free, private); press Enter to ask a full question. The home view shows your categories with counts,
+Claude's suggested new categories (Accept / Dismiss), your most common tags (click one to turn it into a category), recent notes, a **Review**
+queue of likely-junk notes (Keep / Archive) and an **Archived** list (Restore). Each result has a player (with a chip that jumps to where a
+sound was heard), the transcript, and a category picker. **Archive only hides a note: nothing is ever deleted.**
+The "Use Claude for questions" switch turns Claude off entirely: questions then run on this computer only (plain search, plus keyword sound
+detection like "my baby crying"), but dates, categories and "longest" aren't understood. Without `ANTHROPIC_API_KEY` the switch starts off.
+The page only listens on 127.0.0.1 and refuses to serve any file outside `~/VoiceLibrary/audio`. Phone access isn't built (it needs login first).
+
 ## How sure is it?
 After `ask` finds candidates, Claude reads them and labels each `<MATCH>` (it's what you described), `<partial>` (covers part of it) or `<related>`
 (same area), then the output starts with a line like `Result: One clear match.` / `2 likely matches.` / `No clear match; these only partly match.`

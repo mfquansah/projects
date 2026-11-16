@@ -23,9 +23,9 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Re-run safety on real data**: only tested with fakes.
 
 ## C. Planned but not built
-- [ ] **Category suggestions flow** (confirmed in planning): the tool stores `suggested_category` but there was no accept/reject, create-manually or promote-a-tag flow. *Building this with the web UI.*
-- [ ] **Junk review queue** (suggest only, never auto-delete). *Building with the web UI (archive, never delete files).*
-- [ ] **Privacy switch** for the Claude steps (family audio). *Building with the web UI.*
+- [x] **Category suggestions flow**: built (web page + `vl/library.py`). Still to check on real notes: are Claude's suggestions any good? Merge/rename of categories isn't built.
+- [x] **Junk review queue**: built; archive only hides, never deletes. Still to check: is `junk_score >= 0.5` the right bar?
+- [x] **Privacy switch** for the Claude steps: built in the page (server-wide, resets on restart). A per-step or per-category switch isn't.
 - [ ] **Alembic migrations**: the schema is created with `create_all`, so changing an existing table's columns will NOT update the user's existing `library.db`. New tables are fine. Needed before any column change.
 - [ ] **Apple Voice Memos sync** (investigate): read the Mac's library directly instead of dragging files out.
 - [ ] **Record in the app**, then a **phone app** on the same API.
@@ -40,3 +40,13 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **HF_TOKEN warning** on every run (harmless; set a token to silence it and speed up downloads).
 - [ ] **`questions.example.json`** uses placeholder filenames from one library.
 - [ ] **build-trail skill edits** (plan-mode section) live only in the user's synced skill copy; confirm they persisted at the source.
+
+## E. Added with the web page (2026-11-16): untested on the real library
+- [ ] The page itself has been exercised only against a made-up demo library in a headless browser, not on your notes or your Mac.
+- [ ] **Audio playback of real `.m4a` files** (and seeking via the sound chip) is unverified in Safari/Chrome; the server supports range requests.
+- [ ] **Sound results get no match/partial/related label or verdict** (they're ordered by detection confidence). Consider showing a plain-language confidence.
+- [ ] **Quick search while typing loads the embedding model per server start** and runs one embedding per keystroke (debounced 250 ms); check it feels instant on the Mac.
+- [ ] **The Claude switch is server-wide and resets on restart**; no login, so don't expose the port beyond 127.0.0.1.
+- [ ] **No pagination** on category lists (first 100 notes) or search (top 8): fine for ~1,000 notes, revisit for more.
+- [ ] **Archive/Keep have no undo toast**, only the Archived list; "Restore" works but Keep can't be un-kept.
+- [ ] **Existing databases**: new `note_flags` table is created automatically; any future column change needs Alembic.

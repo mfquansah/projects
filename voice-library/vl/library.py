@@ -10,7 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from vl.db import Category, Enrichment, Note, NoteFlag, SoundEvent, Transcript
-from vl.index.search import effective_duration
+from vl.index.search import Hit, effective_duration, make_hit
 
 
 def _archived(s: Session) -> set[int]:
@@ -191,3 +191,19 @@ def note_detail(s: Session, note_id: int) -> dict | None:
         "junk_score": en.junk_score if en else None,
         "transcript": tr.text if tr else "", "sounds": events, "flag": flag.flag if flag else None,
     }
+
+
+def list_notes(s: Session, category_id: int | None = None, uncategorized: bool = False,
+               limit: int = 30, offset: int = 0) -> list[Hit]:
+    """Browse: newest first, optionally one category (or the uncategorized ones). Archived notes are never listed."""
+    archived = _archived(s)
+    q = s.query(Note.id).join(Enrichment, Enrichment.note_id == Note.id)
+    if uncategorized:
+        q = q.filter(Enrichment.category_id.is_(None))
+    elif category_id is not None:
+        q = q.filter(Enrichment.category_id == category_id)
+    if archived:
+        q = q.filter(~Note.id.in_(archived))
+    q = q.order_by(Note.recorded_at.is_(None), Note.recorded_at.desc(), Note.id.desc())
+    ids = [r[0] for r in q.offset(max(offset, 0)).limit(min(max(limit, 1), 100))]
+    return [make_hit(s, i) for i in ids]

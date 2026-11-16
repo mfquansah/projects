@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Library</title>
+<style>
+  :root {
+    --bg: #f7f6f3; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e3e1db;
+    --accent: #0f766e; --accent-ink: #ffffff; --soft: #e6f2f0; --warn: #9a5b00; --warn-bg: #fdf3e0;
+    --match: #0f766e; --partial: #9a5b00; --related: #6b6a66;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151514; --card: #1f1f1d; --ink: #ecebe7; --muted: #a09f99; --line: #34332f;
+      --accent: #3bb3a6; --accent-ink: #0b1f1d; --soft: #1b2e2c; --warn: #e5b25d; --warn-bg: #2c2415;
+      --match: #3bb3a6; --partial: #e5b25d; --related: #a09f99;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 80px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+  form.search { display: flex; gap: 8px; }
+  #q { flex: 1; min-width: 0; font: inherit; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+  #q:focus, button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 8px 12px; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 0 20px; }
+  button.link { border: none; background: none; color: var(--accent); padding: 4px 6px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 8px 2px 14px; }
+  #status { min-height: 22px; color: var(--muted); font-size: 14px; margin: 6px 2px; }
+  .verdict { font-weight: 600; margin: 10px 2px 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chip { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--soft); color: var(--accent); border: 1px solid transparent; }
+  .chip.btn { cursor: pointer; border-color: var(--line); background: var(--card); color: var(--ink); }
+  .note-msg { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 8px 12px; font-size: 13px; margin: 6px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin: 10px 0 22px; }
+  .cat { text-align: left; padding: 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
+  .cat b { display: block; font-size: 15px; }
+  .cat span { color: var(--muted); font-size: 13px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 26px 2px 6px; font-weight: 600; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 10px 0; }
+  .card h3 { margin: 0; font-size: 16px; line-height: 1.35; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+  .meta select { font: inherit; font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 2px 6px; }
+  .badge { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; border: 1px solid currentColor; margin-right: 8px; vertical-align: 2px; }
+  .badge.match { color: var(--match); } .badge.partial { color: var(--partial); } .badge.related { color: var(--related); }
+  .summary { margin: 0 0 6px; }
+  .why { margin: 0 0 8px; color: var(--muted); font-style: italic; font-size: 14px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  audio { width: 100%; margin-top: 10px; }
+  .transcript { white-space: pre-wrap; margin-top: 10px; padding: 10px 12px; background: var(--bg); border-radius: 10px; font-size: 14px; max-height: 260px; overflow: auto; }
+  .empty { color: var(--muted); padding: 20px 4px; }
+  dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); padding: 18px; width: min(420px, 92vw); }
+  dialog::backdrop { background: rgba(0,0,0,.4); }
+  dialog input[type=text] { width: 100%; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); margin: 8px 0 12px; }
+  .err { color: #b42318; font-size: 13px; min-height: 18px; }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Voice Library</h1>
+      <div class="sub" id="stats">Loading…</div>
+    </div>
+    <label class="toggle" title="When off, everything runs on this computer and nothing is sent to Claude.">
+      <input type="checkbox" id="claudeToggle"> <span id="claudeLabel">Use Claude for questions</span>
+    </label>
+  </header>
+
+  <form class="search" id="searchForm" role="search">
+    <input id="q" type="search" placeholder="Find a thought or memory…" aria-label="Search your voice notes" autocomplete="off" autofocus>
+    <button class="primary" type="submit">Ask</button>
+  </form>
+  <div class="hint">Type for instant results on this computer. Press Enter to ask a full question (dates, “my longest”, baby sounds).</div>
+  <div id="status" role="status" aria-live="polite"></div>
+
+  <section id="results"></section>
+  <section id="home"></section>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlgForm">
+    <strong id="dlgTitle">New category</strong>
+    <input type="text" id="dlgName" maxlength="80" aria-label="Category name" placeholder="Category name">
+    <div class="err" id="dlgErr" role="alert"></div>
+    <div class="row"><button type="button" id="dlgCancel">Cancel</button><button class="primary" type="submit" id="dlgOk">Create</button></div>
+  </form>
+</dialog>
+
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const state = { home: null, settings: null, seq: 0, view: "home" };
+
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) e.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  return e;
+}
+async function api(path, opts) {
+  const r = await fetch(path, opts && opts.body ? { method: opts.method || "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(opts.body) } : opts);
+  let data = null; try { data = await r.json(); } catch (_) {}
+  if (!r.ok) throw new Error((data && data.detail) || ("Something went wrong (" + r.status + ")"));
+  return data;
+}
+const fmtDur = (s) => (s || s === 0) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "";
+const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) + ", " + new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "date unknown";
+const setStatus = (t) => { $("#status").textContent = t || ""; };
+
+/* ---------- settings (privacy switch) ---------- */
+async function loadSettings() {
+  state.settings = await api("/api/settings");
+  const t = $("#claudeToggle");
+  t.checked = state.settings.use_claude; t.disabled = !state.settings.claude_available;
+  $("#claudeLabel").textContent = state.settings.claude_available ? "Use Claude for questions" : "Claude off: " + (state.settings.reason || "not set up");
+}
+$("#claudeToggle").addEventListener("change", async (e) => {
+  try { state.settings = await api("/api/settings", { body: { use_claude: e.target.checked } }); }
+  catch (err) { e.target.checked = false; setStatus(err.message); }
+});
+
+/* ---------- home ---------- */
+async function loadHome() {
+  state.home = await api("/api/home");
+  $("#stats").textContent = state.home.total_notes + " notes" + (state.home.sounds_checked < state.home.total_notes ? " · sounds checked on " + state.home.sounds_checked : "");
+  if (state.view === "home") await renderHome();
+}
+async function renderHome() {
+  state.view = "home";
+  const d = state.home, home = $("#home"); home.replaceChildren();
+  $("#results").replaceChildren();
+  home.append(h("div", { class: "row" }, h("h2", {}, "Your library"), h("button", { class: "link", onclick: () => categoryDialog() }, "+ New category")));
+  home.append(h("div", { class: "grid" }, d.categories.map((c) =>
+    h("button", { class: "cat", onclick: () => browse(c) }, h("b", {}, c.name), h("span", {}, c.count + (c.count === 1 ? " recording" : " recordings"))))));
+  if (d.suggestions.length) {
+    home.append(h("h2", {}, "Claude suggests new categories"));
+    for (const s of d.suggestions) home.append(h("div", { class: "card row" },
+      h("div", {}, h("b", {}, s.name), h("span", { class: "sub" }, "  · " + s.count + (s.count === 1 ? " note" : " notes"))),
+      h("div", { class: "actions" },
+        h("button", { onclick: () => act(() => api("/api/suggestions/accept", { body: { name: s.name } })) }, "Accept"),
+        h("button", { onclick: () => act(() => api("/api/suggestions/reject", { body: { name: s.name } })) }, "Dismiss"))));
+  }
+  if (d.tags.length) {
+    home.append(h("h2", {}, "Turn a tag into a category"));
+    home.append(h("div", { class: "chips" }, d.tags.map((t) => h("button", { class: "chip btn", title: "Create a category from this tag", onclick: () => categoryDialog(t.tag) }, t.tag + " · " + t.count))));
+  }
+  home.append(h("div", { class: "row" }, h("h2", {}, "Recent"),
+    h("span", {}, h("button", { class: "link", onclick: openReview }, "Review" + (d.review_count ? " (" + d.review_count + ")" : "")), h("button", { class: "link", onclick: openArchived }, "Archived"))));
+  const recent = await api("/api/browse?limit=8");
+  const box = h("div", {}); home.append(box);
+  renderCards(box, recent.hits, "No recordings yet. Import some with: python -m vl.cli import <folder>");
+}
+async function act(fn) { try { await fn(); await loadHome(); } catch (err) { setStatus(err.message); } }
+async function browse(c) {
+  state.view = "browse"; $("#home").replaceChildren(); setStatus("");
+  const r = await api(c.id === null ? "/api/browse?uncategorized=true&limit=100" : "/api/browse?category_id=" + c.id + "&limit=100");
+  const box = $("#results"); box.replaceChildren(
+    h("div", { class: "row" }, h("h2", {}, c.name + " · " + r.hits.length), h("button", { class: "link", onclick: goHome }, "← Back")));
+  const list = h("div", {}); box.append(list); renderCards(list, r.hits, "Nothing in this category yet.");
+}
+function goHome() { state.view = "home"; $("#q").value = ""; setStatus(""); loadHome().catch((err) => setStatus(err.message)); }
+
+/* ---------- search ---------- */
+let timer = null;
+$("#q").addEventListener("input", () => {
+  clearTimeout(timer); const q = $("#q").value.trim();
+  if (!q) return goHome();
+  timer = setTimeout(() => quick(q), 250);
+});
+$("#q").addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#q").value = ""; goHome(); } });
+document.addEventListener("keydown", (e) => { if (e.key === "/" && document.activeElement !== $("#q") && !document.querySelector("dialog[open]")) { e.preventDefault(); $("#q").focus(); } });
+async function quick(q) {
+  const my = ++state.seq;
+  try {
+    const r = await api("/api/search?q=" + encodeURIComponent(q) + "&limit=8");
+    if (my !== state.seq) return;
+    state.view = "search"; $("#home").replaceChildren();
+    const box = $("#results"); box.replaceChildren(h("div", { class: "hint" }, "Instant results (this computer only). Press Enter for a full answer."));
+    const list = h("div", {}); box.append(list); renderCards(list, r.hits, "No instant matches. Press Enter to ask a full question.");
+    setStatus("");
+  } catch (err) { setStatus(err.message); }
+}
+$("#searchForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); clearTimeout(timer);
+  const q = $("#q").value.trim(); if (!q) return;
+  const my = ++state.seq; setStatus(state.settings && state.settings.use_claude ? "Asking Claude to understand your question…" : "Searching on this computer…");
+  try {
+    const r = await api("/api/ask", { body: { q } });
+    if (my !== state.seq) return;
+    state.view = "ask"; $("#home").replaceChildren(); setStatus("");
+    const box = $("#results"); box.replaceChildren();
+    const u = r.understood, bits = [];
+    if (u.topic) bits.push("about: " + u.topic);
+    if (u.category) bits.push("category: " + u.category);
+    if (u.since || u.until) bits.push("dates: " + (u.since || "…").slice(0, 10) + " to " + (u.until || "…").slice(0, 10));
+    if (u.sort) bits.push("order: " + u.sort + (u.count ? " (top " + u.count + ")" : ""));
+    if (u.sound) bits.push("sound: " + u.sound);
+    if (r.verdict) box.append(h("div", { class: "verdict" }, r.verdict));
+    if (bits.length) box.append(h("div", { class: "chips", "aria-label": "How your question was understood" }, bits.map((b) => h("span", { class: "chip" }, b))));
+    for (const n of r.notes) box.append(h("div", { class: "note-msg" }, n));
+    const list = h("div", {}); box.append(list); renderCards(list, r.hits, "No matches. Try different words, or ask about a sound or a date.");
+  } catch (err) { setStatus(err.message); }
+});
+
+/* ---------- result cards ---------- */
+function renderCards(box, hits, emptyText, extra) {
+  box.replaceChildren();
+  if (!hits.length) return box.append(h("div", { class: "empty" }, emptyText));
+  for (const hit of hits) box.append(card(hit, extra));
+}
+function card(hit, extra) {
+  const cats = (state.home && state.home.categories) || [];
+  let audio = null, tr = null;
+  const sel = h("select", { "aria-label": "Category", onchange: async (e) => {
+      try { await api("/api/notes/" + hit.id + "/category", { body: { category_id: e.target.value === "" ? null : Number(e.target.value) } }); await loadHome(); }
+      catch (err) { setStatus(err.message); } } },
+    h("option", { value: "" }, "Uncategorized"),
+    cats.filter((c) => c.id !== null).map((c) => h("option", { value: c.id, selected: c.name === hit.category }, c.name)));
+  const body = h("div", {});
+  const playBtn = h("button", { onclick: () => play(0) }, "▶ Play");
+  function play(at) {
+    if (!audio) { audio = h("audio", { controls: true, preload: "metadata", src: "/api/notes/" + hit.id + "/audio" }); body.append(audio); }
+    const go = () => { audio.currentTime = at || 0; audio.play().catch(() => {}); };
+    if (audio.readyState >= 1) go(); else audio.addEventListener("loadedmetadata", go, { once: true });
+  }
+  const trBtn = h("button", { onclick: async (e) => {
+      if (tr) { tr.remove(); tr = null; e.target.textContent = "Transcript"; return; }
+      try { const d = await api("/api/notes/" + hit.id); tr = h("div", { class: "transcript" }, d.transcript || "(no speech transcribed)"); body.append(tr); e.target.textContent = "Hide transcript"; }
+      catch (err) { setStatus(err.message); } } }, "Transcript");
+  const archive = h("button", { onclick: async () => { await api("/api/notes/" + hit.id + "/flag", { body: { flag: "archived" } }); setStatus("Archived. You can restore it from Archived."); await loadHome(); el.remove(); } }, "Archive");
+  const el = h("article", { class: "card" },
+    h("h3", {}, hit.strength ? h("span", { class: "badge " + hit.strength }, hit.strength) : null, hit.title),
+    h("div", { class: "meta" }, sel, h("span", {}, fmtDate(hit.recorded_at)), hit.duration_s ? h("span", {}, fmtDur(hit.duration_s)) : null),
+    hit.summary ? h("p", { class: "summary" }, hit.summary) : null,
+    hit.why ? h("p", { class: "why" }, hit.why) : null,
+    hit.sound_info ? h("div", { class: "chips" }, h("button", { class: "chip btn", title: "Play from here", onclick: () => play(Math.max(0, (hit.sound_start_s || 0) - 1)) }, "▶ " + hit.sound_info)) : null,
+    h("div", { class: "actions" }, playBtn, trBtn, extra ? extra(hit, () => el.remove()) : archive),
+    body);
+  return el;
+}
+
+/* ---------- review queue / archive ---------- */
+async function openReview() {
+  state.view = "review"; $("#home").replaceChildren(); setStatus("");
+  const r = await api("/api/review");
+  const box = $("#results"); box.replaceChildren(h("div", { class: "row" }, h("h2", {}, "Review · maybe not worth keeping"), h("button", { class: "link", onclick: goHome }, "← Back")),
+    h("div", { class: "hint" }, "Claude thinks these may be accidental or empty. Nothing is ever deleted: Archive only hides a note, and you can restore it."));
+  const list = h("div", {}); box.append(list);
+  renderCards(list, r.notes.map((n) => ({ id: n.id, title: n.title, summary: n.summary, category: null, recorded_at: n.recorded_at, duration_s: n.duration_s })),
+    "Nothing to review.", (hit, remove) => h("span", { class: "actions" },
+      h("button", { onclick: async () => { await api("/api/notes/" + hit.id + "/flag", { body: { flag: "keep" } }); remove(); loadHome(); } }, "Keep"),
+      h("button", { onclick: async () => { await api("/api/notes/" + hit.id + "/flag", { body: { flag: "archived" } }); remove(); loadHome(); } }, "Archive")));
+}
+async function openArchived() {
+  state.view = "archived"; $("#home").replaceChildren(); setStatus("");
+  const r = await api("/api/archived");
+  const box = $("#results"); box.replaceChildren(h("div", { class: "row" }, h("h2", {}, "Archived · hidden from search"), h("button", { class: "link", onclick: goHome }, "← Back")));
+  const list = h("div", {}); box.append(list);
+  renderCards(list, r.notes.map((n) => ({ id: n.id, title: n.title, summary: "", category: null, recorded_at: n.recorded_at })), "Nothing archived.",
+    (hit, remove) => h("button", { onclick: async () => { await api("/api/notes/" + hit.id + "/flag", { body: { flag: null } }); remove(); loadHome(); } }, "Restore"));
+}
+
+/* ---------- new category dialog ---------- */
+function categoryDialog(fromTag) {
+  const dlg = $("#dlg"), name = $("#dlgName"), err = $("#dlgErr");
+  $("#dlgTitle").textContent = fromTag ? "New category from the tag “" + fromTag + "”" : "New category";
+  name.value = fromTag ? fromTag.charAt(0).toUpperCase() + fromTag.slice(1) : ""; err.textContent = "";
+  dlg.dataset.tag = fromTag || ""; dlg.showModal(); name.focus(); name.select();
+}
+$("#dlgCancel").addEventListener("click", () => $("#dlg").close());
+$("#dlgForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const dlg = $("#dlg");
+  try {
+    const r = await api("/api/categories", { body: { name: $("#dlgName").value, from_tag: dlg.dataset.tag || null } });
+    dlg.close(); setStatus(r.moved ? "Created “" + r.category + "” and moved " + r.moved + " note" + (r.moved === 1 ? "" : "s") + " into it." : "Created “" + r.category + "”.");
+    await loadHome();
+  } catch (ex) { $("#dlgErr").textContent = ex.message; }
+});
+
+/* ---------- start ---------- */
+(async () => { try { await loadSettings(); await loadHome(); } catch (err) { setStatus(err.message); } })();
+</script>
+</body>
+</html>
