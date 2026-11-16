@@ -147,3 +147,10 @@
 - Why: the user's real laughing test clip produced 0 events. Reading the transformers source showed that warning appears only when torchaudio is missing, so the model was receiving approximate features. Not yet confirmed that this is why the clip was missed; loudness of the clip is another candidate.
 - Reversible? yes
 - Source: inferred
+
+### 2026-11-16 - Sound search no longer depends on the parser; rerank now drops what Claude didn't endorse
+- Decision: (A) tell the parser that baby sounds/cooing/babbling mean `baby_coo`, and add a keyword fallback (`infer_sound`: a baby/child word plus a sound word) that runs when the parser sets no sound or the LLM is down. (B) After rerank, return only the results Claude endorsed (with a note saying how many were set aside); if it endorsed none, keep plain search order.
+- Alternatives considered/rejected: relying on the parser prompt alone; (B) keeping unendorsed results at the bottom, which was my earlier choice.
+- Why: on the user's real notes, "my baby making cute sounds" found the baby clip only through the transcript while a strong baby_babble 0.84 went unused, and three irrelevant HR-coaching notes were listed below the right answer. Reverses the earlier "omitted candidates stay" decision because real output showed it read as broken. Raising confidence cutoffs for generic labels (whimper/crying/giggle) was considered and deferred: one possible false positive (whimper 0.53 on a work call, unconfirmed by the user) is not enough to tune on.
+- Reversible? yes
+- Source: confirmed (user approved fixes A and B), inferred (design details)

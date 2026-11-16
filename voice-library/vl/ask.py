@@ -15,7 +15,7 @@ from vl.enrich.query import QueryParser, Reranker, StructuredQuery
 from vl.index.embeddings import Embedder
 from vl.index.search import Hit, _candidate_ids, make_hit, search
 from vl.pipeline import accepted_category_names
-from vl.sounds.labels import group_for
+from vl.sounds.labels import group_for, infer_sound
 from vl.sounds.store import sound_scores, sounds_coverage
 
 RERANK_TOP = 10
@@ -47,6 +47,10 @@ def ask(
     keyword_q = " ".join(sq.keywords) or sq.semantic_text
     category, since, until = sq.category, sq.since, sq.until
 
+    if not sq.sound:  # the parser missed it (or failed): a baby word plus a sound word is enough
+        guess = infer_sound(question)
+        if guess:
+            sq.sound = guess
     sound_map = None
     if sq.sound:
         group = group_for(sq.sound)
@@ -134,8 +138,13 @@ def _rerank(s: Session, question: str, hits: list[Hit], reranker: Reranker, note
         if h:
             h.why = r["why"] or None
             out.append(h)
-    out.extend(by_id.values())  # candidates the LLM omitted stay, after the matches it endorsed, with no "why"
-    return out + tail
+    if not out:  # Claude endorsed nothing: don't throw everything away, keep the search order
+        notes.append("Claude didn't judge any result a close match, so these are in plain search order.")
+        return hits
+    dropped = len(by_id) + len(tail)
+    if dropped:
+        notes.append(f"Claude set aside {dropped} weaker result(s) that didn't match the question.")
+    return out
 
 
 def _sort_hits(hits: list[Hit], sort: str, notes: list[str]) -> list[Hit]:

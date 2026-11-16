@@ -223,3 +223,40 @@ def test_tagger_skips_subsecond_tail_and_inspect_shows_raw_labels(tmp_path):
     out = t.inspect(_wav(tmp_path / "c.wav", 25), windows=2)
     assert len(out) == 2 and out[1][0] == 10.0
     assert ("Laughter", 0.1) in out[0][1]  # below any cutoff, still shown
+
+
+# --- fallback: infer a sound from the question when the parser sets none ---
+
+from vl.sounds.labels import infer_sound
+
+
+@pytest.mark.parametrize("q, expected", [
+    ("my baby making cute sounds", "baby_coo"), ("baby babbling", "baby_coo"), ("my toddler making noises", "baby_coo"),
+    ("my baby crying", "baby_cry"), ("the kid fussing last week", "baby_cry"),
+    ("my baby laughing", "baby_laugh"), ("my child giggling", "baby_laugh"),
+    ("when I was crying about work", None),        # no baby/child word: leave it to the parser
+    ("the meeting about the dashboard", None), ("my baby's first birthday plans", None),
+    ("my kid talking about school", None)])
+def test_infer_sound(q, expected):
+    assert infer_sound(q) == expected
+
+
+def test_ask_uses_sound_search_even_when_the_parser_misses_it(lib):
+    s, m = lib
+    run_sounds(s, FakeTagger({"baby": [SoundHit("baby_babble", 5, 15, 0.8)]}))
+    # parser returns NO sound; the question's words trigger it. Transcript words ("zzzz") match nothing.
+    res = ask(s, "my baby making cute sounds", P(semantic_text="zzzz", keywords=["zzzz"]), m, today=TODAY)
+    assert names(s, res) == [BABY] and res.hits[0].sound_info.startswith("baby_babble")
+    assert res.query.sound == "baby_coo"
+
+
+def test_sound_inference_also_works_when_the_llm_is_down(lib):
+    s, m = lib
+    run_sounds(s, FakeTagger({"baby": [SoundHit("baby_babble", 5, 15, 0.8)]}))
+
+    class Down:
+        def parse(self, *a):
+            raise RuntimeError("api down")
+
+    res = ask(s, "my baby making cute sounds", Down(), m, today=TODAY)
+    assert names(s, res) == [BABY] and any("plain search" in n for n in res.notes)

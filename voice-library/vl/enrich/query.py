@@ -44,6 +44,8 @@ Today is {today}. Reply with ONLY a JSON object:
 "sound": "baby_cry | baby_laugh | baby_coo | other sound label | null",
 "sort": "longest | shortest | newest | oldest | null (only if the question asks for an ordering or extreme)",
 "count": <integer if the question asks for a number of notes, e.g. "my 3 longest", else null>}}
+Sound rules: set "sound" whenever the question is about how something SOUNDS, not only what is said. Baby/child sounds,
+noises, cooing, babbling, gurgling, "cute sounds" -> baby_coo. Crying, fussing, wailing -> baby_cry. Laughing, giggling -> baby_laugh.
 Rules: convert relative dates ("two weeks ago", "last summer", "two years ago") into a date RANGE using today's date;
 be generous with vague phrases (a week-long range for "about two weeks ago"). Leave a field null when the question
 doesn't say. Do not invent details.

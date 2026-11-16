@@ -105,12 +105,22 @@ def test_rerank_failure_keeps_search_order(lib):
     assert any("rerank" in n for n in res.notes)
 
 
-def test_rerank_omitted_candidates_are_kept_not_dropped(lib):
+def test_rerank_drops_results_claude_did_not_endorse(lib):
     s, m = lib
     sq = StructuredQuery(semantic_text="baby idea app", keywords=["baby", "idea", "app"])
     first = ask(s, "q", FakeParser(sq), m, today=TODAY).hits[0].note_id
     res = ask(s, "q", FakeParser(sq), m, FakeReranker(order=[first]), today=TODAY)
-    assert len(res.hits) == 2 and res.hits[0].why and res.hits[1].why is None
+    assert [h.note_id for h in res.hits] == [first] and res.hits[0].why
+    assert any("set aside 1 weaker" in n for n in res.notes)
+
+
+def test_rerank_endorsing_nothing_keeps_search_order(lib):
+    s, m = lib
+    sq = StructuredQuery(semantic_text="baby idea app", keywords=["baby", "idea", "app"])
+    base = ask(s, "q", FakeParser(sq), m, today=TODAY).hits
+    res = ask(s, "q", FakeParser(sq), m, FakeReranker(order=[999]), today=TODAY)  # an id that isn't a candidate
+    assert [h.note_id for h in res.hits] == [h.note_id for h in base] and len(res.hits) == 2
+    assert any("plain search order" in n for n in res.notes)
 
 
 def test_parse_structured_validates_everything():

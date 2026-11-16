@@ -50,7 +50,7 @@ def group_for(sound: str) -> tuple[str, ...] | None:
         return GROUPS["baby_cry"]
     if any(k in t for k in ("laugh", "giggl", "chuckl")):  # stems: 'giggling' doesn't contain 'giggle'
         return GROUPS["baby_laugh"]
-    if any(k in t for k in ("coo", "babbl")):
+    if any(k in t for k in ("coo", "babbl", "gurgl", "noise")):
         return GROUPS["baby_coo"]
     return None
 
@@ -58,3 +58,27 @@ def group_for(sound: str) -> tuple[str, ...] | None:
 def reachable(model_labels) -> set[str]:
     """Which canonical labels the loaded model can actually produce."""
     return {c for c in (canonical_label(l) for l in model_labels) if c}
+
+
+_ABOUT_A_BABY = ("baby", "babies", "infant", "newborn", "toddler", "child", "kid")
+_COO_WORDS = ("sound", "noise", "coo", "babbl", "gurgl")
+_CRY_WORDS = ("cry", "crying", "cried", "fuss", "wail", "scream")
+_LAUGH_WORDS = ("laugh", "giggl", "chuckl")
+
+
+def infer_sound(question: str) -> str | None:
+    """Fallback when the question parser sets no sound: a mention of a baby/child plus a sound word.
+
+    Deliberately narrow (needs a baby/child word) so ordinary questions like 'the meeting where I was crying' aren't affected.
+    Returns a label group_for understands, or None.
+    """
+    t = question.lower()
+    if not any(w in t for w in _ABOUT_A_BABY):
+        return None
+    if any(w in t for w in _CRY_WORDS):
+        return "baby_cry"
+    if any(w in t for w in _LAUGH_WORDS):
+        return "baby_laugh"
+    if any(w in t for w in _COO_WORDS):
+        return "baby_coo"
+    return None
