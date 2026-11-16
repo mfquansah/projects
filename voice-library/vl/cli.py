@@ -1,4 +1,4 @@
-"""Command line: `python -m vl.cli import|redate|process|search|ask|status`.
+"""Command line: `python -m vl.cli import|redate|process|search|ask|eval|status`.
 
 Data lives in $VL_HOME (default ~/VoiceLibrary): library.db and audio/ (copies of imported files).
 Original recordings are never modified or deleted.
@@ -17,6 +17,9 @@ from vl.ingest.importer import import_folder, redate_notes
 from vl.pipeline import process_notes
 from vl.index.search import search
 from vl.ask import ask
+from vl.eval import (
+    Counting, EvalSetError, check_expected_exist, format_report, load_questions, run_mode, to_json,
+)
 
 
 def home() -> Path:
@@ -94,6 +97,43 @@ def cmd_ask(args: argparse.Namespace) -> None:
         print(f"   {h.path}")
 
 
+def cmd_eval(args: argparse.Namespace) -> None:
+    from vl.enrich.query import ClaudeQueryParser, ClaudeReranker
+    from vl.index.embeddings import SentenceTransformerEmbedder
+
+    modes = [m.strip() for m in args.modes.split(",") if m.strip()]
+    unknown = set(modes) - {"search", "ask-norerank", "ask"}
+    if unknown:
+        raise SystemExit(f"Unknown mode(s): {', '.join(sorted(unknown))}. Choose from search, ask-norerank, ask.")
+    factory = make_session_factory(home() / "library.db")
+    with factory() as s:
+        try:
+            questions = load_questions(Path(args.questions).expanduser())
+            check_expected_exist(s, questions)
+        except EvalSetError as exc:
+            raise SystemExit(f"Can't run the eval: {exc}")
+        embedder = SentenceTransformerEmbedder()
+        reports = []
+        for mode in modes:
+            parser = Counting(ClaudeQueryParser(args.llm_model), "parse") if mode != "search" else None
+            reranker = Counting(ClaudeReranker(args.llm_model), "rerank") if mode == "ask" else None
+            if mode == "search":
+                def runner(q):
+                    return search(s, q, embedder, limit=args.top), []
+            else:
+                def runner(q, parser=parser, reranker=reranker):
+                    r = ask(s, q, parser, embedder, reranker, limit=args.top)
+                    return r.hits, r.notes
+            print(f"Running {len(questions)} questions in mode '{mode}'...")
+            rep = run_mode(s, mode, runner, questions, top_k=args.top)
+            rep.llm_calls = (parser.calls if parser else 0) + (reranker.calls if reranker else 0)
+            reports.append(rep)
+    print(format_report(reports))
+    out = Path(args.out).expanduser() if args.out else home() / f"eval-{dt.datetime.now():%Y%m%d-%H%M%S}.json"
+    out.write_text(to_json(reports, str(args.questions)))
+    print(f"\nFull results saved to {out}")
+
+
 def cmd_status(_: argparse.Namespace) -> None:
     factory = make_session_factory(home() / "library.db")
     with factory() as s:
@@ -142,6 +182,14 @@ def main() -> None:
     a.add_argument("--no-rerank", action="store_true", help="skip the LLM rerank step")
     a.add_argument("--llm-model", default="claude-haiku-5-5")
     a.set_defaults(func=cmd_ask)
+
+    a = sub.add_parser("eval", help="score search quality on a questions file")
+    a.add_argument("questions", help="path to questions.json (see questions.example.json)")
+    a.add_argument("--modes", default="search,ask-norerank,ask")
+    a.add_argument("--top", type=int, default=5, help="results considered per question")
+    a.add_argument("--out", help="where to save full results (default: ~/VoiceLibrary/eval-<time>.json)")
+    a.add_argument("--llm-model", default="claude-haiku-5-5")
+    a.set_defaults(func=cmd_eval)
 
     a = sub.add_parser("status", help="counts and any failures")
     a.set_defaults(func=cmd_status)

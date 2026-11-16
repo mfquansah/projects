@@ -1,0 +1,9 @@
+{
+  "questions": [
+    {"q": "the one-on-one about dashboard scope", "kind": "content", "expect": ["New Recording 197.m4a"]},
+    {"q": "that thing I recorded at Weija Gbawe", "kind": "content", "expect": ["Weija Gbawe.m4a"]},
+    {"q": "something I recorded in September 2026", "kind": "date", "expect": ["New Recording 250.m4a", "New Recording 251.m4a"]},
+    {"q": "my longest voice note", "kind": "property", "expect": ["New Recording 197.m4a"]},
+    {"q": "my favourite pizza topping", "kind": "none", "expect": []}
+  ]
+}

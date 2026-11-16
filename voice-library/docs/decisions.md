@@ -111,3 +111,10 @@
 - Why: pilot run failed all 19 notes with "open() got an unexpected keyword argument 'metadata_errors'". Reproduced in the cloud session: faster-whisper 1.2.1 calls av.open(metadata_errors="ignore"), which av 19 no longer accepts. av 18.1.0 through 14 decode fine (verified on a WAV file, not on real m4a).
 - Reversible? yes (drop the pin once faster-whisper supports av 19)
 - Source: confirmed
+
+### 2026-11-16 - Build an eval runner before fixing search
+- Decision: add `vl eval questions.json`, scoring `search`, `ask-norerank` and `ask` on the same user-written questions (hit@1/3/5, MRR, correct "nothing found", time, LLM calls).
+- Alternatives considered/rejected: judging by hand-picked queries; scoring only `ask`.
+- Why: user asked for a proper eval after the first manual query ("longest voice note") returned an unrelated note. Running search as a baseline was my suggestion, not discussed further.
+- Reversible? yes
+- Source: confirmed (eval), inferred (three-mode comparison)

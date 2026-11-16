@@ -36,6 +36,18 @@ snippets are sent; audio never is. Add `--no-rerank` to skip the second call.
 - Do imported dates look right? (macOS birth time is used first; `date_source` in the DB says which source was used. Not yet verified for Voice Memos exports.)
 - Does a natural-language search return the note you meant? Write down misses; they decide what to fix next.
 
+## Eval: scoring search quality
+Copy `questions.example.json` to `questions.json` and replace it with your own 10-15 questions. Each says which note(s) should come
+back, by exact filename (see `status`). Use kind `none` for a topic you never recorded; the right answer is "nothing".
+```bash
+python -m vl.cli eval questions.json
+```
+It runs every question through `search` (local), `ask-norerank` and `ask`, and prints hit@1/3/5, MRR (how high the right note ranks),
+how often "nothing" was correctly returned, seconds, and LLM call counts, plus every miss. Full results are saved as JSON, so you can
+compare runs after a change. Misspelled filenames in the file stop the run instead of silently scoring as misses.
+Use `--modes search` for a free local-only run. Call counts are a proxy for cost; token usage isn't measured yet.
+The example file's filenames are placeholders: it only works on a library that has those notes.
+
 ## Tests
 ```bash
 pytest -q
