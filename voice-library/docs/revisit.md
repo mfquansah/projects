@@ -63,3 +63,12 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Language** isn't stored (the mockup shows it); would need a schema change (Alembic).
 - [ ] **Per-keystroke instant search** calls the embedding model; check it feels instant on the Mac.
 - [ ] **Accessibility**: the faint search placeholder (#7F8B85 on ivory) is below 4.5:1 by the user's request; waveform has slider keyboard support but no screen-reader transcript sync.
+
+## G. Voice Memos import and weak sounds (2026-11-16): unverified on the user's Mac
+- [ ] **Voice Memos library path** (`~/Library/Group Containers/group.com.apple.VoiceMemos.shared/Recordings`, or the older Application Support path) is from memory and untested. If it isn't found, the page says so; tell me what's actually in that folder.
+- [ ] **Full Disk Access** for Terminal is probably required; the page explains it but this is unverified. Recordings that exist only in iCloud may not be downloaded yet (placeholders).
+- [ ] **Titles in Voice Memos** (the names you gave recordings) live in a private database (CloudRecordings.db) and are not imported; files get their file name.
+- [ ] **Why the baby clip wasn't found**: hypothesis is a laugh score below the old 0.3 floor. After `sounds --redo`, check whether the clip now appears as "possibly giggling". If it still doesn't, the model may not hear this child's giggle at all (home phone audio, overlapping babble).
+- [ ] **Cutoffs 0.30 / 0.15** are guesses. More "possible" matches also means more false positives (e.g. adult chuckles in work calls); watch this.
+- [ ] **Re-run needed**: existing sound events were stored at the old 0.3 threshold; run `python -m vl.cli sounds --redo` once.
+- [ ] **Folder import hashes every file** to skip duplicates; a big library (1,000+ notes) re-imported repeatedly will re-read everything each time.

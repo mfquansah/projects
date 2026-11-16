@@ -49,14 +49,49 @@ export async function importView({ main }) {
   ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
   drop.addEventListener("drop", async (e) => start(await filesFromDrop(e.dataTransfer)));
 
-  main.append(h("div", { class: "col", style: "gap:32px" },
+  const dropNote = h("div", { class: "sysnote", style: "display:none;margin:0", role: "status" });
+  const say = (text) => { dropNote.textContent = text || ""; dropNote.style.display = text ? "" : "none"; };
+
+  // Import straight from this computer: no uploading, files are read where they are and never changed.
+  const vmBox = h("div", {});
+  const pathIn = h("input", { class: "edit", placeholder: "/Users/you/Desktop/my-recordings", "aria-label": "Folder path on this computer", autocomplete: "off" });
+  async function startFolder(body) {
+    say("");
+    try { const r = await api("/api/import/folder", { body }); poll(r.job_id); }
+    catch (err) { say(err.message); }
+  }
+  async function loadSources() {
+    try {
+      const vm = (await api("/api/import/sources")).voice_memos;
+      put(vmBox, vm.found
+        ? h("div", { style: "display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px" },
+            h("div", { style: "flex:1 1 280px" }, h("strong", {}, "Voice Memos"),
+              h("div", { class: "muted", style: "font-size:14px" }, `${plural(vm.count, "recording")} found on this computer. They are read where they are and never changed.`)),
+            h("button", { type: "button", class: "primary", onclick: () => startFolder({ source: "voice_memos" }) }, `Import ${vm.count}`))
+        : h("div", { class: "sysnote", style: "margin:0" }, vm.problem));
+    } catch (_) { vmBox.replaceChildren(); }
+  }
+  const local = h("section", { "aria-label": "Import from this computer", style: "display:flex;flex-direction:column;gap:16px" },
+    h("h2", { class: "eyebrow ul", style: "align-self:flex-start" }, "From this computer"),
+    vmBox,
+    h("form", { style: "display:flex;flex-wrap:wrap;gap:10px", onsubmit: (e) => { e.preventDefault(); startFolder({ path: pathIn.value }); } },
+      h("div", { style: "flex:1 1 280px" }, pathIn),
+      h("button", { type: "submit", class: "ghost" }, "Import this folder")),
+    h("p", { class: "small", style: "margin:0" }, "Tip: dragging straight out of the Voice Memos app doesn't work in a browser. Use the button above, or drag the recordings into a Finder folder first."));
+
+  main.append(h("div", { class: "col", style: "gap:28px" },
     h("header", { style: "display:flex;flex-direction:column;gap:8px" }, h("h1", { class: "h1" }, "Import"),
       h("p", { class: "muted", style: "margin:0" }, "Add voice notes you already have. Each one is transcribed, titled and sorted into a collection, then checked for sounds like a baby laughing.")),
-    drop, live));
+    drop, dropNote, local, live));
 
   function start(files) {
+    say("");
+    if (!files.length) {
+      say("Nothing came through. Browsers can't receive files dragged straight out of Voice Memos. Use “Import” under Voice Memos below, or drag the recordings into a Finder folder first and drop that folder here.");
+      return;
+    }
     const audio = files.filter((f) => AUDIO.test(f.name));
-    if (!audio.length) { paintDrop(files.length ? "None of those were audio files" : "Drop audio files or a folder here"); return; }
+    if (!audio.length) { say("None of those were audio files (I look for .m4a, .mp3, .wav, .aac and .caf)."); return; }
     paintDrop(`Uploading ${plural(audio.length, "recording")}…`);
     const fd = new FormData();
     for (const f of audio) { fd.append("files", f, f.name); fd.append("modified", String(f.lastModified || 0)); }
@@ -113,6 +148,7 @@ export async function importView({ main }) {
     } catch (err) { live.replaceChildren(h("div", { class: "sysnote" }, err.message)); }
   }
 
+  loadSources();
   // coming back to this screen: show the latest import (and keep following it if it's still running)
   try { const r = await api("/api/import/latest"); if (r.job) poll(r.job.id); } catch (_) { /* no import manager: nothing to show */ }
   return () => { alive = false; clearTimeout(timer); };

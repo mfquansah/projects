@@ -27,6 +27,7 @@ from vl.ingest.importer import AUDIO_EXTS
 from vl.peaks import peaks_for
 from vl.snippets import best_snippet, query_terms
 from vl.sounds.store import sounds_coverage
+from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 AUDIO_TYPES = {".m4a": "audio/mp4", ".mp3": "audio/mpeg", ".wav": "audio/wav", ".aac": "audio/aac",
@@ -50,7 +51,7 @@ def decorate(s, hits: list[Hit], terms: list[str]) -> list[dict]:
         out.append({
             "id": h.note_id, "title": h.title, "summary": h.summary, "category": h.category,
             "recorded_at": h.recorded_at.isoformat() if h.recorded_at else None, "duration_s": h.duration_s,
-            "sound_info": h.sound_info, "sound_start_s": h.sound_start_s, "why": h.why, "strength": h.strength,
+            "sound_info": h.sound_info, "sound_start_s": h.sound_start_s, "sound_conf": h.sound_conf, "why": h.why, "strength": h.strength,
             "tags": json.loads(en.tags_json) if en else [], "snippet": snippet,
         })
     return out
@@ -76,6 +77,11 @@ class AssignBody(BaseModel):
 
 class FlagBody(BaseModel):
     flag: str | None = None  # "archived" | "keep" | null to clear
+
+
+class FolderBody(BaseModel):
+    path: str | None = None
+    source: str | None = None  # "voice_memos"
 
 
 class DetailsBody(BaseModel):
@@ -288,6 +294,42 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             shutil.rmtree(batch, ignore_errors=True)
             raise HTTPException(400, "None of those files were audio I can import.")
         return {"job_id": import_manager.submit(items), "accepted": len(items), "rejected": rejected}
+
+    @app.get("/api/import/sources")
+    def import_sources():
+        """What can be imported straight from this computer (no uploading)."""
+        return {"voice_memos": find_voice_memos()}
+
+    @app.post("/api/import/folder")
+    def import_folder_path(body: FolderBody):
+        """Import audio from a folder on this computer (or the Voice Memos library). Files are read in place and never changed."""
+        if import_manager is None:
+            raise HTTPException(503, "Importing isn't available here.")
+        if body.source == "voice_memos":
+            info = find_voice_memos()
+            if not info["found"]:
+                raise HTTPException(403 if info["path"] else 404, info["problem"])
+            folder = Path(info["path"])
+        elif body.path and body.path.strip():
+            folder = Path(body.path.strip()).expanduser()
+            if not folder.is_dir():
+                raise HTTPException(400, f"'{folder}' isn't a folder on this computer. Check the path (you can drag a folder into Terminal to see its path).")
+        else:
+            raise HTTPException(400, "Give a folder path, or choose Voice Memos.")
+        try:
+            files = audio_files(folder)
+        except PermissionError:
+            raise HTTPException(403, PERMISSION_HELP) from None
+        if not files:
+            raise HTTPException(400, f"No audio files (.m4a, .mp3, .wav, .aac, .caf) found in {folder}.")
+        items = []
+        for p in files:
+            try:
+                when = dt.datetime.fromtimestamp(p.stat().st_mtime)
+            except OSError:
+                when = None
+            items.append((p.name, p, when, False))  # False: never delete the original
+        return {"job_id": import_manager.submit(items), "accepted": len(items), "folder": str(folder)}
 
     @app.get("/api/import/latest")
     def import_latest():

@@ -9,7 +9,8 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: false });
   const page = await ctx.newPage();
   const errors = [];
-  page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  let allow400 = false;  // only around a step that deliberately triggers a 400
+  page.on('console', m => { if (m.type() === 'error' && !(allow400 && /400/.test(m.text()))) errors.push('console: ' + m.text()); });
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   const log = (k, v) => console.log(k.padEnd(34), v);
   const sane = async (where) => {
@@ -121,6 +122,29 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   await page.screenshot({ path: path.join(tmp, '6-import-done.png'), fullPage: true });
   await sane('import-done');
   log('library count after import', await page.$eval('.cols', e => e.textContent));
+
+  // dragging out of Voice Memos delivers nothing to a browser: the page must say so, not silently reset
+  await page.evaluate(() => { const el = document.querySelector('.drop'); const dt = new DataTransfer(); el.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); });
+  await page.waitForSelector('.sysnote:has-text("Nothing came through")');
+  log('empty drop message', 'shown');
+  log('voice memos source message', (await page.textContent('section[aria-label="Import from this computer"] .sysnote')).slice(0, 60));
+  // import a folder by path: files are read in place and the originals must survive
+  const folder = path.join(tmp, 'vm'); fs.mkdirSync(folder);
+  fs.writeFileSync(path.join(folder, 'one.m4a'), 'baby babbling at the park');
+  fs.writeFileSync(path.join(folder, 'two.m4a'), 'groceries milk eggs bread');
+  await page.fill('input[aria-label="Folder path on this computer"]', folder);
+  await page.click('button:has-text("Import this folder")');
+  await page.waitForSelector('.frow:has-text("one.m4a") .fstate:has-text("Saved as")', { timeout: 20000 });
+  await page.waitForSelector('.frow:has-text("two.m4a") .fstate:has-text("Saved as")', { timeout: 20000 });
+  log('folder import', (await page.$$eval('.frow .fstate', e => e.map(x => x.textContent.trim().slice(0, 28)).join(' || '))));
+  log('originals kept', fs.existsSync(path.join(folder, 'one.m4a')) && fs.existsSync(path.join(folder, 'two.m4a')));
+  allow400 = true;
+  await page.fill('input[aria-label="Folder path on this computer"]', path.join(tmp, 'nowhere'));
+  await page.click('button:has-text("Import this folder")');
+  await page.waitForSelector('.sysnote:has-text("isn\'t a folder")');
+  log('bad path message', 'shown');
+  allow400 = false;
+  await sane('import-folder');
 
   // phone width
   await page.setViewportSize({ width: 390, height: 800 });

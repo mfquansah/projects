@@ -40,6 +40,7 @@ class FileJob:
     name: str
     path: Path
     modified: dt.datetime | None = None
+    delete_after: bool = True  # True for browser uploads (a temp copy); False for files imported in place: never delete originals
     state: str = QUEUED
     pct: int = 0
     note_id: int | None = None
@@ -71,9 +72,13 @@ class ImportManager:
         self._thread: threading.Thread | None = None
 
     # ---- public API ----
-    def submit(self, items: list[tuple[str, Path, dt.datetime | None]]) -> str:
-        """items: (name the user knows, path of the saved upload, the file's own modified time or None)."""
-        job = Job(id=uuid.uuid4().hex[:12], files=[FileJob(name=n, path=Path(p), modified=m) for n, p, m in items])
+    def submit(self, items: list[tuple]) -> str:
+        """items: (name the user knows, path, the file's own modified time or None[, delete_after]).
+
+        delete_after defaults to True (a temporary upload). Pass False for files read from where they already live.
+        """
+        job = Job(id=uuid.uuid4().hex[:12], files=[
+            FileJob(name=i[0], path=Path(i[1]), modified=i[2], delete_after=(i[3] if len(i) > 3 else True)) for i in items])
         with self._lock:
             self._jobs[job.id] = job
             self._order.append(job.id)
@@ -148,10 +153,11 @@ class ImportManager:
             except Exception as exc:  # noqa: BLE001 - never let the worker die
                 self._set(f, state=ERROR, error=f"{type(exc).__name__}: {exc}")
             finally:
-                try:
-                    f.path.unlink(missing_ok=True)  # the library keeps its own copy
-                except OSError:
-                    pass
+                if f.delete_after:  # the library keeps its own copy of an upload; originals are never touched
+                    try:
+                        f.path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
                 self._q.task_done()
 
     def _process(self, f: FileJob) -> None:

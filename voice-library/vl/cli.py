@@ -66,6 +66,11 @@ def cmd_sounds(args: argparse.Namespace) -> None:
         return
     factory = make_session_factory(home() / "library.db")
     with factory() as s:
+        if args.redo:
+            from vl.db import Status as _Status
+            s.query(_Status).filter_by(stage="sounds").delete()
+            s.commit()
+            print("Re-checking every note for sounds.")
         analyzed, total = sounds_coverage(s)
         print(f"{analyzed} of {total} notes already checked for sounds.")
         tagger = AudioSetTagger(threshold=args.threshold, device=args.device)
@@ -284,7 +289,8 @@ def main() -> None:
 
     a = sub.add_parser("sounds", help="detect baby crying/laughing etc. in imported notes")
     a.add_argument("--limit", type=int, help="check at most N notes (try 3 first: it can be slow)")
-    a.add_argument("--threshold", type=float, default=0.3, help="minimum confidence to keep a sound (untuned)")
+    a.add_argument("--threshold", type=float, default=0.10, help="lowest confidence to STORE (searches decide what counts; default 0.10)")
+    a.add_argument("--redo", action="store_true", help="re-check every note, e.g. after lowering --threshold")
     a.add_argument("--device", default=None, help='e.g. "mps" on Apple Silicon (may be faster); default CPU')
     a.add_argument("--inspect", metavar="FILE", help="show what the model hears in ONE audio file (no cutoff), for debugging")
     a.add_argument("--windows", type=int, default=3, help="with --inspect: how many 10-second windows to show")

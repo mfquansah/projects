@@ -64,7 +64,7 @@ function soundChip(x) {
   const m = /^(\S+) [\d.]+ at (\d+):(\d+)/.exec(x.sound_info);
   if (!m) return null;
   const t = Math.max(0, Math.floor(x.sound_start_s ?? (+m[2] * 60 + +m[3])));
-  return h("div", { class: "snip" }, h("a", { class: "chip sound", href: `#/note/${x.id}?t=${Math.max(0, t - 1)}` }, icons.play(9), `${soundWord(m[1])} at ${fmtDur(t)}`));
+  return h("div", { class: "snip" }, h("a", { class: "chip sound", href: `#/note/${x.id}?t=${Math.max(0, t - 1)}` }, icons.play(9), `${x.sound_conf !== null && x.sound_conf !== undefined && x.sound_conf < 0.3 ? "possibly " : ""}${soundWord(m[1])} at ${fmtDur(t)}`));
 }
 
 export function emptyLibrary() {

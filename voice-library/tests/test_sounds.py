@@ -260,3 +260,40 @@ def test_sound_inference_also_works_when_the_llm_is_down(lib):
 
     res = ask(s, "my baby making cute sounds", Down(), m, today=TODAY)
     assert names(s, res) == [BABY] and any("plain search" in n for n in res.notes)
+
+
+# --- weak detections are kept and shown as "possible", ranked below confident ones ---
+
+def test_tagger_stores_weak_detections_by_default(tmp_path):
+    from vl.sounds.tagger import AudioSetTagger, DEFAULT_THRESHOLD
+    assert DEFAULT_THRESHOLD == 0.10
+    pipe = FakePipe({"Giggle": 0.12, "Baby laughter": 0.05})
+    hits = AudioSetTagger(pipe=pipe).tag(_wav(tmp_path / "w.wav", 3))
+    assert [(h.label, round(h.confidence, 2)) for h in hits] == [("giggle", 0.12)]  # 0.12 kept, 0.05 dropped
+
+
+def test_weak_sound_matches_are_possible_and_ranked_after_confident_ones(lib):
+    s, m = lib
+    run_sounds(s, FakeTagger({"baby": [SoundHit("giggle", 2.0, 5.0, 0.20)], "idea": [SoundHit("baby_laugh", 0.0, 3.0, 0.80)]}))
+    res = ask(s, "q", P(sound="laugh"), m, today=TODAY)
+    assert names(s, res) == [IDEA, BABY]
+    assert [round(h.sound_conf, 2) for h in res.hits] == [0.8, 0.2]
+    assert not any("only possible" in n for n in res.notes)      # one confident result is present
+
+
+def test_only_weak_matches_say_so_and_very_weak_ones_are_ignored(lib):
+    s, m = lib
+    run_sounds(s, FakeTagger({"baby": [SoundHit("giggle", 2.0, 5.0, 0.20)], "idea": [SoundHit("giggle", 0.0, 3.0, 0.12)]}))
+    res = ask(s, "q", P(sound="laugh"), m, today=TODAY)
+    assert names(s, res) == [BABY]                                # 0.12 is below the 0.15 floor
+    assert any("only possible matches" in n for n in res.notes)
+    run_sounds(s, FakeTagger(), limit=0)
+    s.query(SoundEvent).delete()
+    s.commit()
+    none = ask(s, "q", P(sound="laugh"), m, today=TODAY)
+    assert none.hits == [] and any("even weak ones" in n for n in none.notes)
+
+
+def test_snippets_ignore_words_about_the_request_itself():
+    from vl.snippets import query_terms
+    assert query_terms("looking for an audio of a child laughing") == ["child", "laughing"]

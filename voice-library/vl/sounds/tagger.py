@@ -11,7 +11,7 @@ from typing import Protocol
 from vl.sounds.labels import BABY_CRY, BABY_LAUGH, canonical_label, reachable
 
 WINDOW_S = 10  # the model analyses 10-second windows
-DEFAULT_THRESHOLD = 0.3  # untuned starting guess: tune on real recordings
+DEFAULT_THRESHOLD = 0.10  # lowest confidence STORED. Searches decide what counts (see vl/ask.py), so tuning needs no re-run
 
 
 @dataclass

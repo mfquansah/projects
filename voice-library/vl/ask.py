@@ -19,7 +19,8 @@ from vl.sounds.labels import group_for, infer_sound
 from vl.sounds.store import sound_scores, sounds_coverage
 
 RERANK_TOP = 10
-MIN_SOUND_CONFIDENCE = 0.3  # untuned: tune on real recordings
+MIN_SOUND_CONFIDENCE = 0.3  # "heard it": untuned, tune on real recordings
+POSSIBLE_SOUND_CONFIDENCE = 0.15  # shown too, labelled "possibly", and ranked below confident ones
 TOPIC_BONUS = 0.2  # a transcript match nudges a sound match up; sound confidence stays the main signal
 
 
@@ -62,7 +63,7 @@ def ask(
             notes.append("Sound detection hasn't been run on your notes yet (run: python -m vl.cli sounds), "
                          "so the sound part of the question was ignored.")
         else:
-            sound_map = sound_scores(s, group, MIN_SOUND_CONFIDENCE)
+            sound_map = sound_scores(s, group, POSSIBLE_SOUND_CONFIDENCE)
             if analyzed < total:
                 notes.append(f"Only {analyzed} of {total} notes have been checked for sounds so far.")
 
@@ -85,6 +86,7 @@ def ask(
                 conf, label, start = sound_map[i]
                 h.sound_info = f"{label} {conf:.2f} at {int(start // 60)}:{int(start % 60):02d}"
                 h.sound_start_s = start
+                h.sound_conf = conf
                 out.append(h)
             return out
         if sq.sort and not sq.semantic_text.strip():
@@ -111,7 +113,9 @@ def ask(
                          "Recorded dates may be inaccurate; check them.")
 
     if sound_map is not None and not hits:
-        notes.append(f"No notes contain '{sq.sound}' sounds above the confidence cutoff ({MIN_SOUND_CONFIDENCE}).")
+        notes.append(f"No notes contain '{sq.sound}' sounds, even weak ones (below {POSSIBLE_SOUND_CONFIDENCE:.2f} confidence is ignored).")
+    elif sound_map is not None and hits and all((h.sound_conf or 0) < MIN_SOUND_CONFIDENCE for h in hits):
+        notes.append("These are only possible matches: the sound detector wasn't confident about any of them.")
 
     if sq.sort:  # deterministic order: never rerank, Claude would scramble it
         return AskResult(hits=_sort_hits(hits, sq.sort, notes)[: sq.count or limit], query=sq, notes=notes)

@@ -40,8 +40,11 @@ baby sounds), with Claude's one-line verdict and a Match / Partly / Related labe
 - **Library**: search, example searches drawn from your own notes, recent recordings, and your collections down the left.
 - **Recording**: player with a waveform and markers where sounds were heard, a timestamped transcript (click a line to jump there, find within it),
   editable title, summary and tags, details (including where the recording date came from), and related recordings.
-- **Import**: drop audio files or a whole folder. They upload, then each is transcribed, titled, sorted, indexed and checked for sounds,
-  one at a time, with live progress. A bad file shows its error and never stops the others. Re-dropping something already imported is skipped.
+- **Import**: three ways in. (1) **Import from Voice Memos**: the app reads the Mac's Voice Memos library directly (macOS may ask you to give Terminal
+  *Full Disk Access*; the page tells you exactly how). (2) **Import a folder by path**: read in place. (3) Drop audio files or a folder onto the page.
+  Files read in place are never changed or deleted. Each file is transcribed, titled, sorted, indexed and checked for sounds, one at a time, with
+  live progress. A bad file shows its error and never stops the others. Anything already imported is skipped.
+  **Dragging straight out of the Voice Memos app does not work in a browser** (it hands over file promises, not files); the page says so.
 - **Needs attention**: Claude's suggested collections (Accept / Dismiss), recordings that may be accidental (Keep / Archive), tags you can turn
   into collections, and Archived (Restore). **Archive only hides a recording; nothing is ever deleted.**
 
@@ -63,10 +66,12 @@ not proof; read the `why:` line. Sound and sorted answers (longest, newest) have
 ```bash
 python -m vl.cli sounds --limit 3      # try 3 notes first: the first run downloads the model, and long notes are slow
 python -m vl.cli sounds                # then the rest (resumable: skips notes already checked)
+python -m vl.cli sounds --redo         # re-check everything (needed once after upgrading to the new 0.10 storage threshold)
 python -m vl.cli ask "the recording of my baby laughing"
 ```
-A model trained on AudioSet listens to each note in 10-second windows, locally (audio never leaves your Mac), and keeps baby cry, laughter,
-giggle and babbling sounds above a confidence cutoff. `ask` then finds notes by sound even when nobody speaks, ranks them by confidence,
+A model trained on AudioSet listens to each note in 10-second windows, locally (audio never leaves your Mac), and stores baby cry, laughter,
+giggle and babbling sounds down to 0.10 confidence. Searches then decide what counts: 0.30 and up is "heard", 0.15 to 0.30 is shown as
+"possibly" and ranked below the confident ones, below 0.15 is ignored. So a faint baby giggle can still surface instead of vanishing. `ask` then finds notes by sound even when nobody speaks, ranks them by confidence,
 and shows where in the note it heard it (`sound: baby_laugh 0.82 at 1:10`).
 **Not yet verified on real audio:** speed (long notes may take minutes each on CPU; try `--device mps`), the cutoffs (`--threshold` and
 `MIN_SOUND_CONFIDENCE`, both 0.3, are guesses), and the model's label names (matched by keyword, and it stops with a clear message

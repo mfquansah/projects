@@ -8,6 +8,7 @@ STOP = {
     "where", "which", "who", "how", "why", "can", "could", "would", "should", "not", "but", "all", "any", "has", "had", "its",
     "into", "than", "then", "them", "they", "there", "their", "just", "like", "get", "got", "one", "some", "my", "me", "of",
     "recording", "recordings", "note", "notes", "voice", "find", "show", "idea", "thing", "about",
+    "looking", "look", "audio", "sound", "sounds", "hear", "heard", "listen", "clip", "clips", "file", "files", "want", "need",
 }
 
 

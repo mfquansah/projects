@@ -190,3 +190,10 @@
 - Why: user feedback after seeing the ivory/slate restyle.
 - Reversible? yes (--r-xs/sm/md/lg in web/app.css)
 - Source: confirmed
+
+### 2026-11-16 - Import straight from Voice Memos / a folder path; keep weak sound detections
+- Decision: (1) The page can import from the Mac's Voice Memos library (and from any folder path) by reading files in place through the local server. Originals are never copied-then-deleted or modified (uploads are the only files deleted, and those are temp copies). macOS access problems return a clear fix (Full Disk Access) instead of failing quietly, and a drag-and-drop that delivers no files now says why. (2) Sound events are stored down to 0.10 confidence; searches treat >=0.30 as heard, 0.15-0.30 as "possibly" (ranked after confident ones), and ignore the rest. `vl sounds --redo` re-checks everything. Words about the request itself ("looking", "audio") are no longer highlighted.
+- Alternatives considered/rejected: reading Voice Memos' private database for titles and dates (schema unverified; dates already come from the file name/audio); making drag-from-Voice-Memos work in the browser (not possible: file promises); keeping the 0.3 storage cutoff (a faint baby giggle was lost for good).
+- Why: user's drag from Voice Memos did nothing, and a search for a child giggling didn't find their baby recording. Cause of the second is a hypothesis (laughter scored under 0.3); not yet confirmed on their data.
+- Reversible? yes
+- Source: confirmed (problems), inferred (causes and design)
