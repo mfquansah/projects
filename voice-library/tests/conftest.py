@@ -30,7 +30,9 @@ def audio_folder(tmp_path) -> Path:
 class FakeTranscriber:
     model_version = "fake-whisper"
 
-    def transcribe(self, audio_path: Path) -> TranscriptResult:
+    def transcribe(self, audio_path: Path, progress=None) -> TranscriptResult:
+        if progress:
+            progress(50)
         text = audio_path.read_bytes().decode()
         return TranscriptResult(text=text, segments=[{"start": 0, "end": 1, "text": text}],
                                 model_version=self.model_version)

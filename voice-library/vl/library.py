@@ -9,7 +9,8 @@ import json
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from vl.db import Category, Enrichment, Note, NoteFlag, SoundEvent, Transcript
+from vl.db import Category, Embedding, Enrichment, Note, NoteEdit, NoteFlag, SoundEvent, Transcript
+from vl.index.embeddings import cosine_scores, from_blob
 from vl.index.search import Hit, effective_duration, make_hit
 
 
@@ -133,6 +134,7 @@ def assign_category(s: Session, note_id: int, category_id: int | None) -> None:
     if category_id is not None and not s.query(Category).filter_by(id=category_id, accepted=True).first():
         raise ValueError("That category doesn't exist.")
     en.category_id = category_id
+    _mark_edited(s, note_id, "category")
     s.commit()
 
 
@@ -189,7 +191,9 @@ def note_detail(s: Session, note_id: int) -> dict | None:
         "suggested_category": en.suggested_category if en else None,
         "purpose": en.purpose if en else "", "tags": json.loads(en.tags_json) if en else [],
         "junk_score": en.junk_score if en else None,
-        "transcript": tr.text if tr else "", "sounds": events, "flag": flag.flag if flag else None,
+        "transcript": tr.text if tr else "", "segments": _segments(tr), "sounds": events,
+        "flag": flag.flag if flag else None, "imported_at": note.imported_at.isoformat() if note.imported_at else None,
+        "edited": _edited(s, note_id),
     }
 
 
@@ -207,3 +211,112 @@ def list_notes(s: Session, category_id: int | None = None, uncategorized: bool =
     q = q.order_by(Note.recorded_at.is_(None), Note.recorded_at.desc(), Note.id.desc())
     ids = [r[0] for r in q.offset(max(offset, 0)).limit(min(max(limit, 1), 100))]
     return [make_hit(s, i) for i in ids]
+
+
+def _segments(tr: Transcript | None) -> list[dict]:
+    if tr is None:
+        return []
+    try:
+        return [{"start": float(x["start"]), "end": float(x.get("end", x["start"])), "text": str(x.get("text", "")).strip()}
+                for x in json.loads(tr.segments_json) if str(x.get("text", "")).strip()]
+    except (ValueError, TypeError, KeyError):
+        return []
+
+
+def _edited(s: Session, note_id: int) -> list[str]:
+    row = s.get(NoteEdit, note_id)
+    return json.loads(row.fields) if row else []
+
+
+def _mark_edited(s: Session, note_id: int, field: str) -> None:
+    fields = _edited(s, note_id)
+    if field not in fields:
+        s.merge(NoteEdit(note_id=note_id, fields=json.dumps(fields + [field])))
+
+
+def update_details(s: Session, note_id: int, title: str | None = None, summary: str | None = None,
+                   tags: list[str] | None = None, embedder=None) -> dict:
+    """Edit a note's title, summary or tags by hand. The search index is refreshed so the change is searchable."""
+    en = s.get(Enrichment, note_id)
+    note = s.get(Note, note_id)
+    if en is None or note is None:
+        raise ValueError("That note hasn't been labelled yet.")
+    if title is not None:
+        title = " ".join(title.split())
+        if not 1 <= len(title) <= 200:
+            raise ValueError("A title must be 1-200 characters.")
+        if title != en.title:
+            en.title = title
+            _mark_edited(s, note_id, "title")
+    if summary is not None:
+        summary = summary.strip()
+        if len(summary) > 2000:
+            raise ValueError("A summary can be at most 2000 characters.")
+        if summary != en.summary:
+            en.summary = summary
+            _mark_edited(s, note_id, "summary")
+    if tags is not None:
+        clean: list[str] = []
+        for t in tags:
+            t = " ".join(str(t).lower().split())
+            if t and t not in clean:
+                if len(t) > 40:
+                    raise ValueError("A tag can be at most 40 characters.")
+                clean.append(t)
+        if len(clean) > 12:
+            raise ValueError("A note can have at most 12 tags.")
+        if clean != json.loads(en.tags_json or "[]"):
+            en.tags_json = json.dumps(clean)
+            _mark_edited(s, note_id, "tags")
+    s.commit()
+    from vl.pipeline import index_note  # local import: pipeline doesn't depend on this module
+    index_note(s, note, embedder)
+    return note_detail(s, note_id)
+
+
+def related_notes(s: Session, note_id: int, model_version: str, limit: int = 3, min_similarity: float = 0.35) -> list[dict]:
+    """Other notes whose meaning is close to this one (by embeddings), skipping archived ones."""
+    import numpy as np
+
+    rows = s.query(Embedding).filter_by(model_version=model_version).all()
+    me = next((r for r in rows if r.note_id == note_id), None)
+    if me is None:
+        return []
+    archived = _archived(s)
+    others = [r for r in rows if r.note_id != note_id and r.note_id not in archived]
+    if not others:
+        return []
+    sims = cosine_scores(from_blob(me.vector), np.stack([from_blob(r.vector) for r in others]))
+    out = []
+    for i in np.argsort(-sims)[:limit]:
+        if sims[i] < min_similarity:
+            break
+        h = make_hit(s, others[i].note_id)
+        out.append({"id": h.note_id, "title": h.title, "category": h.category,
+                    "recorded_at": h.recorded_at.isoformat() if h.recorded_at else None})
+    return out
+
+
+def attention(s: Session) -> dict:
+    """Everything waiting on a decision: suggested categories, likely-junk notes, and what's archived."""
+    sug, rev = suggested_categories(s), review_queue(s)
+    return {"suggestions": sug, "review": rev, "archived": archived_notes(s), "count": len(sug) + len(rev)}
+
+
+def try_queries(s: Session, n: int = 3) -> list[str]:
+    """Example searches drawn from the library itself: titles of recent notes from different categories."""
+    archived = _archived(s)
+    rows = (s.query(Note, Enrichment).join(Enrichment, Enrichment.note_id == Note.id)
+            .order_by(Note.recorded_at.is_(None), Note.recorded_at.desc(), Note.id.desc()).limit(60).all())
+    seen_cat: set = set()
+    out: list[str] = []
+    for note, en in rows:
+        if note.id in archived or en.junk_score >= 0.5 or not en.title.strip():
+            continue
+        if en.category_id in seen_cat:
+            continue
+        seen_cat.add(en.category_id)
+        out.append(en.title)
+        if len(out) == n:
+            break
+    return out

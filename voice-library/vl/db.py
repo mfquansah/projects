@@ -104,6 +104,13 @@ class NoteFlag(Base):
         DateTime, default=lambda: dt.datetime.now(dt.timezone.utc).replace(tzinfo=None))
 
 
+class NoteEdit(Base):
+    """Fields of a note the user changed by hand (JSON list: title, summary, tags, category)."""
+    __tablename__ = "note_edits"
+    note_id: Mapped[int] = mapped_column(ForeignKey("notes.id"), primary_key=True)
+    fields: Mapped[str] = mapped_column(Text, default="[]")
+
+
 FTS_DDL = (
     "CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5("
     "title, summary, body, tags, note_id UNINDEXED)"

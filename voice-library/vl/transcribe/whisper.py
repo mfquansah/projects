@@ -16,7 +16,8 @@ class TranscriptResult:
 class Transcriber(Protocol):
     model_version: str
 
-    def transcribe(self, audio_path: Path) -> TranscriptResult: ...
+    def transcribe(self, audio_path: Path, progress=None) -> TranscriptResult:
+        """`progress`, if given, is called with 0-100 as the audio is worked through."""
 
 
 class FasterWhisperTranscriber:
@@ -28,9 +29,14 @@ class FasterWhisperTranscriber:
         self.model_version = f"faster-whisper-{model_size}"
         self._model = WhisperModel(model_size, compute_type="int8")
 
-    def transcribe(self, audio_path: Path) -> TranscriptResult:
-        segments, _info = self._model.transcribe(str(audio_path), vad_filter=True)
-        segs = [{"start": s.start, "end": s.end, "text": s.text.strip()} for s in segments]
+    def transcribe(self, audio_path: Path, progress=None) -> TranscriptResult:
+        segments, info = self._model.transcribe(str(audio_path), vad_filter=True)
+        segs = []
+        total = float(getattr(info, "duration", 0) or 0)
+        for s in segments:  # a generator: the audio is transcribed as we go
+            segs.append({"start": s.start, "end": s.end, "text": s.text.strip()})
+            if progress and total > 0:
+                progress(min(99, int(s.end / total * 100)))
         return TranscriptResult(
             text=" ".join(s["text"] for s in segs).strip(),
             segments=segs,

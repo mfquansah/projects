@@ -186,6 +186,33 @@ def probe_duration(path: Path) -> float | None:
         return None
 
 
+def import_one(session: Session, path: Path, store_dir: Path, original_name: str | None = None,
+               fallback_date: dt.datetime | None = None) -> tuple[Note, bool]:
+    """Add one file to the library. Returns (note, created); created is False if the same audio is already there.
+
+    `original_name` is the name the user knows it by (an upload's temp path has a different name).
+    `fallback_date` (e.g. the browser's file-modified time) is used only when neither the name nor the audio
+    carries a date, because file times of a copy are often the copy time.
+    """
+    store_dir.mkdir(parents=True, exist_ok=True)
+    name = original_name or path.name
+    digest = sha256_of(path)
+    existing = session.query(Note).filter_by(sha256=digest).first()
+    if existing:
+        return existing, False
+    recorded_at, source = best_date(path, name)
+    if fallback_date is not None and source in ("birthtime", "mtime"):
+        recorded_at, source = fallback_date, "file-modified"
+    dest = store_dir / f"{digest[:16]}{path.suffix.lower()}"
+    if not dest.exists():
+        shutil.copy2(path, dest)
+    note = Note(sha256=digest, path=str(dest), original_name=name, recorded_at=recorded_at,
+                date_source=source, duration_s=probe_duration(path))
+    session.add(note)
+    session.commit()
+    return note, True
+
+
 def import_folder(session: Session, folder: Path, store_dir: Path, limit: int | None = None) -> ImportResult:
     store_dir.mkdir(parents=True, exist_ok=True)
     result = ImportResult()
@@ -194,20 +221,11 @@ def import_folder(session: Session, folder: Path, store_dir: Path, limit: int | 
         if limit is not None and result.added >= limit:
             break
         try:
-            digest = sha256_of(path)
-            if session.query(Note.id).filter_by(sha256=digest).first():
+            _, created = import_one(session, path, store_dir)
+            if created:
+                result.added += 1
+            else:
                 result.skipped += 1
-                continue
-            recorded_at, source = best_date(path)
-            dest = store_dir / f"{digest[:16]}{path.suffix.lower()}"
-            if not dest.exists():
-                shutil.copy2(path, dest)
-            session.add(Note(
-                sha256=digest, path=str(dest), original_name=path.name,
-                recorded_at=recorded_at, date_source=source, duration_s=probe_duration(path),
-            ))
-            session.commit()
-            result.added += 1
         except OSError:
             session.rollback()
             result.failed += 1

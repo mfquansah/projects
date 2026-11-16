@@ -13,6 +13,24 @@ from vl.sounds.tagger import SoundTagger
 STAGE = "sounds"
 
 
+def analyze_note(s: Session, tagger: SoundTagger, note: Note) -> int:
+    """Detect sounds in one note and store them. Returns the number of events; raises on failure (caller records it)."""
+    hits = tagger.tag(Path(note.path))
+    s.query(SoundEvent).filter_by(note_id=note.id).delete()
+    for h in hits:
+        s.add(SoundEvent(note_id=note.id, label=h.label, start_s=h.start_s, end_s=h.end_s,
+                         confidence=h.confidence, model_version=tagger.model_version))
+    s.merge(Status(note_id=note.id, stage=STAGE, state="done", error=None))
+    s.commit()
+    return len(hits)
+
+
+def record_sounds_error(s: Session, note_id: int, exc: Exception) -> None:
+    s.rollback()
+    s.merge(Status(note_id=note_id, stage=STAGE, state="error", error=f"{type(exc).__name__}: {exc}"))
+    s.commit()
+
+
 def run_sounds(s: Session, tagger: SoundTagger, limit: int | None = None,
                progress: Callable[[str], None] | None = None) -> dict[str, int]:
     done = {r[0] for r in s.query(Status.note_id).filter_by(stage=STAGE, state="done")}
@@ -23,21 +41,13 @@ def run_sounds(s: Session, tagger: SoundTagger, limit: int | None = None,
         if limit is not None and counts["analyzed"] + counts["errors"] >= limit:
             break
         try:
-            hits = tagger.tag(Path(note.path))
-            s.query(SoundEvent).filter_by(note_id=note.id).delete()
-            for h in hits:
-                s.add(SoundEvent(note_id=note.id, label=h.label, start_s=h.start_s, end_s=h.end_s,
-                                 confidence=h.confidence, model_version=tagger.model_version))
-            s.merge(Status(note_id=note.id, stage=STAGE, state="done", error=None))
-            s.commit()
+            n = analyze_note(s, tagger, note)
             counts["analyzed"] += 1
-            counts["events"] += len(hits)
+            counts["events"] += n
             if progress:
-                progress(f"{note.original_name}: {len(hits)} event(s)")
+                progress(f"{note.original_name}: {n} event(s)")
         except Exception as exc:  # noqa: BLE001 - one bad file must not stop the batch
-            s.rollback()
-            s.merge(Status(note_id=note.id, stage=STAGE, state="error", error=f"{type(exc).__name__}: {exc}"))
-            s.commit()
+            record_sounds_error(s, note.id, exc)
             counts["errors"] += 1
     return counts
 
