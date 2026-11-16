@@ -16,8 +16,9 @@ Replaces paid tools (Granola, Pocket) with something free to run. Audio and tran
 
 ## 5. Goals and success metrics (proposed until validated)
 - Retrieve a specific recording from a natural-language question, with its title, summary, category and working playback. `[inferred]`
-- Candidate, not agreed: any baby clip found in under 30 seconds. `[inferred]`
-- Candidate, not agreed: the whole library (~1,000 notes) imported and kept in sync without manual work. `[inferred]`
+- A baby clip can be found fast (about 30 seconds). `[confirmed]`
+- The whole library (~1,000 notes) is imported and kept in sync without manual work. `[confirmed]`
+- Offered and not picked for the first-version bar: the right note near the top for most questions, and works on the phone too. `[confirmed]`
 - Search quality is not yet measured: an eval runner exists but has not been run on real recordings (the user plans to record clips with known answers first). `[confirmed]`
 
 ## 6. MVP scope
@@ -42,7 +43,7 @@ Replaces paid tools (Granola, Pocket) with something free to run. Audio and tran
 3. Web page, redesigned. **Built; the real-library experience is only partly seen.**
 4. Full run on ~1,000 notes. **Not started: time and cost unmeasured; needs newest-first order, an estimate and pause/resume.**
 5. Voice Memos sync. **Built; unverified on the user's Mac.**
-6. Phone web app mirroring everything (through the Mac first, a cloud copy later), then a native app with in-app recording. **Direction agreed; approach not chosen.**
+6. Phone web app mirroring everything, reaching the library through the user's Mac first (a cloud copy later), then a native app with in-app recording. **Agreed; not started. Comes after the large import.** `[confirmed]`
 
 ## 9. Designs and work products
 | Name | Link | Purpose | Status |
@@ -60,10 +61,10 @@ Replaces paid tools (Granola, Pocket) with something free to run. Audio and tran
 - Claude's match labels and meaning-search cutoff (0.25) are untuned. `[inferred]`
 - Date from the browser's file-modified time (uploads) may be the export time. `[inferred]`
 - Single copy of the library on the user's Mac: no backups yet. `[inferred]`
-- Phone access needs a login and a private connection; not built. `[inferred]`
+- Phone access needs a login and a private connection; not built. It only works while the Mac is on (accepted: the Mac is usually on). `[confirmed/inferred]`
 
 ## 11. MVP success definition
-Not agreed. Proposed: the user can import their library, then find the recordings they care about (including the baby clips) from a plain-language question in seconds, on desktop and phone. `[inferred]`
+The user can import their whole library hands-off and keep it in sync, and can find a baby clip in about 30 seconds. `[confirmed]` Phone access and measured search accuracy are wanted but are not part of this first bar. `[confirmed]`
 
 ## 12. Next phase
-Make the large import safe and measurable (confirm the app can read Voice Memos on the Mac, a 25-note test batch that reports time and Claude usage, newest-first order, an estimate, pause/resume), run the full import, then phone access.
+The large import (confirmed as the next priority): confirm the app can read Voice Memos on the Mac, a 25-note test batch that reports time and Claude usage, newest-first order, an estimate, pause/resume and a queue that survives a restart; then the full import; then phone access through the Mac. `[confirmed]`

@@ -232,3 +232,24 @@
 - Why: user: build-trail "should just observe" in plan mode and take context from it. They approved the drafted wording ("looks good"). The edited skill lives in the user's synced skill copy; whether it persisted at the source is unverified.
 - Reversible? yes
 - Source: confirmed
+
+### 2026-11-16 - Success definition for the first version
+- Decision: the first version "works" when (1) a baby clip can be found fast (about 30 seconds) and (2) the whole library (~1,000 recordings) is imported and kept in sync hands-off.
+- Alternatives considered/rejected: "the right note comes back near the top for most questions" and "works on my phone too" were offered and not picked; that does not mean they are rejected, only that they aren't part of the first-version bar.
+- Why: reason not recorded beyond the user's selection.
+- Reversible? yes
+- Source: confirmed
+
+### 2026-11-16 - Next priority: the large import first
+- Decision: work next on the large import: confirm the app can read Voice Memos on the Mac, run a 25-note test batch that reports time and Claude usage per note, make the long import safe (newest-first, estimate, pause/resume, queue that survives a restart), then import everything.
+- Alternatives considered/rejected: phone access first; tuning search and sounds first.
+- Why: reason not recorded beyond the user choosing the recommended option. (My reasoning, not the user's: it blocks the success definition and the phone work.)
+- Reversible? yes
+- Source: confirmed
+
+### 2026-11-16 - Phone reaches the library through the user's Mac first
+- Decision: the phone web app connects to the Mac that runs the library (private connection, login, installable web app) before any cloud copy. Supersedes the "approach undecided" note in the phone-direction entry above.
+- Alternatives considered/rejected: copying the library to a hosted service now; leaving it open.
+- Why: reason not recorded beyond the user choosing this after asking why it was recommended. The recommendation's stated reasons were speed, reuse of the existing screens, and audio staying on the user's computer, with the cost that the phone only works while the Mac is on.
+- Reversible? yes
+- Source: confirmed
