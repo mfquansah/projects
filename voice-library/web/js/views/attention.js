@@ -10,7 +10,7 @@ export async function attention({ main }) {
   async function load() {
     const d = await api("/api/attention");
     const act = (fn, msg) => async () => { try { await fn(); await refreshHome(); if (msg) toast(msg); await load(); } catch (err) { toast(err.message); } };
-    const section = (title, ...kids) => h("section", { style: "margin-top:28px" }, h("h2", { class: "eyebrow", style: "padding:0 4px 8px" }, title), kids);
+    const section = (title, ...kids) => h("section", { style: "margin-top:28px" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:6px" }, title), kids);
     const empty = !d.suggestions.length && !d.review.length;
     put(box,
       h("div", { style: "display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px" },

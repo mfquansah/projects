@@ -23,13 +23,17 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   log('placeholder', await page.getAttribute('#q', 'placeholder'));
   log('searchbox height', await page.$eval('.searchbox', e => Math.round(e.getBoundingClientRect().height)));
   log('try links', await page.$$eval('.tryline a', e => e.length));
+  log('hero headline', await page.textContent('.hero h1'));
+  log('collection cards (top 4)', await page.$$eval('.cards a .t', e => e.map(x => x.textContent).join(', ')));
+  log('sidebar collections (all)', await page.$$eval('.cols a .name', e => e.length));
+  log('numbered rows', await page.$$eval('.row .num', e => e.slice(0, 3).map(x => x.textContent).join(',')));
   await page.screenshot({ path: path.join(tmp, '1-library.png') });
   await sane('library');
 
   // instant results while typing, then Enter -> full answer
   await page.fill('#q', 'grocery');
-  await page.waitForFunction(() => document.querySelector('.sechead h1')?.textContent.includes('Instant'));
-  log('instant heading', await page.textContent('.sechead h1'));
+  await page.waitForFunction(() => [...document.querySelectorAll('h2.eyebrow')].some(e => e.textContent.includes('Instant')));
+  log('instant heading', await page.textContent('h2.eyebrow.ul'));
   await page.press('#q', 'Enter');
   await page.waitForSelector('.verdict');
   await page.waitForSelector('.result');

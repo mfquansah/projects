@@ -52,7 +52,8 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Existing databases**: new `note_flags` table is created automatically; any future column change needs Alembic.
 
 ## F. Redesign build (2026-11-16)
-- [ ] **Theme direction changed after the build**: the user doesn't want it to look like a Claude app; wants a Harvard-inspired / editorial hybrid on soft ivory (see the design canvas). The current CSS (`web/app.css`) is the earlier sage-and-cream look.
+- [x] **Theme**: restyled to ivory and slate (editorial, squarer corners, compact charcoal hero, serif titles, numbered rows). The earlier crimson/Harvard idea was rejected as too strong. Still to carry onto the mockup canvas: Search, Recording and Import in the new look (only Library is drawn). No dark mode any more (one look).
+- [ ] **Top-4 collection cards** are the four largest by recording count; every collection is in the sidebar. Check this feels right with a real library (many small collections, or ties).
 - [ ] **Import on the real Mac is unverified**: uploads, Whisper loading on the first import (slow start), sound detection loading, large files. Tested only with fakes and tiny files.
 - [ ] **Upload date fallback**: the browser's file-modified time is used as a last-resort recording date (`date_source = file-modified`); for files dragged out of Voice Memos this may be the export time. Check the "Date from" row on a recording.
 - [ ] **Import is one file at a time** (one worker); a big folder of ~1,000 notes will take hours and needs the app to stay running. No pause/resume button yet (the mockup shows Pause).

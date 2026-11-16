@@ -20,15 +20,17 @@ let current = { name: "library", cleanup: null, colId: null };
 function renderSide() {
   const home = state.home, side = $("#side");
   put(side,
-    h("div", { class: "brand" }, h("div", { class: "mark", "aria-hidden": "true" }, [8, 16, 11, 5].map((n) => h("i", { style: `height:${n}px` }))), "Voice Library"),
+    h("div", { class: "brand" }, h("div", { class: "mark", "aria-hidden": "true" }, [11, 20, 14, 7].map((n) => h("i", { style: `height:${n}px` }))),
+      h("div", { class: "word" }, h("b", {}, "Voice"), h("span", {}, "Library"))),
     h("div", { class: "nav" },
       h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, "Library"),
       h("a", { href: "#/search", ...(current.name === "search" ? { "aria-current": "page" } : {}) }, "Search"),
       h("a", { href: "#/import", ...(current.name === "import" ? { "aria-current": "page" } : {}) }, "Import")),
     h("div", { class: "cols" }, h("p", { class: "eyebrow" }, "Collections"),
-      (home?.categories || []).filter((c) => c.count > 0 || c.id !== null).map((c) => {
+      (home?.categories || []).filter((c) => c.count > 0 || c.id !== null).map((c, i) => {
         const id = c.id === null ? "none" : String(c.id);
-        return h("a", { href: `#/collection/${id}`, ...(current.colId === id ? { "aria-current": "page" } : {}) }, h("span", {}, c.name), h("span", {}, c.count));
+        return h("a", { href: `#/collection/${id}`, ...(current.colId === id ? { "aria-current": "page" } : {}) },
+          h("span", { class: "n" }, String(i + 1).padStart(2, "0")), h("span", { class: "name" }, c.name), h("span", { class: "c" }, c.count));
       })),
     h("div", { class: "grow" }),
     h("div", { class: "side-foot" },
@@ -44,6 +46,7 @@ async function route() {
   const [path, qs] = hash.split("?");
   const main = $("#main");
   main.replaceChildren();
+  main.className = "main";
   if (state.settings && !state.settings.claude) {
     main.append(h("div", { class: "notice" }, `${state.settings.reason}. Titles, summaries and full questions need it, so for now searches are basic.`));
   }

@@ -30,10 +30,11 @@ export const lengthText = (hit) => (hit.duration_s ? fmtDur(hit.duration_s) : ""
 // Quiet rows (Library, a collection, instant results).
 export function noteRows(hits, emptyText) {
   if (!hits.length) return h("div", { class: "empty" }, emptyText);
-  return h("div", {}, hits.map((x) => h("div", { class: "row" },
+  return h("div", {}, hits.map((x, i) => h("div", { class: "row" },
+    h("span", { class: "num" }, String(i + 1).padStart(2, "0")),
     playButton(x.id),
     h("a", { class: "rowbody", href: `#/note/${x.id}` }, h("span", { class: "t" }, x.title), h("span", { class: "s" }, x.summary)),
-    h("div", { class: "rowmeta" }, h("span", {}, x.category || "Uncategorized"),
+    h("div", { class: "rowmeta" }, h("span", { class: "cat" }, x.category || "Uncategorized"),
       h("span", {}, [fmtDate(x.recorded_at), lengthText(x)].filter(Boolean).join(" · "))))));
 }
 

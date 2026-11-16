@@ -105,7 +105,7 @@ export async function note({ main, params, query }) {
     const find = h("input", { type: "search", placeholder: "Find in transcript", "aria-label": "Find in transcript", value: findText,
       oninput: (e) => { findText = e.target.value; drawTranscript(); find2.focus(); } });
     const find2 = find;
-    put(transBox, h("div", { class: "transhead" }, h("h2", { class: "eyebrow" }, "Transcript"), find));
+    put(transBox, h("div", { class: "transhead" }, h("h2", { class: "eyebrow ul" }, "Transcript"), find));
     segEls = [];
     if (!d.segments.length) {
       transBox.append(h("p", { class: "summary", style: "font-size:15px" }, d.transcript || "(no speech was transcribed)"));
@@ -130,9 +130,9 @@ export async function note({ main, params, query }) {
     const rows = [["Recorded", fmtDate(d.recorded_at, { year: true, time: true })], ["Length", fmtDur(d.duration_s)], ["Collection", d.category || "Uncategorized"],
       ["Imported", d.imported_at ? fmtDate(d.imported_at, { year: true }) : "—"], ["Date from", DATE_FROM[d.date_source] || d.date_source], ["File", d.file]];
     put(side,
-      h("section", { style: "display:flex;flex-direction:column;gap:10px" }, h("h2", { class: "eyebrow" }, "Details"),
+      h("section", { style: "display:flex;flex-direction:column;gap:10px" }, h("h2", { class: "eyebrow ul" }, "Details"),
         h("dl", { class: "det" }, rows.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))),
-      d.related && d.related.length ? h("section", { class: "related" }, h("h2", { class: "eyebrow", style: "margin-bottom:6px" }, "Related"),
+      d.related && d.related.length ? h("section", { class: "related" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:6px" }, "Related"),
         d.related.map((r) => h("a", { href: `#/note/${r.id}` }, h("b", {}, r.title), h("span", {}, [r.category, fmtDate(r.recorded_at, { year: true })].filter(Boolean).join(" · "))))) : null,
       h("button", { type: "button", class: "ghost", onclick: async () => {
         try { await api(`/api/notes/${id}/flag`, { body: { flag: "archived" } }); await refreshHome(); toast("Archived. You can restore it from Needs attention."); go("#/"); }
@@ -178,7 +178,7 @@ export async function note({ main, params, query }) {
       input.addEventListener("blur", () => { if (!input.value.trim()) render(); });
       add.replaceWith(input); input.focus(); } }, "+ Add tag");
     tags.append(add);
-    put(summaryBox, h("h2", { class: "eyebrow" }, "Summary"), editor || h("p", { class: "summary" }, d.summary || "No summary yet."), tags);
+    put(summaryBox, h("h2", { class: "eyebrow ul" }, "Summary"), editor || h("p", { class: "summary" }, d.summary || "No summary yet."), tags);
   }
   function render() { drawTop(); drawTranscript(); drawSide(); }
 

@@ -176,3 +176,10 @@
 - Why: user's direction on the mockups ("build on this mockup and improve it", minimal, serif search prompt, upright and faint). The honest privacy line replaces the mockup's "nothing is uploaded", because transcript text does go to Claude.
 - Reversible? yes
 - Source: confirmed (switch, serif prompt, style), inferred (architecture, import design)
+
+### 2026-11-16 - Visual theme: ivory and slate, editorial
+- Decision: soft ivory background with slate/charcoal accents (no red or maroon), serif titles, small letter-spaced capitals with an underline rule for section heads, numbered rows with hairline dividers, square-ish corners (3px). The Library screen has a compact charcoal hero with the large search box straddling its edge, the four largest collections as cards, and recent recordings; the sidebar lists every collection with counts, plus Needs attention. Dark mode was dropped so there is one consistent look.
+- Alternatives considered/rejected: the sage-and-cream look (read as a Claude app); a Harvard-style crimson masthead and full-height hero (too strong, user: "not crazy Harvard red", hero "too prominent").
+- Why: user's feedback on the references (Harvard, GoShuin) and on theme B: keep the ivory base and list rendering, drop the red, shrink the hero, bring back the sidebar and collections.
+- Reversible? yes (colours are CSS variables in web/app.css)
+- Source: confirmed
