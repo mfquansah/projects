@@ -1,6 +1,6 @@
 /* Voice Library: ivory and slate, editorial. Local only: no external fonts or scripts. */
 :root {
-  --bg: #F4EEDD; --surface: #FBF8EE; --ink: #1F2429; --muted: #5E6670; --line: #E4DCC8; --line-strong: #DAD1BB;
+  --bg: #F2F0EF; --surface: #FBF8EE; --ink: #1F2429; --muted: #5E6670; --line: #E4DCC8; --line-strong: #DAD1BB;
   --accent: #2F3A44; --accent-ink: #F4EEDD; --accent-soft: #E6E1D2; --nav-active: #E7DFCB; --link-line: #8A96A0;
   --hero: #323C46; --hero-ink: #F4EEDD; --hero-muted: #D9D4C4; --hero-wave: #566673;
   --mark: #EADFA8; --sound: #7A530B; --wave: #A9A28F; --placeholder: #8A8578; --danger: #A12A1F;
