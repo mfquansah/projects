@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 import json
 
-from vl.db import Category, Embedding, Enrichment, Note, Transcript
+from vl.db import Category, Embedding, Enrichment, Note, NoteFlag, Transcript
 from vl.index.embeddings import Embedder, cosine_scores, from_blob
 
 RRF_K = 60
@@ -48,10 +48,13 @@ def fts_query(q: str) -> str | None:
 def _candidate_ids(
     s: Session, category: str | None, since: dt.datetime | None, until: dt.datetime | None,
 ) -> set[int] | None:
-    """None means 'no filter'. Otherwise the set of note ids allowed."""
-    if category is None and since is None and until is None:
+    """None means 'no filter'. Otherwise the set of note ids allowed. Archived notes are always excluded."""
+    archived = {r[0] for r in s.query(NoteFlag.note_id).filter_by(flag="archived")}
+    if category is None and since is None and until is None and not archived:
         return None
     query = s.query(Note.id).join(Enrichment, Enrichment.note_id == Note.id)
+    if archived:
+        query = query.filter(~Note.id.in_(archived))
     if category is not None:
         query = query.join(Category, Category.id == Enrichment.category_id).filter(Category.name == category)
     if since is not None:

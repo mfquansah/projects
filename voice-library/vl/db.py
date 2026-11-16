@@ -94,6 +94,16 @@ class Status(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class NoteFlag(Base):
+    """User decisions about a note. 'archived' hides it from search and browsing (the audio file is never deleted);
+    'keep' means the user reviewed it and wants it, so it stops appearing in the review queue."""
+    __tablename__ = "note_flags"
+    note_id: Mapped[int] = mapped_column(ForeignKey("notes.id"), primary_key=True)
+    flag: Mapped[str] = mapped_column(String(16))  # archived | keep
+    set_at: Mapped[dt.datetime] = mapped_column(
+        DateTime, default=lambda: dt.datetime.now(dt.timezone.utc).replace(tzinfo=None))
+
+
 FTS_DDL = (
     "CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5("
     "title, summary, body, tags, note_id UNINDEXED)"
