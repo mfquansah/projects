@@ -14,7 +14,7 @@ from pathlib import Path
 from sqlalchemy import func
 
 from vl.db import Enrichment, Note, Status, Transcript, make_session_factory
-from vl.ingest.importer import import_folder, redate_notes
+from vl.ingest.importer import AUDIO_EXTS, import_folder, redate_notes
 from vl.pipeline import process_notes
 from vl.index.search import search
 from vl.sounds.store import run_sounds, sounds_coverage
@@ -32,9 +32,16 @@ def home() -> Path:
 
 def cmd_import(args: argparse.Namespace) -> None:
     factory = make_session_factory(home() / "library.db")
+    folder = Path(args.folder).expanduser()
+    if not folder.is_dir():
+        raise SystemExit(f"'{folder}' is not a folder that exists. Check the path (drag the folder into Terminal to paste it).")
     with factory() as s:
-        r = import_folder(s, Path(args.folder).expanduser(), home() / "audio", args.limit)
+        r = import_folder(s, folder, home() / "audio", args.limit)
     print(f"Imported {r.added}, skipped {r.skipped} already in library, failed {r.failed}.")
+    if r.added + r.skipped + r.failed == 0:
+        found = sorted({p.suffix.lower() or "(no extension)" for p in folder.rglob("*") if p.is_file()})
+        print(f"No audio files found in {folder}. I look for: {', '.join(sorted(AUDIO_EXTS))}. "
+              f"File types actually there: {', '.join(found) if found else 'none (the folder is empty)'}.")
 
 
 def cmd_redate(_: argparse.Namespace) -> None:

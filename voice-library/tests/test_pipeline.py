@@ -250,3 +250,18 @@ def test_enricher_does_not_call_api_for_empty_transcript():
     from vl.enrich.llm import ClaudeEnricher
     c = _FakeClient([])
     assert ClaudeEnricher(client=c).enrich("   ", CATS, None).junk_score == 0.7 and c.calls == []
+
+
+def test_cli_import_complains_about_missing_or_empty_folders(tmp_path, monkeypatch, capsys):
+    import argparse
+
+    from vl import cli
+    monkeypatch.setenv("VL_HOME", str(tmp_path / "home"))
+    with pytest.raises(SystemExit, match="not a folder that exists"):
+        cli.cmd_import(argparse.Namespace(folder=str(tmp_path / "nope"), limit=None))
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    (empty / "notes.txt").write_text("x")
+    cli.cmd_import(argparse.Namespace(folder=str(empty), limit=None))
+    out = capsys.readouterr().out
+    assert "No audio files found" in out and ".txt" in out and ".m4a" in out
