@@ -150,4 +150,100 @@ def test_parse_structured_requires_json_and_defaults_to_question():
 
 def test_parse_rerank_ignores_invented_and_duplicate_ids():
     raw = 'x [{"id": 1, "why": "a"}, {"id": 99, "why": "made up"}, {"id": 1, "why": "dup"}, {"nope": 2}]'
-    assert parse_rerank(raw, {1, 2}) == [{"id": 1, "why": "a"}]
+    assert parse_rerank(raw, {1, 2}) == [{"id": 1, "why": "a", "strength": None}]
+
+
+# --- match strength labels and the verdict line ---
+
+from vl.ask import verdict_for
+from vl.index.search import Hit
+
+
+class Labeller:
+    """Returns the candidates in the given order with the given strength per note NAME."""
+
+    def __init__(self, session, strengths, order=None):
+        self.session, self.strengths, self.order = session, strengths, order
+
+    def rerank(self, question, candidates):
+        from vl.db import Note
+        ids = self.order or [c["id"] for c in candidates]
+        out = []
+        for i in ids:
+            name = self.session.get(Note, i).original_name
+            out.append({"id": i, "why": f"why {name}", "strength": self.strengths.get(name)})
+        return out
+
+
+def _hit(strength):
+    return Hit(note_id=1, title="t", summary="s", category=None, recorded_at=None, path="p", score=0.0, strength=strength)
+
+
+@pytest.mark.parametrize("strengths, expected", [
+    (["match", "partial"], "One clear match."),
+    (["match", "match", "related"], "2 likely matches."),
+    (["partial", "related"], "No clear match; these only partly match."),
+    (["related", "related"], "No clear match; these are only loosely related."),
+    ([None, None], None), ([], None)])
+def test_verdict_is_computed_from_labels(strengths, expected):
+    assert verdict_for([_hit(x) for x in strengths]) == expected
+
+
+def test_strongest_label_goes_first_even_if_claude_listed_it_later(lib):
+    s, m = lib
+    sq = StructuredQuery(semantic_text="baby idea app", keywords=["baby", "idea", "app"])
+    IDEA, BABY = "20241103 101530.m4a", "20260801 090000.m4a"
+    # Claude lists the BABY note first but calls it only "related"; the IDEA note is the "match"
+    from vl.db import Note
+    ids = {n.original_name: n.id for n in s.query(Note)}
+    rr = Labeller(s, {BABY: "related", IDEA: "match"}, order=[ids[BABY], ids[IDEA]])
+    res = ask(s, "q", FakeParser(sq), m, rr, today=TODAY)
+    assert [h.strength for h in res.hits] == ["match", "related"]
+    assert s.get(Note, res.hits[0].note_id).original_name == IDEA
+    assert res.verdict == "One clear match."
+
+
+def test_no_labels_means_no_verdict_and_no_badge(lib):
+    s, m = lib
+    sq = StructuredQuery(semantic_text="baby idea app", keywords=["baby", "idea", "app"])
+    res = ask(s, "q", FakeParser(sq), m, FakeReranker(), today=TODAY)  # FakeReranker gives no strengths
+    assert res.verdict is None and all(h.strength is None for h in res.hits)
+
+
+def test_rerank_failure_or_no_reranker_gives_no_verdict(lib):
+    s, m = lib
+    sq = StructuredQuery(semantic_text="baby idea app", keywords=["baby", "idea", "app"])
+    assert ask(s, "q", FakeParser(sq), m, FakeReranker(boom=True), today=TODAY).verdict is None
+    assert ask(s, "q", FakeParser(sq), m, None, today=TODAY).verdict is None
+
+
+def test_parse_rerank_normalizes_strength():
+    raw = ('[{"id":1,"strength":"MATCH","why":"a"},{"id":2,"strength":"definitely","why":"b"},'
+           '{"id":3,"why":"c"}]')
+    got = parse_rerank(raw, {1, 2, 3})
+    assert [g["strength"] for g in got] == ["match", None, None]
+
+
+def test_cli_output_shows_badge_verdict_and_reason(lib):
+    """Checks the real printing code (format_ask_result) end to end with fakes."""
+    from vl.cli import format_ask_result
+
+    s, m = lib
+    sq = StructuredQuery(semantic_text="baby idea app", keywords=["baby", "idea", "app"])
+    rr = Labeller(s, {"20260801 090000.m4a": "match", "20241103 101530.m4a": "related"})
+    out = format_ask_result(ask(s, "q", FakeParser(sq), m, rr, today=TODAY))
+    lines = out.splitlines()
+    assert "Result: One clear match." in lines
+    first = next(l for l in lines if l.startswith("1. "))
+    second = next(l for l in lines if l.startswith("2. "))
+    assert "<MATCH>" in first and "<related>" in second
+    assert any(l.strip().startswith("why: why ") for l in lines)
+
+
+def test_cli_output_has_no_badge_or_result_line_without_labels(lib):
+    from vl.cli import format_ask_result
+
+    s, m = lib
+    sq = StructuredQuery(semantic_text="baby idea app", keywords=["baby", "idea", "app"])
+    out = format_ask_result(ask(s, "q", FakeParser(sq), m, None, today=TODAY))
+    assert "<" not in out and "Result:" not in out and "1. " in out

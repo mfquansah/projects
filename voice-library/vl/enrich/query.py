@@ -32,8 +32,12 @@ class QueryParser(Protocol):
 
 class Reranker(Protocol):
     def rerank(self, question: str, candidates: list[dict]) -> list[dict]:
-        """candidates: [{id, title, summary, snippet}] -> ordered [{id, why}] (may drop weak matches)."""
+        """candidates: [{id, title, summary, snippet}] -> ordered [{id, why, strength}] (may drop weak matches).
 
+        `strength` is "match" | "partial" | "related", or None when the model didn't say."""
+
+
+STRENGTHS = ("match", "partial", "related")
 
 PARSE_PROMPT = """You translate a question about someone's personal voice-note library into a search query.
 Today is {today}. Reply with ONLY a JSON object:
@@ -52,8 +56,12 @@ doesn't say. Do not invent details.
 Question: {question}"""
 
 RERANK_PROMPT = """A user asked: "{question}"
-Below are candidate voice notes. Reply with ONLY a JSON array, best match first, of
-{{"id": <id>, "why": "one short sentence on why it matches"}}. Omit candidates that clearly do not match.
+Below are candidate voice notes. Reply with ONLY a JSON array, best first, of
+{{"id": <id>, "strength": "match | partial | related", "why": "one short sentence"}}.
+strength: "match" = this note is what the user described (be strict: use it only when you are fairly sure);
+"partial" = it covers part of the question, or is about something very close;
+"related" = same general area, probably not what they want.
+Omit candidates that clearly do not match. It is fine for no candidate to be a "match".
 Candidates:
 {candidates}"""
 
@@ -140,7 +148,9 @@ def parse_rerank(raw: str, valid_ids: set[int]) -> list[dict]:
             continue
         if nid in valid_ids and nid not in seen:  # ignore ids the model made up
             seen.add(nid)
-            out.append({"id": nid, "why": str(it.get("why", "")).strip()})
+            strength = str(it.get("strength", "")).strip().lower()
+            out.append({"id": nid, "why": str(it.get("why", "")).strip(),
+                        "strength": strength if strength in STRENGTHS else None})
     return out
 
 

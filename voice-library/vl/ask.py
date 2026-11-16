@@ -28,6 +28,7 @@ class AskResult:
     hits: list[Hit]
     query: StructuredQuery
     notes: list[str] = field(default_factory=list)  # honest messages: fallbacks, relaxed filters, ignored parts
+    verdict: str | None = None  # "One clear match." etc.; only when Claude judged the results
 
 
 def ask(
@@ -116,7 +117,7 @@ def ask(
 
     if reranker and len(hits) > 1 and sound_map is None:  # sound results are ordered by confidence; keep that
         hits = _rerank(s, question, hits, reranker, notes)
-    return AskResult(hits=hits, query=sq, notes=notes)
+    return AskResult(hits=hits, query=sq, notes=notes, verdict=verdict_for(hits))
 
 
 def _rerank(s: Session, question: str, hits: list[Hit], reranker: Reranker, notes: list[str]) -> list[Hit]:
@@ -137,14 +138,33 @@ def _rerank(s: Session, question: str, hits: list[Hit], reranker: Reranker, note
         h = by_id.pop(r["id"], None)
         if h:
             h.why = r["why"] or None
+            h.strength = r.get("strength")
             out.append(h)
     if not out:  # Claude endorsed nothing: don't throw everything away, keep the search order
         notes.append("Claude didn't judge any result a close match, so these are in plain search order.")
         return hits
+    # strongest label first; within a label keep Claude's own order (sorted() is stable). Unlabelled counts as "partial".
+    order = {"match": 0, "partial": 1, None: 1, "related": 2}
+    out.sort(key=lambda h: order.get(h.strength, 1))
     dropped = len(by_id) + len(tail)
     if dropped:
         notes.append(f"Claude set aside {dropped} weaker result(s) that didn't match the question.")
     return out
+
+
+def verdict_for(hits: list[Hit]) -> str | None:
+    """A one-line summary of how sure the results are, computed from the labels (None if Claude didn't label any)."""
+    labelled = [h for h in hits if h.strength]
+    if not labelled:
+        return None
+    n = sum(1 for h in labelled if h.strength == "match")
+    if n == 1:
+        return "One clear match."
+    if n > 1:
+        return f"{n} likely matches."
+    if any(h.strength == "partial" for h in labelled):
+        return "No clear match; these only partly match."
+    return "No clear match; these are only loosely related."
 
 
 def _sort_hits(hits: list[Hit], sort: str, notes: list[str]) -> list[Hit]:

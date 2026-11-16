@@ -112,24 +112,33 @@ def cmd_ask(args: argparse.Namespace) -> None:
     with factory() as s:
         res = ask(s, args.question, ClaudeQueryParser(args.llm_model), SentenceTransformerEmbedder(),
                   None if args.no_rerank else ClaudeReranker(args.llm_model), limit=args.limit)
+    print(format_ask_result(res))
+
+
+def format_ask_result(res) -> str:
+    """Everything `ask` prints, as one string (kept separate from the command so it can be tested)."""
     q = res.query
     when = f"{q.since:%Y-%m-%d} to {q.until:%Y-%m-%d}" if q.since and q.until else (
         f"from {q.since:%Y-%m-%d}" if q.since else (f"before {q.until:%Y-%m-%d}" if q.until else "any date"))
     order = f" | order: {q.sort}" + (f" (top {q.count})" if q.count else "") if q.sort else ""
-    print(f"Searching for: {q.semantic_text or 'any topic'} | category: {q.category or 'any'} | {when}{order}")
-    for n in res.notes:
-        print(f"  note: {n}")
+    lines = [f"Searching for: {q.semantic_text or 'any topic'} | category: {q.category or 'any'} | {when}{order}"]
+    lines += [f"  note: {n}" for n in res.notes]
+    if res.verdict:
+        lines.append(f"Result: {res.verdict}")
     if not res.hits:
-        print("No matches.")
+        lines.append("No matches.")
     for i, h in enumerate(res.hits, 1):
         d = h.recorded_at.strftime("%Y-%m-%d %H:%M") if h.recorded_at else "date unknown"
         length = f"  {int(h.duration_s // 60)}:{int(h.duration_s % 60):02d}" if h.duration_s else ""
-        print(f"{i}. {h.title}  [{h.category or 'uncategorized'}]  {d}{length}\n   {h.summary}")
+        badge = {"match": "MATCH", "partial": "partial", "related": "related"}.get(h.strength or "")
+        lines.append(f"{i}. {'<' + badge + '> ' if badge else ''}{h.title}  [{h.category or 'uncategorized'}]  {d}{length}"
+                     f"\n   {h.summary}")
         if h.sound_info:
-            print(f"   sound: {h.sound_info}")
+            lines.append(f"   sound: {h.sound_info}")
         if h.why:
-            print(f"   why: {h.why}")
-        print(f"   {h.path}")
+            lines.append(f"   why: {h.why}")
+        lines.append(f"   {h.path}")
+    return "\n".join(lines)
 
 
 def cmd_eval(args: argparse.Namespace) -> None:

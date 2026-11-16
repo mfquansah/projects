@@ -34,6 +34,7 @@ class Hit:
     path: str
     score: float
     why: str | None = None  # filled in by the LLM rerank step
+    strength: str | None = None  # 'match' | 'partial' | 'related' from the rerank step; None = not judged
     duration_s: float | None = None  # see effective_duration
     sound_info: str | None = None  # e.g. 'baby_laugh 0.72 at 1:20', set when a sound filter matched
 

@@ -154,3 +154,11 @@
 - Why: on the user's real notes, "my baby making cute sounds" found the baby clip only through the transcript while a strong baby_babble 0.84 went unused, and three irrelevant HR-coaching notes were listed below the right answer. Reverses the earlier "omitted candidates stay" decision because real output showed it read as broken. Raising confidence cutoffs for generic labels (whimper/crying/giggle) was considered and deferred: one possible false positive (whimper 0.53 on a work call, unconfirmed by the user) is not enough to tune on.
 - Reversible? yes
 - Source: confirmed (user approved fixes A and B), inferred (design details)
+
+### 2026-11-16 - Label each result match / partial / related and print a verdict
+- Decision: the rerank step now returns a strength per result with strict definitions; results are ordered strongest label first (Claude's order within a label); `ask` prints `Result: One clear match.` / `N likely matches.` / `No clear match; ...`, computed from the labels. No labels (rerank off, failed, or the model omitted them) means no badge and no verdict. Sound and sorted answers are not labelled.
+- Alternatives considered/rejected: a numeric confidence score (Claude's numbers would look precise but aren't calibrated); leaving the flat list.
+- Why: user asked how they'd know which result is the right answer when several are listed; the real output had no indication of certainty beyond reading the "why" lines.
+- Reversible? yes
+- Source: confirmed
+- Not verified: how often Claude's labels are right on real notes, and whether "match" is used strictly enough; check during the recording tests.

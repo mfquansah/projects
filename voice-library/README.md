@@ -30,6 +30,12 @@ search, then asks Claude to rerank the top results with a one-line reason. If th
 says so; if a filter finds nothing it relaxes the category, then the dates, and tells you. Only the question and short transcript
 snippets are sent; audio never is. Add `--no-rerank` to skip the second call.
 
+## How sure is it?
+After `ask` finds candidates, Claude reads them and labels each `<MATCH>` (it's what you described), `<partial>` (covers part of it) or `<related>`
+(same area), then the output starts with a line like `Result: One clear match.` / `2 likely matches.` / `No clear match; these only partly match.`
+Strongest labels come first, and results Claude didn't endorse are dropped. The labels are Claude's judgement, so treat them as a strong hint,
+not proof; read the `why:` line. Sound and sorted answers (longest, newest) have no labels: they're ordered by confidence or by the data.
+
 ## Sound detection (baby laughing, crying, babbling)
 ```bash
 python -m vl.cli sounds --limit 3      # try 3 notes first: the first run downloads the model, and long notes are slow
