@@ -49,11 +49,19 @@ class AudioSetTagger:
     """
 
     def __init__(self, threshold: float = DEFAULT_THRESHOLD, device=None,
-                 model: str = "MIT/ast-finetuned-audioset-10-10-0.4593") -> None:
-        from transformers import pipeline  # lazy: heavy
-
+                 model: str = "MIT/ast-finetuned-audioset-10-10-0.4593", pipe=None) -> None:
         self.model_version = f"ast-audioset@{threshold}"
         self.threshold = threshold
+        if pipe is not None:  # injected (tests): skip loading and checks
+            self._pipe = pipe
+            return
+        from transformers import pipeline  # lazy: heavy
+        from transformers.utils import is_speech_available
+
+        if not is_speech_available():
+            print("WARNING: the 'torchaudio' package is missing, so the model is receiving approximate audio features "
+                  "(this is what the 'mel filter has all zero values' message means). Detection will be less accurate. "
+                  "Fix: pip install --upgrade torch torchaudio", flush=True)
         self._pipe = pipeline("audio-classification", model=model, device=device)
         labels = list(self._pipe.model.config.id2label.values())
         found = reachable(labels)
@@ -62,6 +70,22 @@ class AudioSetTagger:
             raise RuntimeError(
                 f"The model has no labels that map to {sorted(missing)}, so those sounds could never be detected. "
                 f"Labels containing 'cry'/'laugh': {[l for l in labels if 'cry' in l.lower() or 'laugh' in l.lower()]}")
+
+    def inspect(self, audio_path: Path, windows: int = 3, top: int = 8) -> list[tuple[float, list[tuple[str, float]]]]:
+        """What the model hears, with NO cutoff and NO label mapping: the top labels for the first few windows."""
+        from faster_whisper.audio import decode_audio
+
+        sr = 16000
+        audio = decode_audio(str(audio_path), sampling_rate=sr)
+        win = WINDOW_S * sr
+        out = []
+        for n, i in enumerate(range(0, len(audio), win)):
+            chunk = audio[i:i + win]
+            if n >= windows or len(chunk) < sr:
+                break
+            res = self._pipe({"raw": chunk, "sampling_rate": sr}, top_k=top, function_to_apply="sigmoid")
+            out.append((i / sr, [(r["label"], float(r["score"])) for r in res]))
+        return out
 
     def tag(self, audio_path: Path) -> list[SoundHit]:
         from faster_whisper.audio import decode_audio  # already installed; decodes any audio to 16 kHz mono

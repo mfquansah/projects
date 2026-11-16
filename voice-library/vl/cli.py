@@ -54,6 +54,16 @@ def cmd_redate(_: argparse.Namespace) -> None:
 def cmd_sounds(args: argparse.Namespace) -> None:
     from vl.sounds.tagger import AudioSetTagger
 
+    if args.inspect:
+        path = Path(args.inspect).expanduser()
+        if not path.is_file():
+            raise SystemExit(f"'{path}' is not a file. Give the path to one audio file (e.g. from ~/VoiceLibrary/audio/).")
+        tagger = AudioSetTagger(threshold=args.threshold, device=args.device)
+        for start, labels in tagger.inspect(path, windows=args.windows):
+            print(f"\nWindow starting at {start:.0f}s: what the model hears (score 0-1, no cutoff applied)")
+            for label, score in labels:
+                print(f"  {score:5.2f}  {label}")
+        return
     factory = make_session_factory(home() / "library.db")
     with factory() as s:
         analyzed, total = sounds_coverage(s)
@@ -219,6 +229,8 @@ def main() -> None:
     a.add_argument("--limit", type=int, help="check at most N notes (try 3 first: it can be slow)")
     a.add_argument("--threshold", type=float, default=0.3, help="minimum confidence to keep a sound (untuned)")
     a.add_argument("--device", default=None, help='e.g. "mps" on Apple Silicon (may be faster); default CPU')
+    a.add_argument("--inspect", metavar="FILE", help="show what the model hears in ONE audio file (no cutoff), for debugging")
+    a.add_argument("--windows", type=int, default=3, help="with --inspect: how many 10-second windows to show")
     a.set_defaults(func=cmd_sounds)
 
     a = sub.add_parser("process", help="transcribe, enrich and index imported notes")

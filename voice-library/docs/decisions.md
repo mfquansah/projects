@@ -140,3 +140,10 @@
 - Reversible? yes (model, cutoffs and labels are isolated in vl/sounds/)
 - Source: inferred (model choice), confirmed (need)
 - Not verified: speed on real notes, accuracy on real home recordings, the model's exact label names (HF blocked from the build session, so labels are matched by keyword), and the 0.3 cutoffs.
+
+### 2026-11-16 - Require torchaudio for sound tagging; add `sounds --inspect`
+- Decision: add torchaudio to requirements, warn loudly when it is missing, and add `vl sounds --inspect FILE` to show what the model hears in one file with no cutoff.
+- Alternatives considered/rejected: treating the "mel filter has all zero values" warning as harmless (my first assumption, wrong).
+- Why: the user's real laughing test clip produced 0 events. Reading the transformers source showed that warning appears only when torchaudio is missing, so the model was receiving approximate features. Not yet confirmed that this is why the clip was missed; loudness of the clip is another candidate.
+- Reversible? yes
+- Source: inferred

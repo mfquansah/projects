@@ -6,6 +6,7 @@ faster-whisper>=1.0
 # faster-whisper 1.2.1 passes av.open(metadata_errors=...), which av 19 removed: every transcription failed with TypeError.
 av>=14,<19
 sentence-transformers>=3.0
+torchaudio>=2.0  # without it the audio model gets approximate features (accuracy drops); keep its version matched to torch
 transformers>=4.40  # audio-event model for sound tagging (already pulled in by sentence-transformers)
 anthropic>=0.40
 mutagen>=1.47

@@ -181,3 +181,45 @@ def test_sound_plus_sort_and_no_rerank(lib):
     assert names(s, res) == [BABY]
     res = ask(s, "q", P(sound="laugh"), m, Boom(), today=TODAY)
     assert len(res.hits) == 2
+
+
+# --- the real tagger's windowing, with a fake model (no download) ---
+
+import struct
+import wave
+
+
+def _wav(path, seconds):
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(16000)
+        w.writeframes(struct.pack("<h", 1000) * (16000 * seconds))
+    return path
+
+
+class FakePipe:
+    def __init__(self, scores):
+        self.scores, self.calls = scores, []
+
+    def __call__(self, inp, top_k=None, function_to_apply=None):
+        self.calls.append((len(inp["raw"]), top_k, function_to_apply))
+        return [{"label": k, "score": v} for k, v in self.scores.items()]
+
+
+def test_tagger_windows_threshold_merge_and_sigmoid(tmp_path):
+    from vl.sounds.tagger import AudioSetTagger
+    pipe = FakePipe({"Baby laughter": 0.8, "Giggle": 0.2, "Dog": 0.9})
+    hits = AudioSetTagger(threshold=0.3, pipe=pipe).tag(_wav(tmp_path / "a.wav", 25))
+    assert [c[0] for c in pipe.calls] == [160000, 160000, 80000]  # 10 s + 10 s + 5 s windows
+    assert all(c[2] == "sigmoid" for c in pipe.calls)              # AudioSet is multi-label: sigmoid, not softmax
+    assert [(h.label, h.start_s, h.end_s) for h in hits] == [("baby_laugh", 0.0, 25.0)]  # merged; giggle<0.3, dog unmapped
+
+
+def test_tagger_skips_subsecond_tail_and_inspect_shows_raw_labels(tmp_path):
+    from vl.sounds.tagger import AudioSetTagger
+    pipe = FakePipe({"Speech": 0.9, "Laughter": 0.1})
+    t = AudioSetTagger(pipe=pipe)
+    t.tag(_wav(tmp_path / "b.wav", 1))
+    assert len(pipe.calls) == 1
+    out = t.inspect(_wav(tmp_path / "c.wav", 25), windows=2)
+    assert len(out) == 2 and out[1][0] == 10.0
+    assert ("Laughter", 0.1) in out[0][1]  # below any cutoff, still shown
