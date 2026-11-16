@@ -204,3 +204,31 @@
 - Why: user wants everything imported and kept in sync while still using Voice Memos; their Mac is usually on. Phone access (through the Mac, cloud later) is the next planned step.
 - Reversible? yes
 - Source: confirmed (need, sequence), inferred (design details)
+
+### 2026-11-16 - Recording dates: filename first, then the audio's own metadata, then file times
+- Decision: derive a recording's date from a date in its filename, else the creation time stored inside the .m4a, else file times. `date_source` records which was used, `status` warns when file times were used, and `redate` fixes already-imported notes without ever replacing a date with a file-time guess.
+- Alternatives considered/rejected: trusting the file's birth time (my first implementation).
+- Why: in the user's pilot all 19 imported notes were dated to the export time, and Voice Memos names ("New Recording 192") carry no date. After the fix the dates spread across 2020-2026 and the one note the user could check (Weija Gbawe) matched.
+- Reversible? yes
+- Source: confirmed (the problem and the one-note check), inferred (design)
+
+### 2026-11-16 - Proper search evaluation waits for new recordings with known content
+- Decision: stop spending time on testing search quality now. Later, the user records clips with known content and sounds, and the eval runner and question generator are used on those.
+- Alternatives considered/rejected: asking the user to write test questions with expected answers from memory (they don't remember most old notes).
+- Why: user: "the way we will do the eval testing is once we've built it to a good point. we will make recordings, and then test."
+- Reversible? yes
+- Source: confirmed
+
+### 2026-11-16 - Phone direction: a web app that mirrors everything first; cloud sync acceptable later; keep Voice Memos for now
+- Decision: the phone starts as a web app that mirrors everything the desktop app does. The user keeps using Voice Memos for now; recording inside the app (and retiring Voice Memos) is later. Syncing through a cloud service is acceptable to them. Their Mac is "often at home / always on".
+- Alternatives considered/rejected: a native iPhone app first (iOS has no way to read Voice Memos directly); copying the library to a hosted service first (bigger build, recordings on someone else's servers).
+- Why: user's answers to the sync questions. How the phone reaches the library is NOT decided: I recommended going through the user's Mac first (fast, audio stays local, reuses the screens); the user asked why and has not chosen.
+- Reversible? yes
+- Source: confirmed (direction), inferred (the Mac-first recommendation)
+
+### 2026-11-16 - build-trail skill observes during plan mode and doesn't repeat questions
+- Decision: the skill gets a "Plan mode and prior planning" section: in plan mode it drafts in memory and writes nothing, decides from earlier answers whether to observe or ask, never repeats an answered question, skips the "start building or think more" card when the user is planning on purpose, and logs a declined plan as a decision.
+- Alternatives considered/rejected: leaving the skill as it was (it always wrote files and asked its own questions).
+- Why: user: build-trail "should just observe" in plan mode and take context from it. They approved the drafted wording ("looks good"). The edited skill lives in the user's synced skill copy; whether it persisted at the source is unverified.
+- Reversible? yes
+- Source: confirmed
