@@ -84,6 +84,11 @@ class FolderBody(BaseModel):
     source: str | None = None  # "voice_memos"
 
 
+class SyncSettingsBody(BaseModel):
+    enabled: bool | None = None
+    interval_min: int | None = None
+
+
 class DetailsBody(BaseModel):
     title: str | None = None
     summary: str | None = None
@@ -92,7 +97,7 @@ class DetailsBody(BaseModel):
 
 def create_app(session_factory, embedder=None, parser=None, reranker=None, audio_root: Path | None = None,
                claude_unavailable_reason: str | None = None, import_manager=None, cache_dir: Path | None = None,
-               upload_dir: Path | None = None) -> FastAPI:
+               upload_dir: Path | None = None, sync_manager=None) -> FastAPI:
     app = FastAPI(title="Voice Note Library", docs_url=None, redoc_url=None)
     # defend against DNS-rebinding: only answer requests addressed to this computer
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
@@ -330,6 +335,26 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
                 when = None
             items.append((p.name, p, when, False))  # False: never delete the original
         return {"job_id": import_manager.submit(items), "accepted": len(items), "folder": str(folder)}
+
+    # ---- automatic sync with Voice Memos ----
+    @app.get("/api/sync")
+    def sync_status():
+        if sync_manager is None:
+            return {"available": False}
+        return {"available": True, **sync_manager.status()}
+
+    @app.post("/api/sync/settings")
+    def sync_settings(body: SyncSettingsBody):
+        if sync_manager is None:
+            raise HTTPException(503, "Sync isn't available here.")
+        return {"available": True, **guarded(lambda: sync_manager.set_settings(body.enabled, body.interval_min))}
+
+    @app.post("/api/sync/run")
+    def sync_run():
+        if sync_manager is None:
+            raise HTTPException(503, "Sync isn't available here.")
+        sync_manager.trigger()
+        return {"available": True, **sync_manager.status()}
 
     @app.get("/api/import/latest")
     def import_latest():

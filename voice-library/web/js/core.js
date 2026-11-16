@@ -1,12 +1,27 @@
 // State and actions shared by every screen (kept free of screen code so screens can import it without cycles).
 import { $, api, emit, toast } from "./util.js";
 
-export const state = { home: null, settings: null };
+export const state = { home: null, settings: null, sync: null };
 
 export async function refreshHome() {
   state.home = await api("/api/home");
   emit("refresh");
   return state.home;
+}
+
+export async function refreshSync() {
+  try { state.sync = await api("/api/sync"); } catch (_) { state.sync = null; }
+  emit("refresh");
+  return state.sync;
+}
+
+export function ago(iso) {
+  if (!iso) return "";
+  const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 45) return "just now";
+  if (s < 3600) return `${Math.max(1, Math.round(s / 60))} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  return `${Math.round(s / 86400)} d ago`;
 }
 
 export const go = (hash) => { location.hash = hash; };

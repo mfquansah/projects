@@ -57,3 +57,20 @@ def find_voice_memos(candidates: list[str] | None = None) -> dict:
         return {"found": False, "path": blocked, "count": 0, "problem": PERMISSION_HELP}
     return {"found": False, "path": None, "count": 0,
             "problem": "I couldn't find the Voice Memos library on this computer. Drag your recordings into a Finder folder and import that folder."}
+
+
+def icloud_placeholders(folder: Path) -> int:
+    """Recordings that exist in iCloud but aren't downloaded to this Mac yet (macOS shows them as hidden '.name.icloud' stubs)."""
+    n = 0
+    stack = [folder]
+    while stack:
+        try:
+            with os.scandir(stack.pop()) as it:
+                for e in it:
+                    if e.is_dir(follow_symlinks=False) and not e.name.startswith("."):
+                        stack.append(Path(e.path))
+                    elif e.name.startswith(".") and e.name.endswith(".icloud"):
+                        n += 1
+        except OSError:
+            continue
+    return n

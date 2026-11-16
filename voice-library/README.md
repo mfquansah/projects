@@ -44,6 +44,10 @@ baby sounds), with Claude's one-line verdict and a Match / Partly / Related labe
   *Full Disk Access*; the page tells you exactly how). (2) **Import a folder by path**: read in place. (3) Drop audio files or a folder onto the page.
   Files read in place are never changed or deleted. Each file is transcribed, titled, sorted, indexed and checked for sounds, one at a time, with
   live progress. A bad file shows its error and never stops the others. Anything already imported is skipped.
+  **Automatic sync** (Import screen, off by default): checks Voice Memos every 10 minutes and imports new recordings; the sidebar shows
+  "Synced 3 min ago · 2 new" with Sync now. Turning it on asks first, because the first sync imports the whole library (hours for ~1,000 notes).
+  It is one-way and read-only, remembers what it has seen, retries failures a few times, and reports (never re-imports) recordings you trimmed after import.
+  It runs while `vl serve` runs; starting at login isn't built yet.
   **Dragging straight out of the Voice Memos app does not work in a browser** (it hands over file promises, not files); the page says so.
 - **Needs attention**: Claude's suggested collections (Accept / Dismiss), recordings that may be accidental (Keep / Archive), tags you can turn
   into collections, and Archived (Restore). **Archive only hides a recording; nothing is ever deleted.**

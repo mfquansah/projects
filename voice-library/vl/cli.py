@@ -112,10 +112,17 @@ def cmd_serve(args: argparse.Namespace) -> None:
             print(f"  note: sound detection is unavailable ({type(exc).__name__}: {exc})")
         return Deps(FasterWhisperTranscriber(args.whisper_model), ClaudeEnricher(args.llm_model), embedder, tagger)
 
-    manager = ImportManager(factory, home() / "audio", import_deps)
+    from vl.sync import SyncManager
+
+    sync_holder: dict = {}
+    manager = ImportManager(factory, home() / "audio", import_deps,
+                            on_file_done=lambda f: sync_holder["sync"].on_file_done(f))
+    sync = sync_holder["sync"] = SyncManager(manager, home())
+    if sync.settings["enabled"]:
+        sync.start()
     app = create_app(factory, embedder=embedder, parser=parser, reranker=reranker, audio_root=home() / "audio",
                      claude_unavailable_reason=reason, import_manager=manager,
-                     cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads")
+                     cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads", sync_manager=sync)
     url = f"http://127.0.0.1:{args.port}"
     print(f"Voice Note Library running at {url}  (Ctrl+C to stop)")
     if reason:

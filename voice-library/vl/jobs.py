@@ -61,8 +61,12 @@ class Job:
 
 
 class ImportManager:
-    def __init__(self, session_factory, store_dir: Path, deps) -> None:
-        """`deps` is a Deps, or a zero-argument function returning one (called once, on the first file)."""
+    def __init__(self, session_factory, store_dir: Path, deps, on_file_done=None) -> None:
+        """`deps` is a Deps, or a zero-argument function returning one (called once, on the first file).
+
+        `on_file_done(file_job)` is called after each file finishes (any outcome); used by the sync to learn what succeeded.
+        """
+        self._on_done = on_file_done
         self._factory, self._store = session_factory, Path(store_dir)
         self._deps_src, self._deps = deps, None
         self._jobs: dict[str, Job] = {}
@@ -153,6 +157,11 @@ class ImportManager:
             except Exception as exc:  # noqa: BLE001 - never let the worker die
                 self._set(f, state=ERROR, error=f"{type(exc).__name__}: {exc}")
             finally:
+                if self._on_done:
+                    try:
+                        self._on_done(f)
+                    except Exception:  # noqa: BLE001 - a listener's bug must never stop imports
+                        pass
                 if f.delete_after:  # the library keeps its own copy of an upload; originals are never touched
                     try:
                         f.path.unlink(missing_ok=True)

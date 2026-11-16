@@ -1,6 +1,6 @@
 // Import: drop audio files or a folder; they upload, then are processed one by one with live progress.
 import { h, api, icons, plural, put } from "../util.js";
-import { state, refreshHome, go } from "../core.js";
+import { state, refreshHome, refreshSync, go, ago } from "../core.js";
 
 const AUDIO = /\.(m4a|mp3|wav|aac|caf|qta)$/i;
 
@@ -63,6 +63,8 @@ export async function importView({ main }) {
   async function loadSources() {
     try {
       const vm = (await api("/api/import/sources")).voice_memos;
+      vmInfo = vm;
+      paintSync();
       put(vmBox, vm.found
         ? h("div", { style: "display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px" },
             h("div", { style: "flex:1 1 280px" }, h("strong", {}, "Voice Memos"),
@@ -71,8 +73,47 @@ export async function importView({ main }) {
         : h("div", { class: "sysnote", style: "margin:0" }, vm.problem));
     } catch (_) { vmBox.replaceChildren(); }
   }
+  // Keep in sync: explicit opt-in, because the first sync can import a whole library
+  const syncBox = h("div", {});
+  let vmInfo = null;
+  async function setSync(body) {
+    try { await api("/api/sync/settings", { body }); await refreshSync(); paintSync(); say(""); }
+    catch (err) { say(err.message); }
+  }
+  function paintSync(confirming = false) {
+    const sy = state.sync;
+    if (!sy || !sy.available) { put(syncBox); return; }
+    if (sy.enabled) {
+      const last = sy.last;
+      put(syncBox, h("div", { class: "banner", style: "gap:10px 20px" },
+        h("p", {}, h("strong", {}, "Automatic sync is on."), " ",
+          sy.problem ? sy.problem
+            : (sy.pending ? `Importing ${plural(sy.pending, "recording")}…` : (last ? `Checked ${ago(last.at)}, ${last.new ? plural(last.new, "new recording") + " found" : "nothing new"}. ` : "Starting…")),
+          last && last.placeholders ? ` ${plural(last.placeholders, "recording")} still in iCloud, not on this Mac yet.` : "",
+          sy.changed ? ` ${plural(sy.changed, "recording")} changed in Voice Memos after import (not re-imported).` : ""),
+        h("div", { class: "actions" },
+          h("button", { type: "button", class: "ghost", onclick: async () => { await api("/api/sync/run", { method: "POST", body: {} }); await refreshSync(); paintSync(); } }, "Sync now"),
+          h("button", { type: "button", class: "ghost", onclick: () => setSync({ enabled: false }) }, "Turn off"))));
+      return;
+    }
+    const n = vmInfo && vmInfo.found ? vmInfo.count : null;
+    if (confirming && n !== null) {
+      put(syncBox, h("div", { class: "banner", style: "gap:12px 20px" },
+        h("p", {}, h("strong", {}, `Import ${plural(n, "recording")} now, then new ones as they arrive.`),
+          " Each is transcribed on this Mac and its text is sent to Claude to write a title, so a big library can take hours. Keep this app running. You can turn it off any time."),
+        h("div", { class: "actions" },
+          h("button", { type: "button", class: "primary", onclick: () => setSync({ enabled: true }) }, `Turn on and import ${n}`),
+          h("button", { type: "button", class: "ghost", onclick: () => paintSync() }, "Cancel"))));
+      return;
+    }
+    put(syncBox, h("div", { style: "display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px" },
+      h("div", { style: "flex:1 1 280px" }, h("strong", {}, "Keep in sync with Voice Memos"),
+        h("div", { class: "muted", style: "font-size:14px" }, "Off. Turn it on to import new recordings automatically (checked every 10 minutes).")),
+      h("button", { type: "button", class: "ghost", disabled: n === null, title: n === null ? "Voice Memos can't be reached yet (see above)" : "", onclick: () => paintSync(true) }, "Turn on…")));
+  }
   const local = h("section", { "aria-label": "Import from this computer", style: "display:flex;flex-direction:column;gap:16px" },
     h("h2", { class: "eyebrow ul", style: "align-self:flex-start" }, "From this computer"),
+    syncBox,
     vmBox,
     h("form", { style: "display:flex;flex-wrap:wrap;gap:10px", onsubmit: (e) => { e.preventDefault(); startFolder({ path: pathIn.value }); } },
       h("div", { style: "flex:1 1 280px" }, pathIn),
@@ -149,6 +190,7 @@ export async function importView({ main }) {
   }
 
   loadSources();
+  paintSync();
   // coming back to this screen: show the latest import (and keep following it if it's still running)
   try { const r = await api("/api/import/latest"); if (r.job) poll(r.job.id); } catch (_) { /* no import manager: nothing to show */ }
   return () => { alive = false; clearTimeout(timer); };

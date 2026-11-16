@@ -44,6 +44,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .attn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 .attn.none .dot { background: transparent; border: 1px solid var(--muted); }
 .attn .n { color: var(--muted); font-weight: 400; }
+.sync { font-size: 12px; color: var(--muted); }
+.sync.off, .sync.warn { display: inline-block; border-bottom: 1px solid var(--link-line); }
+.sync.warn { color: var(--danger); }
+.sync .link { font-size: 12px; }
 .privacy { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
 
 .main { flex: 999 1 560px; min-width: 0; padding: 72px 48px 80px; }

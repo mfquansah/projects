@@ -67,7 +67,23 @@ class Reranker:
     def rerank(self, q, cands):
         return [{"id": c["id"], "why": "This is where you describe it." if i == 0 else "", "strength": ["match","partial","related"][min(i,2)]} for i,c in enumerate(cands)]
 
-mgr = ImportManager(f, audio, Deps(FakeTranscriber(), FakeEnricher(), emb, None))
+import shutil
+from vl.sync import SyncManager
+from vl.voicememos import audio_files
+import vl.api.main as api_main
+
+# a pretend Voice Memos folder, so sync can be exercised end to end
+VM = root / "voicememos"
+shutil.rmtree(VM, ignore_errors=True); VM.mkdir()
+for name, text in [("20261110 090000-AAA.m4a", "baby babbling at the park"), ("20261111 090000-BBB.m4a", "idea for a podcast name"),
+                   ("20261112 090000-CCC.m4a", "reminder about the car service")]:
+    (VM / name).write_text(text)
+api_main.find_voice_memos = lambda: {"found": True, "path": str(VM), "count": len(audio_files(VM)), "problem": None}
+shutil.rmtree(root / "state", ignore_errors=True)
+
+holder = {}
+mgr = ImportManager(f, audio, Deps(FakeTranscriber(), FakeEnricher(), emb, None), on_file_done=lambda x: holder["s"].on_file_done(x))
+sync = holder["s"] = SyncManager(mgr, root / "state", source_resolver=lambda src: (VM, None), poll_seconds=3)
 app = create_app(f, embedder=emb, parser=Parser(), reranker=Reranker(), audio_root=audio, import_manager=mgr,
-                 cache_dir=root/"cache", upload_dir=root/"up")
+                 cache_dir=root/"cache", upload_dir=root/"up", sync_manager=sync)
 uvicorn.run(app, host="127.0.0.1", port=8798, log_level="warning")

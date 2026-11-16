@@ -72,3 +72,13 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Cutoffs 0.30 / 0.15** are guesses. More "possible" matches also means more false positives (e.g. adult chuckles in work calls); watch this.
 - [ ] **Re-run needed**: existing sound events were stored at the old 0.3 threshold; run `python -m vl.cli sounds --redo` once.
 - [ ] **Folder import hashes every file** to skip duplicates; a big library (1,000+ notes) re-imported repeatedly will re-read everything each time.
+
+## H. Large import / full library (2026-11-16): the open priority
+- [ ] **Verify the Voice Memos folder can be read on the user's Mac** (path and Full Disk Access). Blocker for everything below.
+- [ ] **Time and Claude cost for ~1,000 notes are unmeasured.** Plan: a "test batch" of the ~25 newest that reports time and usage per note, then extrapolate.
+- [ ] **Import order is alphabetical by path; should be newest first** so recent recordings are searchable first.
+- [ ] **No ETA, pause, resume or cancel** on a long import. The in-memory queue is lost if the app stops (sync re-submits unseen files; a manual import needs re-clicking).
+- [ ] **One file at a time**: safe but slow; consider limited parallelism only if the machine has headroom.
+- [ ] **Sync only runs while `vl serve` runs.** Start-at-login needs a launch agent and a decision on where the Claude API key lives (macOS Keychain, not a plain file).
+- [ ] **Browser test of sync (tools/e2e.js) had not finished when this was committed**; unit tests (13) pass.
+- [ ] **Phone access** (through the Mac first, cloud copy later) needs login, a private connection (e.g. Tailscale), and an installable web app; not started.

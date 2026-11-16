@@ -197,3 +197,10 @@
 - Why: user's drag from Voice Memos did nothing, and a search for a child giggling didn't find their baby recording. Cause of the second is a hypothesis (laughter scored under 0.3); not yet confirmed on their data.
 - Reversible? yes
 - Source: confirmed (problems), inferred (causes and design)
+
+### 2026-11-16 - Automatic sync with Voice Memos (opt-in, one-way, read-only)
+- Decision: a background check (default every 10 minutes) imports new recordings from the Voice Memos folder. Off until the user turns it on, with an explicit confirmation showing how many recordings will be imported. Remembers (size, modified time) per file so checks are cheap; a file counts as seen only after a successful import; failures are retried up to 3 times; recordings changed after import are reported, not re-imported; iCloud-only recordings are counted and reported. Status shows in the sidebar.
+- Alternatives considered/rejected: starting automatically (a first sync can import ~1,000 notes: hours and Claude usage); re-hashing every file each check; re-importing edited recordings as new notes (duplicates).
+- Why: user wants everything imported and kept in sync while still using Voice Memos; their Mac is usually on. Phone access (through the Mac, cloud later) is the next planned step.
+- Reversible? yes
+- Source: confirmed (need, sequence), inferred (design details)
