@@ -13,7 +13,9 @@ import numpy as np
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from vl.db import Category, Embedding, Enrichment, Note
+import json
+
+from vl.db import Category, Embedding, Enrichment, Note, Transcript
 from vl.index.embeddings import Embedder, cosine_scores, from_blob
 
 RRF_K = 60
@@ -32,6 +34,7 @@ class Hit:
     path: str
     score: float
     why: str | None = None  # filled in by the LLM rerank step
+    duration_s: float | None = None  # see effective_duration
 
 
 def fts_query(q: str) -> str | None:
@@ -93,13 +96,30 @@ def search(
                 nid = embs[idx].note_id
                 scores[nid] = scores.get(nid, 0.0) + 1.0 / (RRF_K + rank)
 
-    hits: list[Hit] = []
-    for nid, score in sorted(scores.items(), key=lambda kv: -kv[1])[:limit]:
-        note = s.get(Note, nid)
-        en = s.get(Enrichment, nid)
-        cat = s.get(Category, en.category_id) if en and en.category_id else None
-        hits.append(Hit(
-            note_id=nid, title=en.title if en else note.original_name, summary=en.summary if en else "",
-            category=cat.name if cat else None, recorded_at=note.recorded_at, path=note.path, score=score,
-        ))
-    return hits
+    return [make_hit(s, nid, score) for nid, score in sorted(scores.items(), key=lambda kv: -kv[1])[:limit]]
+
+
+def effective_duration(s: Session, note: Note) -> float | None:
+    """Stored duration, else the end of the last transcribed segment (approximate: ignores trailing silence)."""
+    if note.duration_s:
+        return note.duration_s
+    tr = s.get(Transcript, note.id)
+    if tr:
+        try:
+            segs = json.loads(tr.segments_json)
+            ends = [float(x["end"]) for x in segs if "end" in x]
+            return max(ends) if ends else None
+        except (ValueError, TypeError, KeyError):
+            return None
+    return None
+
+
+def make_hit(s: Session, nid: int, score: float = 0.0) -> Hit:
+    note = s.get(Note, nid)
+    en = s.get(Enrichment, nid)
+    cat = s.get(Category, en.category_id) if en and en.category_id else None
+    return Hit(
+        note_id=nid, title=en.title if en else note.original_name, summary=en.summary if en else "",
+        category=cat.name if cat else None, recorded_at=note.recorded_at, path=note.path, score=score,
+        duration_s=effective_duration(s, note),
+    )

@@ -30,6 +30,11 @@ search, then asks Claude to rerank the top results with a one-line reason. If th
 says so; if a filter finds nothing it relaxes the category, then the dates, and tells you. Only the question and short transcript
 snippets are sent; audio never is. Add `--no-rerank` to skip the second call.
 
+## Ordering questions
+`ask` understands "my longest note", "my 3 newest", "the shortest note about the dashboard". Notes are matched on topic first, then ordered.
+Lengths come from the audio file when known, otherwise from the end of the last transcribed speech (approximate), and notes with neither are
+left out and reported.
+
 ## Check during the pilot
 - Is the meaning-search cutoff right? (`MIN_SIMILARITY` in `vl/index/search.py` is a guess: too high misses notes, too low returns unrelated ones.)
 - `status` shows failures per note and the reason.

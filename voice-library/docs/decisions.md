@@ -125,3 +125,10 @@
 - Why: user said they don't remember the contents of old notes, which is the reason for the project. Known weakness: LLM-written questions echo the note's wording, so scores are optimistic; real questions logged over time would be a better eval later.
 - Reversible? yes
 - Source: confirmed (need), inferred (design)
+
+### 2026-11-16 - `ask` supports sorting by length and date
+- Decision: the query parser outputs `sort` (longest/shortest/newest/oldest) and `count`. With a topic, matching notes are found first and then sorted; without one, all notes passing the filters are sorted. Sorted answers are never reranked. When a length is missing, the transcript's last segment end is used (approximate); notes with no information are left out and the output says so.
+- Alternatives considered/rejected: leaving it as a known gap until after the recording tests.
+- Why: the user's first real query ("longest voice note") returned an unrelated note, and they asked to build this next. The transcript-timing fallback is my choice; I never confirmed whether stored durations were populated on their Mac.
+- Reversible? yes
+- Source: confirmed (need), inferred (design)

@@ -10,10 +10,10 @@ from dataclasses import dataclass, field
 
 from sqlalchemy.orm import Session
 
-from vl.db import Transcript
+from vl.db import Note, Transcript
 from vl.enrich.query import QueryParser, Reranker, StructuredQuery
 from vl.index.embeddings import Embedder
-from vl.index.search import Hit, search
+from vl.index.search import Hit, _candidate_ids, make_hit, search
 from vl.pipeline import accepted_category_names
 
 RERANK_TOP = 10
@@ -44,7 +44,13 @@ def ask(
     category, since, until = sq.category, sq.since, sq.until
 
     def run() -> list[Hit]:
-        return search(s, sq.semantic_text, embedder, limit=limit, category=category,
+        if sq.sort and not sq.semantic_text.strip():
+            # pure property question ("my longest note"): every note that passes the filters is a candidate
+            ids = _candidate_ids(s, category, since, until)
+            if ids is None:
+                ids = {row[0] for row in s.query(Note.id)}
+            return [make_hit(s, i) for i in sorted(ids)]
+        return search(s, sq.semantic_text, embedder, limit=50 if sq.sort else limit, category=category,
                       since=since, until=until, keyword_q=keyword_q)
 
     hits = run()
@@ -60,6 +66,9 @@ def ask(
         if hits:
             notes.append("Nothing matched in that date range, so I searched all dates. "
                          "Recorded dates may be inaccurate; check them.")
+
+    if sq.sort:  # deterministic order: never rerank, Claude would scramble it
+        return AskResult(hits=_sort_hits(hits, sq.sort, notes)[: sq.count or limit], query=sq, notes=notes)
 
     if reranker and len(hits) > 1:
         hits = _rerank(s, question, hits, reranker, notes)
@@ -87,3 +96,18 @@ def _rerank(s: Session, question: str, hits: list[Hit], reranker: Reranker, note
             out.append(h)
     out.extend(by_id.values())  # candidates the LLM omitted stay, after the matches it endorsed, with no "why"
     return out + tail
+
+
+def _sort_hits(hits: list[Hit], sort: str, notes: list[str]) -> list[Hit]:
+    by_length = sort in ("longest", "shortest")
+    key = (lambda h: h.duration_s) if by_length else (lambda h: h.recorded_at)
+    known = [h for h in hits if key(h) is not None]
+    if len(known) < len(hits):
+        what = "length" if by_length else "recording date"
+        notes.append(f"{len(hits) - len(known)} note(s) have no {what} on record, so they were left out of the ordering.")
+    if not known and hits:
+        notes.append(f"No {sort} ordering is possible because none of the matching notes has that information.")
+        return hits
+    if by_length:
+        notes.append("Lengths may be approximate for notes where only transcript timing was available (trailing silence isn't counted).")
+    return sorted(known, key=key, reverse=sort in ("longest", "newest"))

@@ -20,6 +20,8 @@ class StructuredQuery:
     category: str | None = None
     since: dt.datetime | None = None
     until: dt.datetime | None = None  # exclusive
+    sort: str | None = None  # longest | shortest | newest | oldest
+    count: int | None = None  # "my 3 longest notes" -> 3
     sound: str | None = None  # e.g. "baby_laugh"; recorded but NOT applied until sound tagging exists (milestone 2)
     notes: list[str] = field(default_factory=list)  # things to tell the user (ignored/invalid parts)
 
@@ -35,11 +37,13 @@ class Reranker(Protocol):
 
 PARSE_PROMPT = """You translate a question about someone's personal voice-note library into a search query.
 Today is {today}. Reply with ONLY a JSON object:
-{{"semantic_text": "short description of what the note is about",
+{{"semantic_text": "short description of what the note is about, or empty string if the question is only about a property like length or date",
 "keywords": ["words likely spoken in the note, lowercase, at most 6"],
 "category": "<one of: {categories}> or null (only if the question clearly implies one)",
 "since": "YYYY-MM-DD or null", "until": "YYYY-MM-DD or null (exclusive end)",
-"sound": "baby_cry | baby_laugh | baby_coo | other sound label | null"}}
+"sound": "baby_cry | baby_laugh | baby_coo | other sound label | null",
+"sort": "longest | shortest | newest | oldest | null (only if the question asks for an ordering or extreme)",
+"count": <integer if the question asks for a number of notes, e.g. "my 3 longest", else null>}}
 Rules: convert relative dates ("two weeks ago", "last summer", "two years ago") into a date RANGE using today's date;
 be generous with vague phrases (a week-long range for "about two weeks ago"). Leave a field null when the question
 doesn't say. Do not invent details.
@@ -87,8 +91,23 @@ def parse_structured(raw: str, question: str, categories: list[str]) -> Structur
     sound = None if sound in (None, "", "null") else str(sound)
     if sound:
         notes.append(f"Sound '{sound}' recognized, but sound tagging isn't built yet, so it was not applied.")
+    sort = data.get("sort")
+    sort = str(sort).lower() if sort not in (None, "", "null") else None
+    if sort not in (None, "longest", "shortest", "newest", "oldest"):
+        notes.append(f"Ignored unknown sort {sort!r}.")
+        sort = None
+    count = data.get("count")
+    try:
+        count = int(count) if count not in (None, "", "null") else None
+    except (TypeError, ValueError):
+        count = None
+    if count is not None and not 1 <= count <= 50:
+        count = None
+    topic = str(data.get("semantic_text") or "").strip()
+    if not topic and not sort:
+        topic = question  # no sort and no topic from the model: fall back to the raw question
     return StructuredQuery(
-        semantic_text=str(data.get("semantic_text") or question).strip(),
+        semantic_text=topic, sort=sort, count=count,
         keywords=[str(k).lower() for k in data.get("keywords", []) if str(k).strip()][:6],
         category=category, since=since, until=until, sound=sound, notes=notes,
     )

@@ -85,14 +85,16 @@ def cmd_ask(args: argparse.Namespace) -> None:
     q = res.query
     when = f"{q.since:%Y-%m-%d} to {q.until:%Y-%m-%d}" if q.since and q.until else (
         f"from {q.since:%Y-%m-%d}" if q.since else (f"before {q.until:%Y-%m-%d}" if q.until else "any date"))
-    print(f"Searching for: {q.semantic_text} | category: {q.category or 'any'} | {when}")
+    order = f" | order: {q.sort}" + (f" (top {q.count})" if q.count else "") if q.sort else ""
+    print(f"Searching for: {q.semantic_text or 'any topic'} | category: {q.category or 'any'} | {when}{order}")
     for n in res.notes:
         print(f"  note: {n}")
     if not res.hits:
         print("No matches.")
     for i, h in enumerate(res.hits, 1):
         d = h.recorded_at.strftime("%Y-%m-%d %H:%M") if h.recorded_at else "date unknown"
-        print(f"{i}. {h.title}  [{h.category or 'uncategorized'}]  {d}\n   {h.summary}")
+        length = f"  {int(h.duration_s // 60)}:{int(h.duration_s % 60):02d}" if h.duration_s else ""
+        print(f"{i}. {h.title}  [{h.category or 'uncategorized'}]  {d}{length}\n   {h.summary}")
         if h.why:
             print(f"   why: {h.why}")
         print(f"   {h.path}")
