@@ -183,3 +183,10 @@
 - Why: user's feedback on the references (Harvard, GoShuin) and on theme B: keep the ivory base and list rendering, drop the red, shrink the hero, bring back the sidebar and collections.
 - Reversible? yes (colours are CSS variables in web/app.css)
 - Source: confirmed
+
+### 2026-11-16 - Softer corners and a calmer feel
+- Decision: radius scale 6/10/16/24px (was 3-4px). Cards 16px, search box and drop zone 24px, buttons and inputs 10px, tags and chips are pills. The hero is a rounded panel inset from the edges (not a full-bleed band), the search box loses its heavy bottom bar for a soft shadow and a faint glow on focus, hairlines are lighter, the hero slate is a little lighter, rows have more air.
+- Alternatives considered/rejected: the sharper 3px corners (read as a research tool, user: "make the overall feel softer ... beautiful and calming").
+- Why: user feedback after seeing the ivory/slate restyle.
+- Reversible? yes (--r-xs/sm/md/lg in web/app.css)
+- Source: confirmed
