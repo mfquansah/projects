@@ -169,8 +169,9 @@ def cmd_status(_: argparse.Namespace) -> None:
               f"enriched: {s.query(func.count(Enrichment.note_id)).scalar()}")
         by_src = dict(s.query(Note.date_source, func.count(Note.id)).group_by(Note.date_source).all())
         print(f"Date sources: {by_src}")
-        if by_src.get("filename", 0) < total:
-            print("  Check dates by hand: 'birthtime'/'mtime' may be the EXPORT time, not when you recorded the note.")
+        weak = by_src.get("birthtime", 0) + by_src.get("mtime", 0)
+        if weak:
+            print(f"  Check dates by hand: {weak} note(s) use file times, which may be the EXPORT time, not when you recorded them.")
         for st in s.query(Status).filter_by(state="error"):
             note = s.get(Note, st.note_id)
             print(f"  ERROR {note.original_name} ({st.stage}): {st.error}")
