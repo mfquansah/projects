@@ -80,5 +80,5 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **No ETA, pause, resume or cancel** on a long import. The in-memory queue is lost if the app stops (sync re-submits unseen files; a manual import needs re-clicking).
 - [ ] **One file at a time**: safe but slow; consider limited parallelism only if the machine has headroom.
 - [ ] **Sync only runs while `vl serve` runs.** Start-at-login needs a launch agent and a decision on where the Claude API key lives (macOS Keychain, not a plain file).
-- [ ] **Browser test of sync (tools/e2e.js) had not finished when this was committed**; unit tests (13) pass.
+- [x] **Sync verified in a real browser against a demo Voice Memos folder** (first sync imports all, a new file is picked up, no duplicates over repeated checks, originals untouched). Still unverified on the user's real Voice Memos folder.
 - [ ] **Phone access** (through the Mac first, cloud copy later) needs login, a private connection (e.g. Tailscale), and an installable web app; not started.

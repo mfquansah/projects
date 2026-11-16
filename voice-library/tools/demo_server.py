@@ -75,7 +75,7 @@ import vl.api.main as api_main
 # a pretend Voice Memos folder, so sync can be exercised end to end
 VM = root / "voicememos"
 shutil.rmtree(VM, ignore_errors=True); VM.mkdir()
-for name, text in [("20261110 090000-AAA.m4a", "baby babbling at the park"), ("20261111 090000-BBB.m4a", "idea for a podcast name"),
+for name, text in [("20261110 090000-AAA.m4a", "baby babbling at the playground"), ("20261111 090000-BBB.m4a", "idea for a podcast name"),
                    ("20261112 090000-CCC.m4a", "reminder about the car service")]:
     (VM / name).write_text(text)
 api_main.find_voice_memos = lambda: {"found": True, "path": str(VM), "count": len(audio_files(VM)), "problem": None}
