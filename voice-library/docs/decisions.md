@@ -118,3 +118,10 @@
 - Why: user asked for a proper eval after the first manual query ("longest voice note") returned an unrelated note. Running search as a baseline was my suggestion, not discussed further.
 - Reversible? yes
 - Source: confirmed (eval), inferred (three-mode comparison)
+
+### 2026-11-16 - Generate eval questions from the library instead of from memory
+- Decision: add `vl evalgen`. Claude writes questions per note (answer = that note), property/date answers are computed from library data, "nothing" topics are kept only if absent from all transcripts, and the user reviews content questions against the note shown.
+- Alternatives considered/rejected: user writes questions and answers from memory (impossible: they don't remember most notes).
+- Why: user said they don't remember the contents of old notes, which is the reason for the project. Known weakness: LLM-written questions echo the note's wording, so scores are optimistic; real questions logged over time would be a better eval later.
+- Reversible? yes
+- Source: confirmed (need), inferred (design)

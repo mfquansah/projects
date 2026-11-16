@@ -1,4 +1,4 @@
-"""Command line: `python -m vl.cli import|redate|process|search|ask|eval|status`.
+"""Command line: `python -m vl.cli import|redate|process|search|ask|evalgen|eval|status`.
 
 Data lives in $VL_HOME (default ~/VoiceLibrary): library.db and audio/ (copies of imported files).
 Original recordings are never modified or deleted.
@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import os
 from pathlib import Path
 
@@ -134,6 +135,32 @@ def cmd_eval(args: argparse.Namespace) -> None:
     print(f"\nFull results saved to {out}")
 
 
+def cmd_evalgen(args: argparse.Namespace) -> None:
+    from vl.evalgen import (
+        ClaudeQuestionWriter, absent_questions, content_questions, property_questions, review,
+    )
+
+    factory = make_session_factory(home() / "library.db")
+    with factory() as s:
+        content, problems = content_questions(
+            s, ClaudeQuestionWriter(args.llm_model), per_note=args.per_note, max_notes=args.max_notes)
+        props, skipped = property_questions(s)
+        absent = absent_questions(s)
+    for p in problems + skipped:
+        print(f"  note: {p}")
+    questions = content + props + absent
+    if not args.no_review and content:
+        print("\nReview each question against the note it came from. The right answer is that note.")
+        questions = review(questions)
+    out = Path(args.out).expanduser()
+    out.write_text(json.dumps({"questions": questions}, indent=2))
+    kinds = {}
+    for q in questions:
+        kinds[q["kind"]] = kinds.get(q["kind"], 0) + 1
+    print(f"\nWrote {len(questions)} questions to {out}: {kinds}")
+    print(f"Next: python -m vl.cli eval {out}")
+
+
 def cmd_status(_: argparse.Namespace) -> None:
     factory = make_session_factory(home() / "library.db")
     with factory() as s:
@@ -182,6 +209,14 @@ def main() -> None:
     a.add_argument("--no-rerank", action="store_true", help="skip the LLM rerank step")
     a.add_argument("--llm-model", default="claude-haiku-5-5")
     a.set_defaults(func=cmd_ask)
+
+    a = sub.add_parser("evalgen", help="generate eval questions from your own notes")
+    a.add_argument("--out", default="questions.json")
+    a.add_argument("--per-note", type=int, default=2)
+    a.add_argument("--max-notes", type=int, help="only use the first N notes")
+    a.add_argument("--no-review", action="store_true", help="skip the keep/drop review (answers unchecked)")
+    a.add_argument("--llm-model", default="claude-haiku-5-5")
+    a.set_defaults(func=cmd_evalgen)
 
     a = sub.add_parser("eval", help="score search quality on a questions file")
     a.add_argument("questions", help="path to questions.json (see questions.example.json)")

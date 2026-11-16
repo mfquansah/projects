@@ -37,7 +37,17 @@ snippets are sent; audio never is. Add `--no-rerank` to skip the second call.
 - Does a natural-language search return the note you meant? Write down misses; they decide what to fix next.
 
 ## Eval: scoring search quality
-Copy `questions.example.json` to `questions.json` and replace it with your own 10-15 questions. Each says which note(s) should come
+**Don't remember your notes? Generate the questions from them:**
+```bash
+python -m vl.cli evalgen --out questions.json
+```
+Claude writes questions per note (answer = that note), the library's own data gives "longest / newest / busiest month" answers,
+and "nothing should match" topics are kept only if absent from every transcript. You then review each content question next to the
+note it came from (Enter = keep, n = drop, or type a better one): recognising a match is easier than remembering one.
+Caveat: questions written from a transcript echo its wording, so scores run optimistic; treat this as a smoke test.
+The property questions (longest, newest) are expected to fail until sorting is built.
+
+**Or write your own:** copy `questions.example.json` to `questions.json` and replace it with 10-15 questions. Each says which note(s) should come
 back, by exact filename (see `status`). Use kind `none` for a topic you never recorded; the right answer is "nothing".
 ```bash
 python -m vl.cli eval questions.json
