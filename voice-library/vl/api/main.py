@@ -1,36 +1,59 @@
 """Local web API + page. Binds to this computer only; never serves a file outside the audio folder.
 
-`create_app` takes its dependencies as arguments so tests can pass fakes. In real use `vl serve` supplies the real ones.
-Privacy switch: with Claude off, `ask` runs entirely on this computer (plain search plus keyword sound inference).
+`create_app` takes its dependencies as arguments so tests can pass fakes. Claude is part of the product: when it isn't
+configured (no API key) the page says so and questions run as plain local search.
 """
 from __future__ import annotations
 
+import datetime as dt
+import json
+import shutil
+import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 
 from vl import library as lib
 from vl.ask import ask
-from vl.db import Note
+from vl.db import Enrichment, Note, Transcript
 from vl.enrich.query import LocalParser
 from vl.index.search import Hit, search
+from vl.ingest.importer import AUDIO_EXTS
+from vl.peaks import peaks_for
+from vl.snippets import best_snippet, query_terms
 from vl.sounds.store import sounds_coverage
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 AUDIO_TYPES = {".m4a": "audio/mp4", ".mp3": "audio/mpeg", ".wav": "audio/wav", ".aac": "audio/aac",
                ".caf": "audio/x-caf", ".qta": "video/quicktime"}
+MAX_UPLOAD_BYTES = 2 * 1024 ** 3  # per file
+MAX_UPLOAD_FILES = 500
 
 
-def hit_json(h: Hit) -> dict:
-    return {
-        "id": h.note_id, "title": h.title, "summary": h.summary, "category": h.category,
-        "recorded_at": h.recorded_at.isoformat() if h.recorded_at else None, "duration_s": h.duration_s,
-        "sound_info": h.sound_info, "sound_start_s": h.sound_start_s, "why": h.why, "strength": h.strength,
-    }
+def decorate(s, hits: list[Hit], terms: list[str]) -> list[dict]:
+    """Hits as JSON for the page: tags, and the moment in the transcript that matched (with its timestamp)."""
+    out = []
+    for h in hits:
+        en, tr = s.get(Enrichment, h.note_id), s.get(Transcript, h.note_id)
+        snippet = None
+        if terms and tr is not None:
+            try:
+                segs = json.loads(tr.segments_json or "[]")
+            except ValueError:
+                segs = []
+            snippet = best_snippet(segs, tr.text, terms)
+        out.append({
+            "id": h.note_id, "title": h.title, "summary": h.summary, "category": h.category,
+            "recorded_at": h.recorded_at.isoformat() if h.recorded_at else None, "duration_s": h.duration_s,
+            "sound_info": h.sound_info, "sound_start_s": h.sound_start_s, "why": h.why, "strength": h.strength,
+            "tags": json.loads(en.tags_json) if en else [], "snippet": snippet,
+        })
+    return out
 
 
 class AskBody(BaseModel):
@@ -55,21 +78,31 @@ class FlagBody(BaseModel):
     flag: str | None = None  # "archived" | "keep" | null to clear
 
 
-class SettingsBody(BaseModel):
-    use_claude: bool
+class DetailsBody(BaseModel):
+    title: str | None = None
+    summary: str | None = None
+    tags: list[str] | None = None
 
 
 def create_app(session_factory, embedder=None, parser=None, reranker=None, audio_root: Path | None = None,
-               claude_unavailable_reason: str | None = None) -> FastAPI:
+               claude_unavailable_reason: str | None = None, import_manager=None, cache_dir: Path | None = None,
+               upload_dir: Path | None = None) -> FastAPI:
     app = FastAPI(title="Voice Note Library", docs_url=None, redoc_url=None)
     # defend against DNS-rebinding: only answer requests addressed to this computer
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
-    app.state.use_claude = parser is not None
-    claude_possible = parser is not None
+    claude_ok = parser is not None
     audio_root = Path(audio_root).resolve() if audio_root else None
+    upload_dir = Path(upload_dir) if upload_dir else None
+    sess = session_factory
 
-    def sess():
-        return session_factory()
+    def guarded(fn):
+        try:
+            return fn()
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    if WEB_DIR.is_dir():
+        app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
     @app.get("/")
     def index():
@@ -80,28 +113,16 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
 
     @app.get("/api/settings")
     def get_settings():
-        return {"use_claude": app.state.use_claude, "claude_available": claude_possible,
-                "reason": None if claude_possible else (claude_unavailable_reason or "No Claude key configured.")}
-
-    @app.post("/api/settings")
-    def set_settings(body: SettingsBody):
-        if body.use_claude and not claude_possible:
-            raise HTTPException(400, claude_unavailable_reason or "Claude isn't configured (set ANTHROPIC_API_KEY and restart).")
-        app.state.use_claude = body.use_claude
-        return get_settings()
+        return {"claude": claude_ok,
+                "reason": None if claude_ok else (claude_unavailable_reason or "Claude isn't connected.")}
 
     @app.get("/api/home")
     def home():
         with sess() as s:
             analyzed, total = sounds_coverage(s)
-            return {
-                "total_notes": total,
-                "categories": lib.category_counts(s),
-                "suggestions": lib.suggested_categories(s),
-                "tags": lib.tag_counts(s, 20),
-                "review_count": len(lib.review_queue(s)),
-                "sounds_checked": analyzed,
-            }
+            att = lib.attention(s)
+            return {"total_notes": total, "categories": lib.category_counts(s), "attention_count": att["count"],
+                    "try": lib.try_queries(s, 3), "sounds_checked": analyzed}
 
     @app.get("/api/search")
     def quick_search(q: str = "", category: str | None = None, limit: int = 8):
@@ -109,28 +130,29 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
         if not q.strip():
             return {"hits": []}
         with sess() as s:
-            return {"hits": [hit_json(h) for h in search(s, q, embedder, limit=min(max(limit, 1), 30),
-                                                         category=category)]}
+            hits = search(s, q, embedder, limit=min(max(limit, 1), 30), category=category)
+            return {"hits": decorate(s, hits, query_terms(q))}
 
     @app.get("/api/browse")
     def browse(category_id: int | None = None, uncategorized: bool = False, limit: int = 30, offset: int = 0):
         """Newest notes first, optionally one category. Local only."""
         with sess() as s:
-            return {"hits": [hit_json(h) for h in lib.list_notes(s, category_id, uncategorized, limit, offset)]}
+            return {"hits": decorate(s, lib.list_notes(s, category_id, uncategorized, limit, offset), [])}
 
     @app.post("/api/ask")
     def ask_question(body: AskBody):
-        use = app.state.use_claude and claude_possible
         with sess() as s:
-            res = ask(s, body.q, parser if use else LocalParser(), embedder, reranker if use else None,
-                      limit=body.limit)
+            res = ask(s, body.q, parser if claude_ok else LocalParser(), embedder,
+                      reranker if claude_ok else None, limit=body.limit)
+            terms = query_terms(body.q, res.query.semantic_text, *res.query.keywords)
+            hits = decorate(s, res.hits, terms)
         q = res.query
         notes = list(res.notes)
-        if not use:
-            notes.insert(0, "Claude is off: this ran on your computer only, so dates, categories and ordering "
-                            "in the question aren't understood.")
+        if not claude_ok:
+            notes.insert(0, (claude_unavailable_reason or "Claude isn't connected") +
+                         " — this was a basic search, so dates, categories and ordering in the question aren't understood.")
         return {
-            "hits": [hit_json(h) for h in res.hits], "verdict": res.verdict, "notes": notes, "used_claude": use,
+            "hits": hits, "verdict": res.verdict, "notes": notes, "used_claude": claude_ok,
             "understood": {"topic": q.semantic_text, "category": q.category, "sort": q.sort, "count": q.count,
                            "sound": q.sound, "since": q.since.isoformat() if q.since else None,
                            "until": q.until.isoformat() if q.until else None},
@@ -140,9 +162,33 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
     def note(note_id: int):
         with sess() as s:
             d = lib.note_detail(s, note_id)
-        if d is None:
-            raise HTTPException(404, "No such note")
+            if d is None:
+                raise HTTPException(404, "No such note")
+            d["related"] = lib.related_notes(s, note_id, embedder.model_version) if embedder is not None else []
         return d
+
+    @app.patch("/api/notes/{note_id}")
+    def edit_note(note_id: int, body: DetailsBody):
+        with sess() as s:
+            return guarded(lambda: lib.update_details(s, note_id, body.title, body.summary, body.tags, embedder))
+
+    @app.get("/api/notes/{note_id}/peaks")
+    def peaks(note_id: int, n: int = 96):
+        n = min(max(n, 16), 400)
+        with sess() as s:
+            row = s.get(Note, note_id)
+            info = (Path(row.path), row.sha256) if row else None
+        if info is None:
+            raise HTTPException(404, "No such note")
+        path, key = info
+        if audio_root is not None and audio_root not in path.resolve().parents:
+            raise HTTPException(403, "That file is outside the audio folder.")
+        if not path.is_file():
+            raise HTTPException(404, "The audio file is missing from disk.")
+        try:
+            return {"peaks": peaks_for(path, key, cache_dir, n)}
+        except Exception as exc:  # noqa: BLE001 - the page falls back to a flat bar; don't break the note view
+            raise HTTPException(500, f"Couldn't read the audio: {type(exc).__name__}") from exc
 
     @app.get("/api/notes/{note_id}/audio")
     def audio(note_id: int):
@@ -157,11 +203,11 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             raise HTTPException(404, "The audio file is missing from disk.")
         return FileResponse(path, media_type=AUDIO_TYPES.get(path.suffix.lower(), "application/octet-stream"))
 
-    def guarded(fn):
-        try:
-            return fn()
-        except ValueError as exc:
-            raise HTTPException(400, str(exc)) from exc
+    # ---- curation ----
+    @app.get("/api/attention")
+    def attention():
+        with sess() as s:
+            return {**lib.attention(s), "tags": lib.tag_counts(s, 20)}
 
     @app.post("/api/categories")
     def new_category(body: CategoryBody):
@@ -202,6 +248,57 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
     def archived():
         with sess() as s:
             return {"notes": lib.archived_notes(s)}
+
+    # ---- import ----
+    @app.post("/api/import")
+    async def import_files(files: list[UploadFile] = File(...), modified: list[int] = Form(default=[])):
+        if import_manager is None or upload_dir is None:
+            raise HTTPException(503, "Importing isn't available here.")
+        if len(files) > MAX_UPLOAD_FILES:
+            raise HTTPException(400, f"Please add at most {MAX_UPLOAD_FILES} files at a time.")
+        batch = upload_dir / uuid.uuid4().hex[:10]
+        batch.mkdir(parents=True, exist_ok=True)
+        items, rejected = [], []
+        for i, up in enumerate(files):
+            name = Path(up.filename or "").name or f"file-{i}"
+            if Path(name).suffix.lower() not in AUDIO_EXTS:
+                rejected.append({"name": name, "reason": "Not an audio file I can read (.m4a, .mp3, .wav, .aac, .caf)."})
+                continue
+            dest = batch / f"{i}-{uuid.uuid4().hex[:6]}{Path(name).suffix.lower()}"
+            size = 0
+            try:
+                with dest.open("wb") as out:
+                    while chunk := await up.read(1024 * 1024):
+                        size += len(chunk)
+                        if size > MAX_UPLOAD_BYTES:
+                            raise ValueError("too big")
+                        out.write(chunk)
+            except ValueError:
+                dest.unlink(missing_ok=True)
+                rejected.append({"name": name, "reason": "That file is larger than 2 GB."})
+                continue
+            when = None
+            if i < len(modified) and modified[i] > 0:
+                try:
+                    when = dt.datetime.fromtimestamp(modified[i] / 1000)
+                except (OverflowError, OSError, ValueError):
+                    when = None
+            items.append((name, dest, when))
+        if not items:
+            shutil.rmtree(batch, ignore_errors=True)
+            raise HTTPException(400, "None of those files were audio I can import.")
+        return {"job_id": import_manager.submit(items), "accepted": len(items), "rejected": rejected}
+
+    @app.get("/api/import/latest")
+    def import_latest():
+        return {"job": import_manager.latest() if import_manager else None}
+
+    @app.get("/api/import/{job_id}")
+    def import_status(job_id: str):
+        snap = import_manager.snapshot(job_id) if import_manager else None
+        if snap is None:
+            raise HTTPException(404, "No such import")
+        return snap
 
     @app.get("/api/health")
     def health():

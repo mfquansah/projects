@@ -80,18 +80,37 @@ def cmd_serve(args: argparse.Namespace) -> None:
     import uvicorn
 
     from vl.api.main import create_app
+    from vl.enrich.llm import ClaudeEnricher
     from vl.enrich.query import ClaudeQueryParser, ClaudeReranker
     from vl.index.embeddings import SentenceTransformerEmbedder
+    from vl.jobs import Deps, ImportManager
 
     parser = reranker = None
     reason = None
     if os.environ.get("ANTHROPIC_API_KEY"):
         parser, reranker = ClaudeQueryParser(args.llm_model), ClaudeReranker(args.llm_model)
     else:
-        reason = "ANTHROPIC_API_KEY isn't set. Set it and restart to let Claude understand questions."
+        reason = "Claude isn't connected (ANTHROPIC_API_KEY isn't set; set it and restart)"
     factory = make_session_factory(home() / "library.db")
-    app = create_app(factory, embedder=SentenceTransformerEmbedder(), parser=parser, reranker=reranker,
-                     audio_root=home() / "audio", claude_unavailable_reason=reason)
+    embedder = SentenceTransformerEmbedder()
+
+    def import_deps() -> Deps:  # loaded on the first import, not at startup
+        from vl.sounds.tagger import AudioSetTagger
+        from vl.transcribe.whisper import FasterWhisperTranscriber
+
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            raise RuntimeError("ANTHROPIC_API_KEY isn't set, so titles and summaries can't be written. Set it and restart.")
+        tagger = None
+        try:
+            tagger = AudioSetTagger()
+        except Exception as exc:  # noqa: BLE001 - sounds are a bonus; imports still work without them
+            print(f"  note: sound detection is unavailable ({type(exc).__name__}: {exc})")
+        return Deps(FasterWhisperTranscriber(args.whisper_model), ClaudeEnricher(args.llm_model), embedder, tagger)
+
+    manager = ImportManager(factory, home() / "audio", import_deps)
+    app = create_app(factory, embedder=embedder, parser=parser, reranker=reranker, audio_root=home() / "audio",
+                     claude_unavailable_reason=reason, import_manager=manager,
+                     cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads")
     url = f"http://127.0.0.1:{args.port}"
     print(f"Voice Note Library running at {url}  (Ctrl+C to stop)")
     if reason:
@@ -276,6 +295,7 @@ def main() -> None:
     a.add_argument("--host", default="127.0.0.1")
     a.add_argument("--open", action="store_true", help="open the page in your browser")
     a.add_argument("--llm-model", default="claude-haiku-5-5")
+    a.add_argument("--whisper-model", default="small")
     a.set_defaults(func=cmd_serve)
 
     a = sub.add_parser("process", help="transcribe, enrich and index imported notes")

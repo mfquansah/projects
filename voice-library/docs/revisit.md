@@ -50,3 +50,15 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **No pagination** on category lists (first 100 notes) or search (top 8): fine for ~1,000 notes, revisit for more.
 - [ ] **Archive/Keep have no undo toast**, only the Archived list; "Restore" works but Keep can't be un-kept.
 - [ ] **Existing databases**: new `note_flags` table is created automatically; any future column change needs Alembic.
+
+## F. Redesign build (2026-11-16)
+- [ ] **Theme direction changed after the build**: the user doesn't want it to look like a Claude app; wants a Harvard-inspired / editorial hybrid on soft ivory (see the design canvas). The current CSS (`web/app.css`) is the earlier sage-and-cream look.
+- [ ] **Import on the real Mac is unverified**: uploads, Whisper loading on the first import (slow start), sound detection loading, large files. Tested only with fakes and tiny files.
+- [ ] **Upload date fallback**: the browser's file-modified time is used as a last-resort recording date (`date_source = file-modified`); for files dragged out of Voice Memos this may be the export time. Check the "Date from" row on a recording.
+- [ ] **Import is one file at a time** (one worker); a big folder of ~1,000 notes will take hours and needs the app to stay running. No pause/resume button yet (the mockup shows Pause).
+- [ ] **No per-file progress for titling/indexing/sounds**, only transcription (percentage).
+- [ ] **Waveform is computed on first view** per recording (decode the whole file); long recordings may be slow the first time, then cached in `~/VoiceLibrary/cache/peaks`.
+- [ ] **Related recordings need embeddings and a similarity cutoff (0.35, untuned)**; often empty with a small library.
+- [ ] **Language** isn't stored (the mockup shows it); would need a schema change (Alembic).
+- [ ] **Per-keystroke instant search** calls the embedding model; check it feels instant on the Mac.
+- [ ] **Accessibility**: the faint search placeholder (#7F8B85 on ivory) is below 4.5:1 by the user's request; waveform has slider keyboard support but no screen-reader transcript sync.

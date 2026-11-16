@@ -169,3 +169,10 @@
 - Why: the user asked for one box (confirmed), and asked to build as fully as possible before testing details. Archive-not-delete, localhost-only and the Host-header check are my safety choices, not discussed with the user.
 - Reversible? yes
 - Source: confirmed (single box, categories flow, review queue, privacy), inferred (safety choices, layout)
+
+### 2026-11-16 - Redesigned app from the mockups; no Claude on/off switch
+- Decision: rebuild the page to follow the mockups (sidebar, big serif search box, Library, Search results, Recording, Import, Needs attention). Claude is always used: the switch was removed. With no API key the page says so and falls back to basic search. Added what the mockups need: timestamped transcript, waveform (computed server-side, cached), related recordings, editable title/summary/tags (edits recorded and re-indexed), search snippets with timestamps, example searches from the library itself, and file upload with a background importer. The search prompt is upright serif and slightly faint, with a pulsing waveform glyph.
+- Alternatives considered/rejected: keeping the privacy switch (user: "it uses Claude, and that's it"); a JS framework (kept plain ES modules, no build step, so the API stays reusable for a phone app).
+- Why: user's direction on the mockups ("build on this mockup and improve it", minimal, serif search prompt, upright and faint). The honest privacy line replaces the mockup's "nothing is uploaded", because transcript text does go to Claude.
+- Reversible? yes
+- Source: confirmed (switch, serif prompt, style), inferred (architecture, import design)

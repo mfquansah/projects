@@ -6,3 +6,5 @@ __pycache__/
 # Never commit recordings or the library
 audio/
 VoiceLibrary/
+.demo/
+node_modules/

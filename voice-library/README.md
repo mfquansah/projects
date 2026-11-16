@@ -30,17 +30,28 @@ search, then asks Claude to rerank the top results with a one-line reason. If th
 says so; if a filter finds nothing it relaxes the category, then the dates, and tells you. Only the question and short transcript
 snippets are sent; audio never is. Add `--no-rerank` to skip the second call.
 
-## The web page (one search box)
+## The web page
 ```bash
+export ANTHROPIC_API_KEY=...         # Claude writes titles/summaries and understands questions
 python -m vl.cli serve --open        # then use http://127.0.0.1:8765
 ```
-One box: type for instant results (local, free, private); press Enter to ask a full question. The home view shows your categories with counts,
-Claude's suggested new categories (Accept / Dismiss), your most common tags (click one to turn it into a category), recent notes, a **Review**
-queue of likely-junk notes (Keep / Archive) and an **Archived** list (Restore). Each result has a player (with a chip that jumps to where a
-sound was heard), the transcript, and a category picker. **Archive only hides a note: nothing is ever deleted.**
-The "Use Claude for questions" switch turns Claude off entirely: questions then run on this computer only (plain search, plus keyword sound
-detection like "my baby crying"), but dates, categories and "longest" aren't understood. Without `ANTHROPIC_API_KEY` the switch starts off.
-The page only listens on 127.0.0.1 and refuses to serve any file outside `~/VoiceLibrary/audio`. Phone access isn't built (it needs login first).
+One big search box. Typing shows instant results from your own computer; pressing Enter asks the full question (dates, "my longest",
+baby sounds), with Claude's one-line verdict and a Match / Partly / Related label on each result. Screens:
+- **Library**: search, example searches drawn from your own notes, recent recordings, and your collections down the left.
+- **Recording**: player with a waveform and markers where sounds were heard, a timestamped transcript (click a line to jump there, find within it),
+  editable title, summary and tags, details (including where the recording date came from), and related recordings.
+- **Import**: drop audio files or a whole folder. They upload, then each is transcribed, titled, sorted, indexed and checked for sounds,
+  one at a time, with live progress. A bad file shows its error and never stops the others. Re-dropping something already imported is skipped.
+- **Needs attention**: Claude's suggested collections (Accept / Dismiss), recordings that may be accidental (Keep / Archive), tags you can turn
+  into collections, and Archived (Restore). **Archive only hides a recording; nothing is ever deleted.**
+
+Claude is part of the app, not an option. Without `ANTHROPIC_API_KEY` the page says so, searches are basic, and importing explains what's missing.
+Audio and transcription never leave your computer; transcript text and your questions go to Claude. The page listens on 127.0.0.1 only, checks the
+Host header, and refuses to serve any file outside `~/VoiceLibrary/audio`. Phone access is planned but not built (it needs login first).
+No fonts or scripts are loaded from the internet.
+
+Developer tools: `python tools/demo_server.py` serves a made-up library with fake Claude/Whisper, and `node tools/e2e.js` (needs `npm i playwright`)
+drives every screen in a real browser, including upload, and fails on console errors or stray "null"/"undefined" text.
 
 ## How sure is it?
 After `ask` finds candidates, Claude reads them and labels each `<MATCH>` (it's what you described), `<partial>` (covers part of it) or `<related>`
