@@ -267,3 +267,17 @@
 - Why: user: "since we have to go through the settings ... not what we're testing now. Let's shelf it in our build later folder."
 - Reversible? yes (flip `SHOW_SYNC_PANEL`)
 - Source: confirmed
+
+### 2026-11-17 - Page background #F2F0EF with neutral surfaces
+- Decision: the app background is #F2F0EF (a cooler grey than the earlier warm ivory #F4EEDD). Surfaces, nav highlight, tag fills, hairlines and the hero text were retuned to neutral greys so nothing looks yellow on it; the slate hero and accents are unchanged. The Library mockup on the design canvas was recoloured to match; the other mockups were not.
+- Alternatives considered/rejected: changing only the background (it left warm cream surfaces clashing with the cool grey; the user then agreed to tune the rest).
+- Why: user: "change background to #f2f0ef", then "yup. go for it" to harmonising the rest. Reason for the colour itself not recorded.
+- Reversible? yes (CSS variables at the top of web/app.css)
+- Source: confirmed
+
+### 2026-11-17 - Real library size is 505 recordings; Voice Memos access confirmed on the user's Mac
+- Decision: plan for 505 recordings, not ~1,000. This supersedes the "scale is about 1,000 notes" assumption; the design (SQLite, brute-force vector search) is unaffected. The Voice Memos folder location was right, and macOS Full Disk Access had to be granted to Terminal (and Terminal fully restarted) before the app could read it.
+- Alternatives considered/rejected: n/a (an observation, not a choice).
+- Why: after the user granted the permission, the Import screen reported "505 recordings found" and showed the test-batch and import-all buttons. The user's earlier figure was from memory.
+- Reversible? n/a
+- Source: confirmed (the app's own count, seen in the user's screenshot)

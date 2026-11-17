@@ -65,8 +65,8 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Accessibility**: the faint search placeholder (#7F8B85 on ivory) is below 4.5:1 by the user's request; waveform has slider keyboard support but no screen-reader transcript sync.
 
 ## G. Voice Memos import and weak sounds (2026-11-16): unverified on the user's Mac
-- [ ] **Voice Memos library path** (`~/Library/Group Containers/group.com.apple.VoiceMemos.shared/Recordings`, or the older Application Support path) is from memory and untested. If it isn't found, the page says so; tell me what's actually in that folder.
-- [ ] **Full Disk Access** for Terminal is probably required; the page explains it but this is unverified. Recordings that exist only in iCloud may not be downloaded yet (placeholders).
+- [x] **Voice Memos library path** verified on the user's Mac (2026-11-17): the group-container path was right and 505 recordings were found.
+- [x] **Full Disk Access** for Terminal was required and worked once granted and Terminal was fully restarted (2026-11-17). Still unchecked: whether any recordings exist only in iCloud (not downloaded to the Mac).
 - [ ] **Titles in Voice Memos** (the names you gave recordings) live in a private database (CloudRecordings.db) and are not imported; files get their file name.
 - [ ] **Why the baby clip wasn't found**: hypothesis is a laugh score below the old 0.3 floor. After `sounds --redo`, check whether the clip now appears as "possibly giggling". If it still doesn't, the model may not hear this child's giggle at all (home phone audio, overlapping babble).
 - [ ] **Cutoffs 0.30 / 0.15** are guesses. More "possible" matches also means more false positives (e.g. adult chuckles in work calls); watch this.
@@ -74,7 +74,7 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Folder import hashes every file** to skip duplicates; a big library (1,000+ notes) re-imported repeatedly will re-read everything each time.
 
 ## H. Large import / full library (2026-11-16): the open priority
-- [ ] **Verify the Voice Memos folder can be read on the user's Mac** (path and Full Disk Access). Blocker for everything below.
+- [x] **Verify the Voice Memos folder can be read on the user's Mac** (path and Full Disk Access). Done 2026-11-17: 505 recordings found.
 - [ ] **Time and Claude cost for ~1,000 notes are still unmeasured on the real Mac.** The test batch is built (reports time, tokens, an estimate; dollars only if prices are set) and verified against a demo library; run it on the user's Mac. The estimate is crude: it assumes the batch is typical and counts recordings already imported.
 - [x] **Import order is newest first** (folder imports and sync). Built 2026-11-17.
 - [ ] **No ETA, pause, resume or cancel** on a long import. The in-memory queue is lost if the app stops (sync re-submits unseen files; a manual import needs re-clicking).
@@ -88,3 +88,6 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Estimate caveats**: assumes the 25 newest are typical; remaining-audio length needs `mutagen` (falls back to the batch average); counts already-imported recordings in the remaining total.
 - [ ] **Dollars need prices**: set `VL_PRICE_IN_PER_MTOK` and `VL_PRICE_OUT_PER_MTOK`; only the labelling Claude calls are metered (not search questions).
 - [ ] **Still missing for the long import**: a live ETA while running, pause/resume/cancel, and a queue that survives an app restart.
+
+## J. Waiting on results (2026-11-17)
+- [ ] **Test batch on the real Mac is running**: its results card (time, Claude tokens, estimate for the other ~480) is the next thing to record. After it, refresh `docs/brief.md` (library size is 505, not ~1,000) and write the next progress report at the next wrap-up.
