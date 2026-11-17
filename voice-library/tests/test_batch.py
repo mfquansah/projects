@@ -127,9 +127,12 @@ def test_pick_new_skips_what_is_already_imported(tmp_path):
         p.write_bytes(f"recording {i}".encode())
         files.append(p)
     with factory() as s:
-        for i in (0, 1):                           # the two newest are already in the library
-            from vl.ingest.importer import import_one
-            import_one(s, files[i], tmp_path / "store")
+        from vl.db import Enrichment
+        from vl.ingest.importer import import_one
+        for i in (0, 1):                           # the two newest are already in the library, fully processed
+            note, _ = import_one(s, files[i], tmp_path / "store")
+            s.add(Enrichment(note_id=note.id, title="t", summary="s", tags_json="[]", model_version="x"))
+        s.commit()
         got = pick_new(files, 2, s)
     assert got == [files[2], files[3]]
 
