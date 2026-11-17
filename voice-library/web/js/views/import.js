@@ -151,7 +151,7 @@ export async function importView({ main }) {
     h("form", { style: "display:flex;flex-wrap:wrap;gap:10px", onsubmit: (e) => { e.preventDefault(); startFolder({ path: pathIn.value }); } },
       h("div", { style: "flex:1 1 280px" }, pathIn),
       h("button", { type: "submit", class: "ghost" }, "Import this folder")),
-    h("p", { class: "small", style: "margin:0" }, "Tip: dragging straight out of the Voice Memos app doesn't work in a browser. Use the button above, or drag the recordings into a Finder folder first."));
+    h("p", { class: "small", style: "margin:0" }, "Tip: dragging straight out of the Voice Memos app doesn't work in a browser. Drag the recordings into a Finder folder first and import that folder here, or use the Voice Memos option above once macOS gives this app access."));
 
   main.append(h("div", { class: "col", style: "gap:28px" },
     h("header", { style: "display:flex;flex-direction:column;gap:8px" }, h("h1", { class: "h1" }, "Import"),
