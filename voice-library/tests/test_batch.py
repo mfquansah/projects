@@ -279,3 +279,19 @@ def test_a_full_folder_import_is_also_newest_first(api):
     assert names == sorted(names, reverse=True) and c.get(f"/api/import/{jid}").json()["meta"]["batch"] is False
     with factory() as s:
         assert s.query(Note).count() == 5
+
+
+def test_pick_new_includes_recordings_that_were_imported_but_never_finished(tmp_path):
+    from vl.db import Enrichment
+    from vl.ingest.importer import import_one
+    factory = make_session_factory(tmp_path / "x.db")
+    files = []
+    for i in range(3):
+        p = tmp_path / f"{i}.m4a"
+        p.write_bytes(f"recording {i}".encode())
+        files.append(p)
+    with factory() as s:
+        done, half, _ = [import_one(s, p, tmp_path / "store")[0] for p in files[:2]] + [None]
+        s.add(Enrichment(note_id=done.id, title="t", summary="s", tags_json="[]", model_version="x"))   # file 0 finished
+        s.commit()                                                                                         # file 1 was stopped part-way
+        assert pick_new(files, 3, s) == [files[1], files[2]]

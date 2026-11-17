@@ -6,18 +6,23 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from vl.db import Note
+from vl.db import Enrichment, Note
 from vl.ingest.importer import probe_duration, sha256_of
 
 
 def pick_new(files: list[Path], n: int, session: Session) -> list[Path]:
-    """The first `n` files (in the order given, so pass newest first) whose audio isn't in the library yet."""
+    """The first `n` files (in the order given, so pass newest first) that still need importing.
+
+    A recording that was imported but never finished (e.g. you stopped the app part-way) counts as still needing work,
+    so a restarted batch picks it up again instead of skipping it.
+    """
     out: list[Path] = []
     for p in files:
         if len(out) >= n:
             break
         try:
-            if session.query(Note.id).filter_by(sha256=sha256_of(p)).first() is None:
+            note = session.query(Note).filter_by(sha256=sha256_of(p)).first()
+            if note is None or session.get(Enrichment, note.id) is None:
                 out.append(p)
         except OSError:
             continue
