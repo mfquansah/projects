@@ -58,7 +58,13 @@ def build_report(files: list[dict], remaining_files: int, remaining_audio_s: flo
     def cost(tin, tout):
         return None if price_in is None or price_out is None else (tin * price_in + tout * price_out) / 1e6
 
+    stage_totals: dict[str, float] = {}
+    for x in ok:
+        for k, v in (x.get("stages") or {}).items():
+            if k != "end":
+                stage_totals[k] = stage_totals.get(k, 0.0) + v
     rep = {
+        "stages": {k: round(v, 1) for k, v in stage_totals.items()},
         "processed": len(ok), "failed": [{"name": f["name"], "error": f["error"]} for f in failed],
         "duplicates": sum(1 for f in files if f["state"] == "duplicate"),
         "seconds": {"total": total, "mean": statistics.mean(secs) if secs else None,

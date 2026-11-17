@@ -298,3 +298,12 @@ def test_pick_new_includes_recordings_that_were_imported_but_never_finished(tmp_
         s.add(Enrichment(note_id=done.id, title="t", summary="s", tags_json="[]", model_version="x"))   # file 0 finished
         s.commit()                                                                                         # file 1 was stopped part-way
         assert pick_new(files, 3, s) == [files[1], files[2]]
+
+
+def test_report_adds_up_where_the_time_went():
+    files = [dict(f("a", seconds=60, audio_s=120), stages={"import": 1.0, "transcribe": 40.0, "enrich": 10.0, "sounds": 8.0, "end": 0.0}),
+             dict(f("b", seconds=30, audio_s=60), stages={"import": 0.5, "transcribe": 20.0, "enrich": 5.0, "sounds": 4.0}),
+             dict(f("c", state="error", seconds=5), stages={"transcribe": 99.0})]          # a failed file is not counted
+    r = build_report(files, 0, None)
+    assert r["stages"] == {"import": 1.5, "transcribe": 60.0, "enrich": 15.0, "sounds": 12.0}
+    assert build_report([f("x", seconds=1, audio_s=1)], 0, None)["stages"] == {}              # no timing info: empty, not an error

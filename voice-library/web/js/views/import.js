@@ -63,6 +63,10 @@ export async function importView({ main }) {
       } else {
         lines.push(h("p", { style: "margin:0" }, h("strong", {}, "Time: "), `${fmtLong(r.seconds.total)} in total, about ${fmtLong(r.seconds.mean)} per recording (slowest ${fmtLong(r.seconds.max)}).`,
           r.seconds_per_audio_minute ? ` That is about ${plural(Math.round(r.seconds_per_audio_minute), "second")} of work for every minute of audio (${Math.round(r.audio_minutes)} minutes of audio in this batch).` : ""));
+        const STEP = { transcribe: "transcribing", enrich: "titling with Claude", index: "indexing", sounds: "listening for sounds", import: "reading files" };
+        const st = Object.entries(r.stages || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+        const sum = st.reduce((acc, [, v]) => acc + v, 0);
+        if (sum > 0) lines.push(h("p", { style: "margin:0" }, h("strong", {}, "Where the time went: "), st.map(([k, v]) => `${STEP[k] || k} ${Math.round((v / sum) * 100)}%`).join(", "), "."));
         lines.push(h("p", { style: "margin:0" }, h("strong", {}, "Claude: "), `${plural(r.tokens.calls, "call")}, ${num(r.tokens.input)} tokens in and ${num(r.tokens.output)} out`,
           r.cost_usd !== null && r.cost_usd !== undefined ? `, about $${r.cost_usd.toFixed(2)}.` : ". To see dollars, set VL_PRICE_IN_PER_MTOK and VL_PRICE_OUT_PER_MTOK (USD per million tokens, from Anthropic's pricing page) and restart."));
         if (rem) {
@@ -73,7 +77,7 @@ export async function importView({ main }) {
         }
       }
       if (r.failed.length) lines.push(h("p", { style: "margin:0;color:var(--danger)" }, `Failed (${r.failed.length}): ${r.failed.map((f) => `${f.name}: ${f.error}`).join("; ")}`));
-      put(reportBox, h("section", { class: "banner", style: "flex-direction:column;align-items:stretch;gap:12px", "aria-label": "Test batch results" },
+      put(reportBox, h("section", { class: "banner report", style: "flex-direction:column;align-items:stretch;gap:12px", "aria-label": "Test batch results" },
         h("h2", { class: "eyebrow ul", style: "align-self:flex-start" }, `Test batch results · ${plural(r.processed, "recording")} processed`),
         lines,
         h("div", { class: "actions" },
