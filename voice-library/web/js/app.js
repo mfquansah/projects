@@ -20,7 +20,7 @@ let current = { name: "library", cleanup: null, colId: null };
 function syncLine() {
   const sy = state.sync;
   if (!sy || !sy.available) return null;
-  if (!sy.enabled) return h("a", { href: "#/import", class: "sync off" }, "Auto-sync is off");
+  if (!sy.enabled) return null;   // the switch is shelved; nothing to point at while sync is off
   if (sy.problem) return h("a", { href: "#/import", class: "sync warn" }, "Sync paused. Tap for help.");
   const text = sy.pending > 0 ? `Syncing · ${sy.pending} importing` : (sy.last ? `Synced ${ago(sy.last.at)}${sy.last.new ? ` · ${sy.last.new} new` : ""}` : "Sync starting…");
   return h("div", { class: "sync" }, h("span", {}, text), " ",

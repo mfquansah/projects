@@ -166,14 +166,12 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   if (!rest) errors.push('remaining recordings were not imported');
   await page.waitForFunction(() => !document.querySelector('section[aria-label="Test batch results"]') || true);
 
-  // automatic sync: explicit opt-in with a count; everything is already imported, so nothing is duplicated; a new file is picked up
+  // automatic sync (its switch is shelved, so it is driven through the API): the sidebar shows status; nothing is imported twice
+  const post = (url, body) => page.evaluate(async ([u, b]) => (await fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) })).status, [url, body]);
   const before = await total();
-  log('sync starts off', await page.textContent('.sync'));
-  await page.click('button:has-text("Turn on…")');
-  await page.waitForSelector('button:has-text("Turn on and import 30")');
-  log('sync confirmation', (await page.textContent('.banner p')).slice(0, 52));
-  await page.click('button:has-text("Turn on and import 30")');
-  await page.waitForSelector('.banner:has-text("Automatic sync is on")');
+  log('no sync switch on the Import screen', (await page.$$('text=Keep in sync with Voice Memos')).length === 0 && (await page.$$('.sync')).length === 0);
+  log('turn sync on (API)', await post('/api/sync/settings', { enabled: true }));
+  await page.reload();
   await page.waitForFunction(() => /Synced/.test(document.querySelector('.sync')?.textContent || ''), null, { timeout: 60000 });
   log('sidebar sync status', (await page.textContent('.sync')).trim());
   log('already-imported files not duplicated', (await total()) === before);
@@ -186,8 +184,10 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   await new Promise(r => setTimeout(r, 4000));   // another check cycle runs: nothing may be imported twice
   log('no duplicates after more checks', (await total()) - before === 1);
   log('originals untouched', fs.readdirSync(VM).length === 31);
-  await page.click('button:has-text("Turn off")');
-  await page.waitForSelector('button:has-text("Turn on…")');
+  await post('/api/sync/settings', { enabled: false });
+  await page.reload();
+  await page.waitForSelector('.cols');
+  log('sync line gone when off', (await page.$$('.sync')).length === 0);
   await sane('sync');
 
   // phone width

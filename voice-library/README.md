@@ -47,7 +47,7 @@ baby sounds), with Claude's one-line verdict and a Match / Partly / Related labe
   **Test batch**: *Try a test batch (25 newest)* imports your newest recordings that aren't in the library yet, times every step, counts Claude
   tokens, and shows an estimate for the rest (time, tokens and, if you set `VL_PRICE_IN_PER_MTOK` / `VL_PRICE_OUT_PER_MTOK` in USD per million
   tokens, dollars; I don't guess prices). Every folder import is newest-first, so recent recordings are searchable first.
-  **Automatic sync** (Import screen, off by default): checks Voice Memos every 10 minutes and imports new recordings; the sidebar shows
+  **Automatic sync** (built and tested; its switch on the Import screen is hidden for now, see `docs/build-later.md`; it can be driven through the API). When on, it checks Voice Memos every 10 minutes and imports new recordings; the sidebar shows
   "Synced 3 min ago · 2 new" with Sync now. Turning it on asks first, because the first sync imports the whole library (hours for ~1,000 notes).
   It is one-way and read-only, remembers what it has seen, retries failures a few times, and reports (never re-imports) recordings you trimmed after import.
   It runs while `vl serve` runs; starting at login isn't built yet.

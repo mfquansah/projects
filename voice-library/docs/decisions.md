@@ -260,3 +260,10 @@
 - Why: the user agreed the large import is the next priority and approved the test-batch idea ("sure, go for it"); the time and cost of ~1,000 notes were unmeasured.
 - Reversible? yes
 - Source: confirmed (priority and the batch), inferred (design details)
+
+### 2026-11-17 - Shelve the sync switch in the UI; the user grants the macOS permission by hand
+- Decision: hide the "Keep in sync with Voice Memos" panel and the "Auto-sync is off" sidebar link. The sync backend, API and tests stay. Add `docs/build-later.md` as a shelf for deferred features. The user will turn on Full Disk Access themselves in System Settings.
+- Alternatives considered/rejected: keeping the button (it was disabled while macOS blocked access, and didn't look disabled); making the app change the macOS setting (an app can't grant itself that permission; at best it can link to the settings pane, which is on the shelf).
+- Why: user: "since we have to go through the settings ... not what we're testing now. Let's shelf it in our build later folder."
+- Reversible? yes (flip `SHOW_SYNC_PANEL`)
+- Source: confirmed

@@ -3,6 +3,7 @@ import { h, api, icons, plural, put, fmtLong } from "../util.js";
 import { state, refreshHome, refreshSync, go, ago } from "../core.js";
 
 const AUDIO = /\.(m4a|mp3|wav|aac|caf|qta)$/i;
+const SHOW_SYNC_PANEL = false;   // shelved (docs/build-later.md): the sync backend and API still work, only this switch is hidden
 
 // Collect File objects from a drop, including whole folders (dropped folders arrive as directory entries).
 async function filesFromDrop(dt) {
@@ -95,7 +96,7 @@ export async function importView({ main }) {
     try {
       const vm = (await api("/api/import/sources")).voice_memos;
       vmInfo = vm;
-      paintSync();
+      if (SHOW_SYNC_PANEL) paintSync();
       put(vmBox, vm.found
         ? h("div", { style: "display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px" },
             h("div", { style: "flex:1 1 280px" }, h("strong", {}, "Voice Memos"),
@@ -146,7 +147,7 @@ export async function importView({ main }) {
   }
   const local = h("section", { "aria-label": "Import from this computer", style: "display:flex;flex-direction:column;gap:16px" },
     h("h2", { class: "eyebrow ul", style: "align-self:flex-start" }, "From this computer"),
-    syncBox,
+    SHOW_SYNC_PANEL ? syncBox : null,
     vmBox,
     h("form", { style: "display:flex;flex-wrap:wrap;gap:10px", onsubmit: (e) => { e.preventDefault(); startFolder({ path: pathIn.value }); } },
       h("div", { style: "flex:1 1 280px" }, pathIn),
@@ -223,7 +224,7 @@ export async function importView({ main }) {
   }
 
   loadSources();
-  paintSync();
+  if (SHOW_SYNC_PANEL) paintSync();
   // coming back to this screen: show the latest import (and keep following it if it's still running)
   try { const r = await api("/api/import/latest"); if (r.job) poll(r.job.id); } catch (_) { /* no import manager: nothing to show */ }
   return () => { alive = false; clearTimeout(timer); };
