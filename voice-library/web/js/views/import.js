@@ -1,5 +1,5 @@
 // Import: drop audio files or a folder; they upload, then are processed one by one with live progress.
-import { h, api, icons, plural, put } from "../util.js";
+import { h, api, icons, plural, put, fmtLong } from "../util.js";
 import { state, refreshHome, refreshSync, go, ago } from "../core.js";
 
 const AUDIO = /\.(m4a|mp3|wav|aac|caf|qta)$/i;
@@ -49,6 +49,37 @@ export async function importView({ main }) {
   ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
   drop.addEventListener("drop", async (e) => start(await filesFromDrop(e.dataTransfer)));
 
+  const reportBox = h("div", {});
+  async function showReport(jobId) {
+    try {
+      const r = await api(`/api/import/${jobId}/report`);
+      const meta = (await api(`/api/import/${jobId}`)).meta || {};
+      const num = (n) => Number(n).toLocaleString();
+      const rem = r.remaining;
+      const lines = [];
+      if (!r.processed) {
+        lines.push("Nothing was processed successfully, so there is nothing to estimate yet. See the failures below.");
+      } else {
+        lines.push(h("p", { style: "margin:0" }, h("strong", {}, "Time: "), `${fmtLong(r.seconds.total)} in total, about ${fmtLong(r.seconds.mean)} per recording (slowest ${fmtLong(r.seconds.max)}).`,
+          r.seconds_per_audio_minute ? ` That is about ${plural(Math.round(r.seconds_per_audio_minute), "second")} of work for every minute of audio (${Math.round(r.audio_minutes)} minutes of audio in this batch).` : ""));
+        lines.push(h("p", { style: "margin:0" }, h("strong", {}, "Claude: "), `${plural(r.tokens.calls, "call")}, ${num(r.tokens.input)} tokens in and ${num(r.tokens.output)} out`,
+          r.cost_usd !== null && r.cost_usd !== undefined ? `, about $${r.cost_usd.toFixed(2)}.` : ". To see dollars, set VL_PRICE_IN_PER_MTOK and VL_PRICE_OUT_PER_MTOK (USD per million tokens, from Anthropic's pricing page) and restart."));
+        if (rem) {
+          lines.push(h("p", { style: "margin:0" }, h("strong", {}, `The other ${plural(rem.files, "recording")}: `),
+            `roughly ${fmtLong(rem.est_seconds)}`, rem.audio_minutes ? ` (about ${num(Math.round(rem.audio_minutes))} minutes of audio)` : "",
+            `, using about ${num(rem.est_tokens.input)} input tokens`, rem.est_cost_usd !== null && rem.est_cost_usd !== undefined ? ` and about $${rem.est_cost_usd.toFixed(2)}` : "",
+            ". ", h("span", { class: "muted" }, `Estimated from ${rem.basis}. Recordings already in your library are skipped quickly, so the real time may be shorter.`)));
+        }
+      }
+      if (r.failed.length) lines.push(h("p", { style: "margin:0;color:var(--danger)" }, `Failed (${r.failed.length}): ${r.failed.map((f) => `${f.name}: ${f.error}`).join("; ")}`));
+      put(reportBox, h("section", { class: "banner", style: "flex-direction:column;align-items:stretch;gap:12px", "aria-label": "Test batch results" },
+        h("h2", { class: "eyebrow ul", style: "align-self:flex-start" }, `Test batch results · ${plural(r.processed, "recording")} processed`),
+        lines,
+        h("div", { class: "actions" },
+          rem && rem.files ? h("button", { type: "button", class: "primary", onclick: () => { put(reportBox); startFolder({ path: meta.folder }); } }, `Import the remaining ${rem.files}`) : null,
+          h("button", { type: "button", class: "ghost", onclick: () => put(reportBox) }, "Close"))));
+    } catch (_) { put(reportBox); }
+  }
   const dropNote = h("div", { class: "sysnote", style: "display:none;margin:0", role: "status" });
   const say = (text) => { dropNote.textContent = text || ""; dropNote.style.display = text ? "" : "none"; };
 
@@ -56,7 +87,7 @@ export async function importView({ main }) {
   const vmBox = h("div", {});
   const pathIn = h("input", { class: "edit", placeholder: "/Users/you/Desktop/my-recordings", "aria-label": "Folder path on this computer", autocomplete: "off" });
   async function startFolder(body) {
-    say("");
+    say(""); put(reportBox);
     try { const r = await api("/api/import/folder", { body }); poll(r.job_id); }
     catch (err) { say(err.message); }
   }
@@ -69,7 +100,9 @@ export async function importView({ main }) {
         ? h("div", { style: "display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px" },
             h("div", { style: "flex:1 1 280px" }, h("strong", {}, "Voice Memos"),
               h("div", { class: "muted", style: "font-size:14px" }, `${plural(vm.count, "recording")} found on this computer. They are read where they are and never changed.`)),
-            h("button", { type: "button", class: "primary", onclick: () => startFolder({ source: "voice_memos" }) }, `Import ${vm.count}`))
+            h("div", { class: "actions" },
+              h("button", { type: "button", class: "ghost", title: "Imports your newest recordings first and reports how long it took and what Claude cost, so you can estimate the whole library", onclick: () => startFolder({ source: "voice_memos", newest: Math.min(25, vm.count) }) }, `Try a test batch (${Math.min(25, vm.count)} newest)`),
+              h("button", { type: "button", class: "primary", onclick: () => startFolder({ source: "voice_memos" }) }, `Import all ${vm.count}`)))
         : h("div", { class: "sysnote", style: "margin:0" }, vm.problem));
     } catch (_) { vmBox.replaceChildren(); }
   }
@@ -123,7 +156,7 @@ export async function importView({ main }) {
   main.append(h("div", { class: "col", style: "gap:28px" },
     h("header", { style: "display:flex;flex-direction:column;gap:8px" }, h("h1", { class: "h1" }, "Import"),
       h("p", { class: "muted", style: "margin:0" }, "Add voice notes you already have. Each one is transcribed, titled and sorted into a collection, then checked for sounds like a baby laughing.")),
-    drop, dropNote, local, live));
+    drop, dropNote, local, live, reportBox));
 
   function start(files) {
     say("");
@@ -183,7 +216,7 @@ export async function importView({ main }) {
     try {
       const snap = await api(`/api/import/${jobId}`);
       if (!alive) return;
-      if (snap.finished) { await refreshHome(); paint(snap, rejected); return; }
+      if (snap.finished) { await refreshHome(); paint(snap, rejected); if (snap.meta && snap.meta.batch) showReport(snap.id); return; }
       paint(snap, rejected);
       timer = setTimeout(() => poll(jobId, rejected), 1000);
     } catch (err) { live.replaceChildren(h("div", { class: "sysnote" }, err.message)); }

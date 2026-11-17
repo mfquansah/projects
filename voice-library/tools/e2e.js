@@ -127,7 +127,7 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   await page.evaluate(() => { const el = document.querySelector('.drop'); const dt = new DataTransfer(); el.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); });
   await page.waitForSelector('.sysnote:has-text("Nothing came through")');
   log('empty drop message', 'shown');
-  log('voice memos row', (await page.textContent('section[aria-label="Import from this computer"]')).includes('3 recordings found on this computer'));
+  log('voice memos row', (await page.textContent('section[aria-label="Import from this computer"]')).includes('30 recordings found on this computer'));
   // import a folder by path: files are read in place and the originals must survive
   const folder = path.join(tmp, 'vm'); fs.mkdirSync(folder);
   fs.writeFileSync(path.join(folder, 'one.m4a'), 'baby babbling at the park');
@@ -146,30 +146,46 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   allow400 = false;
   await sane('import-folder');
 
-  // automatic sync: explicit opt-in with a count, then the sidebar shows status; a new recording is picked up
+  // test batch: the 25 newest, timed, with an estimate for the rest; then import the remaining 5
   const total = async () => (await (await fetch('http://127.0.0.1:8798/api/home')).json()).total_notes;
-  const until = async (fn, ms = 60000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return true; await new Promise(r => setTimeout(r, 300)); } return false; };
+  const until = async (fn, ms = 90000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return true; await new Promise(r => setTimeout(r, 300)); } return false; };
+  const base = await total();
+  await page.click('button:has-text("Try a test batch (25 newest)")');
+  await page.waitForSelector('section[aria-label="Test batch results"]', { timeout: 90000 });
+  const reportText = await page.textContent('section[aria-label="Test batch results"]');
+  log('batch imported newest 25 only', (await total()) - base === 25);
+  log('report says 25 processed', /25 recordings processed/.test(reportText));
+  log('report has time, Claude usage, estimate', /Time:/.test(reportText) && /Claude:/.test(reportText) && /The other 5 recordings/.test(reportText));
+  log('report text', reportText.replace(/\s+/g, ' ').slice(0, 330));
+  await page.screenshot({ path: path.join(tmp, '8-batch-report.png'), fullPage: true });
+  await sane('batch-report');
+  if ((await total()) - base !== 25) errors.push('test batch did not import exactly 25');
+  await page.click('button:has-text("Import the remaining 5")');
+  const rest = await until(async () => (await total()) - base === 30);
+  log('remaining 5 imported', rest);
+  if (!rest) errors.push('remaining recordings were not imported');
+  await page.waitForFunction(() => !document.querySelector('section[aria-label="Test batch results"]') || true);
+
+  // automatic sync: explicit opt-in with a count; everything is already imported, so nothing is duplicated; a new file is picked up
   const before = await total();
   log('sync starts off', await page.textContent('.sync'));
   await page.click('button:has-text("Turn on…")');
-  await page.waitForSelector('button:has-text("Turn on and import 3")');
+  await page.waitForSelector('button:has-text("Turn on and import 30")');
   log('sync confirmation', (await page.textContent('.banner p')).slice(0, 52));
-  await page.click('button:has-text("Turn on and import 3")');
+  await page.click('button:has-text("Turn on and import 30")');
   await page.waitForSelector('.banner:has-text("Automatic sync is on")');
-  const first = await until(async () => (await total()) >= before + 3);
-  log('first sync imported all 3', first && (await total()) - before === 3);
-  if (!first) errors.push('first sync did not import 3 recordings');
   await page.waitForFunction(() => /Synced/.test(document.querySelector('.sync')?.textContent || ''), null, { timeout: 60000 });
   log('sidebar sync status', (await page.textContent('.sync')).trim());
+  log('already-imported files not duplicated', (await total()) === before);
   const VM = path.join(__dirname, '.demo', 'voicememos');
   fs.writeFileSync(path.join(VM, '20261116 100000-NEW.m4a'), 'a quick note about the dentist appointment');
   await page.click('.sync button:has-text("Sync now")');
-  const second = await until(async () => (await total()) >= before + 4);
-  log('new recording picked up', second && (await total()) - before === 4);
+  const second = await until(async () => (await total()) >= before + 1);
+  log('new recording picked up', second && (await total()) - before === 1);
   if (!second) errors.push('sync did not pick up the new recording');
   await new Promise(r => setTimeout(r, 4000));   // another check cycle runs: nothing may be imported twice
-  log('no duplicates after more checks', (await total()) - before === 4);
-  log('originals untouched', fs.readdirSync(VM).length === 4);
+  log('no duplicates after more checks', (await total()) - before === 1);
+  log('originals untouched', fs.readdirSync(VM).length === 31);
   await page.click('button:has-text("Turn off")');
   await page.waitForSelector('button:has-text("Turn on…")');
   await sane('sync');

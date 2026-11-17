@@ -27,7 +27,10 @@ from vl.ingest.importer import AUDIO_EXTS
 from vl.peaks import peaks_for
 from vl.snippets import best_snippet, query_terms
 from vl.sounds.store import sounds_coverage
-from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos
+import os
+
+from vl.batch import build_report, pick_new, remaining_audio_seconds
+from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos, newest_first
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
 AUDIO_TYPES = {".m4a": "audio/mp4", ".mp3": "audio/mpeg", ".wav": "audio/wav", ".aac": "audio/aac",
@@ -82,6 +85,7 @@ class FlagBody(BaseModel):
 class FolderBody(BaseModel):
     path: str | None = None
     source: str | None = None  # "voice_memos"
+    newest: int | None = Field(default=None, ge=1, le=500)  # a test batch: only the N newest recordings not yet imported
 
 
 class SyncSettingsBody(BaseModel):
@@ -327,6 +331,13 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             raise HTTPException(403, PERMISSION_HELP) from None
         if not files:
             raise HTTPException(400, f"No audio files (.m4a, .mp3, .wav, .aac, .caf) found in {folder}.")
+        files = newest_first(files)   # newest first: recent recordings become searchable first
+        total_files = len(files)
+        if body.newest:
+            with sess() as s:
+                files = pick_new(files, body.newest, s)
+            if not files:
+                raise HTTPException(400, "Everything in that folder is already in your library.")
         items = []
         for p in files:
             try:
@@ -334,7 +345,39 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             except OSError:
                 when = None
             items.append((p.name, p, when, False))  # False: never delete the original
-        return {"job_id": import_manager.submit(items), "accepted": len(items), "folder": str(folder)}
+        meta = {"folder": str(folder), "total_files": total_files, "batch": bool(body.newest)}
+        return {"job_id": import_manager.submit(items, meta=meta), "accepted": len(items), "folder": str(folder), "batch": bool(body.newest)}
+
+    @app.get("/api/import/{job_id}/report")
+    def import_report(job_id: str):
+        """Timing, Claude usage and an estimate for the rest, for a finished import (meant for test batches)."""
+        snap = import_manager.snapshot(job_id) if import_manager else None
+        if snap is None:
+            raise HTTPException(404, "No such import")
+        if not snap["finished"]:
+            raise HTTPException(409, "That import is still running.")
+        meta = snap.get("meta") or {}
+        remaining_files, remaining_s = 0, None
+        done_audio = [f["audio_s"] for f in snap["files"] if f["state"] == "done" and f.get("audio_s")]
+        if meta.get("folder"):
+            try:
+                batch_names = {f["name"] for f in snap["files"]}
+                rest = [p for p in audio_files(Path(meta["folder"])) if p.name not in batch_names]
+                remaining_files = len(rest)
+                remaining_s = remaining_audio_seconds(rest, (sum(done_audio) / len(done_audio)) if done_audio else None)
+            except OSError:
+                pass
+
+        def price(name):
+            try:
+                return float(os.environ[name])
+            except (KeyError, ValueError):
+                return None
+
+        rep = build_report(snap["files"], remaining_files, remaining_s, price("VL_PRICE_IN_PER_MTOK"), price("VL_PRICE_OUT_PER_MTOK"))
+        rep["batch"] = bool(meta.get("batch"))
+        rep["prices_set"] = price("VL_PRICE_IN_PER_MTOK") is not None and price("VL_PRICE_OUT_PER_MTOK") is not None
+        return rep
 
     # ---- automatic sync with Voice Memos ----
     @app.get("/api/sync")

@@ -62,6 +62,15 @@ export function fmtDate(iso, { year = null, time = false } = {}) {
   const day = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(showYear ? { year: "numeric" } : {}) });
   return time ? `${day}, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}` : day;
 }
+export function fmtLong(s) {
+  if (s === null || s === undefined || isNaN(s)) return "?";
+  s = Math.round(s);
+  if (s < 60) return `${s} s`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60), mm = m % 60;
+  return mm ? `${h} h ${mm} min` : `${h} h`;
+}
 export const plural = (n, one, many) => `${n} ${n === 1 ? one : (many || one + "s")}`;
 
 const SOUND_WORDS = { baby_babble: "baby babbling", baby_laugh: "baby laughing", baby_cry: "baby crying", crying: "crying",

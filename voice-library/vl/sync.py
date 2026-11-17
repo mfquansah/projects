@@ -15,7 +15,7 @@ import threading
 from pathlib import Path
 
 from vl.jobs import DONE, DUPLICATE
-from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos, icloud_placeholders
+from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos, icloud_placeholders, newest_first
 
 MAX_FAILURES = 3
 DEFAULT_INTERVAL_MIN = 10
@@ -117,7 +117,7 @@ class SyncManager:
             if folder is None:
                 found["problem"] = problem or "The folder to sync isn't available."
             else:
-                files = audio_files(folder)
+                files = newest_first(audio_files(folder))  # newest first: recent recordings become searchable first
                 found["files"] = len(files)
                 if self.settings["source"] == "voice_memos":
                     found["placeholders"] = icloud_placeholders(folder)

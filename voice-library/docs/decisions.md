@@ -253,3 +253,10 @@
 - Why: reason not recorded beyond the user choosing this after asking why it was recommended. The recommendation's stated reasons were speed, reuse of the existing screens, and audio staying on the user's computer, with the cost that the phone only works while the Mac is on.
 - Reversible? yes
 - Source: confirmed
+
+### 2026-11-17 - A timed test batch before the full import; newest-first everywhere
+- Decision: the Import screen gets "Try a test batch (25 newest)": it imports the newest recordings not yet in the library, records seconds per step per file and Claude tokens per file, and shows a results card (time, speed per minute of audio, tokens, failures, and an estimate for the remaining recordings, with a one-click "Import the remaining N"). Dollar figures appear only if the user sets per-million-token prices in two environment variables; otherwise tokens only. All folder imports and sync now go newest first.
+- Alternatives considered/rejected: hard-coding Claude prices (I don't know the current price of the model and it changes); estimating from file count only (note lengths vary a lot, so the estimate uses audio length when it can read it); importing everything blind.
+- Why: the user agreed the large import is the next priority and approved the test-batch idea ("sure, go for it"); the time and cost of ~1,000 notes were unmeasured.
+- Reversible? yes
+- Source: confirmed (priority and the batch), inferred (design details)

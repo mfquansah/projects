@@ -75,10 +75,16 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 
 ## H. Large import / full library (2026-11-16): the open priority
 - [ ] **Verify the Voice Memos folder can be read on the user's Mac** (path and Full Disk Access). Blocker for everything below.
-- [ ] **Time and Claude cost for ~1,000 notes are unmeasured.** Plan: a "test batch" of the ~25 newest that reports time and usage per note, then extrapolate.
-- [ ] **Import order is alphabetical by path; should be newest first** so recent recordings are searchable first.
+- [ ] **Time and Claude cost for ~1,000 notes are still unmeasured on the real Mac.** The test batch is built (reports time, tokens, an estimate; dollars only if prices are set) and verified against a demo library; run it on the user's Mac. The estimate is crude: it assumes the batch is typical and counts recordings already imported.
+- [x] **Import order is newest first** (folder imports and sync). Built 2026-11-17.
 - [ ] **No ETA, pause, resume or cancel** on a long import. The in-memory queue is lost if the app stops (sync re-submits unseen files; a manual import needs re-clicking).
 - [ ] **One file at a time**: safe but slow; consider limited parallelism only if the machine has headroom.
 - [ ] **Sync only runs while `vl serve` runs.** Start-at-login needs a launch agent and a decision on where the Claude API key lives (macOS Keychain, not a plain file).
 - [x] **Sync verified in a real browser against a demo Voice Memos folder** (first sync imports all, a new file is picked up, no duplicates over repeated checks, originals untouched). Still unverified on the user's real Voice Memos folder.
 - [ ] **Phone access** (through the Mac first, cloud copy later) needs login, a private connection (e.g. Tailscale), and an installable web app; not started.
+
+## I. Test batch (2026-11-17)
+- [ ] **Run it on the real Mac** and compare its estimate with what the full import actually takes.
+- [ ] **Estimate caveats**: assumes the 25 newest are typical; remaining-audio length needs `mutagen` (falls back to the batch average); counts already-imported recordings in the remaining total.
+- [ ] **Dollars need prices**: set `VL_PRICE_IN_PER_MTOK` and `VL_PRICE_OUT_PER_MTOK`; only the labelling Claude calls are metered (not search questions).
+- [ ] **Still missing for the long import**: a live ETA while running, pause/resume/cancel, and a queue that survives an app restart.

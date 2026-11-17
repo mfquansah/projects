@@ -99,6 +99,10 @@ def cmd_serve(args: argparse.Namespace) -> None:
     factory = make_session_factory(home() / "library.db")
     embedder = SentenceTransformerEmbedder()
 
+    from vl.usage import UsageMeter
+
+    meter = UsageMeter()
+
     def import_deps() -> Deps:  # loaded on the first import, not at startup
         from vl.sounds.tagger import AudioSetTagger
         from vl.transcribe.whisper import FasterWhisperTranscriber
@@ -110,7 +114,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
             tagger = AudioSetTagger()
         except Exception as exc:  # noqa: BLE001 - sounds are a bonus; imports still work without them
             print(f"  note: sound detection is unavailable ({type(exc).__name__}: {exc})")
-        return Deps(FasterWhisperTranscriber(args.whisper_model), ClaudeEnricher(args.llm_model), embedder, tagger)
+        return Deps(FasterWhisperTranscriber(args.whisper_model), ClaudeEnricher(args.llm_model, meter=meter), embedder, tagger, meter=meter)
 
     from vl.sync import SyncManager
 

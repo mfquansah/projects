@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from vl.ingest.importer import AUDIO_EXTS
+from vl.ingest.importer import AUDIO_EXTS, date_from_filename
 
 # Newer macOS keeps the library in a group container; older versions use Application Support.
 CANDIDATES = [
@@ -74,3 +74,16 @@ def icloud_placeholders(folder: Path) -> int:
         except OSError:
             continue
     return n
+
+
+def newest_first(paths: list[Path]) -> list[Path]:
+    """Order recordings newest first: by the date in the file name (Voice Memos names carry one), else by modified time."""
+    def key(p: Path) -> float:
+        d = date_from_filename(p.name)
+        if d:
+            return d.timestamp()
+        try:
+            return p.stat().st_mtime
+        except OSError:
+            return 0.0
+    return sorted(paths, key=key, reverse=True)

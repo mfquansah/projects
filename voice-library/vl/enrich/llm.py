@@ -79,8 +79,9 @@ class EnrichmentError(ValueError):
 class ClaudeEnricher:
     """Uses the Anthropic API. Needs `pip install anthropic` and ANTHROPIC_API_KEY."""
 
-    def __init__(self, model: str = "claude-haiku-5-5", client=None) -> None:
+    def __init__(self, model: str = "claude-haiku-5-5", client=None, meter=None) -> None:
         self.model_version = model
+        self._meter = meter
         if client is None:
             import anthropic  # lazy
 
@@ -92,6 +93,9 @@ class ClaudeEnricher:
             model=self.model_version, max_tokens=800,
             messages=[{"role": "user", "content": prompt}],
         )
+        from vl.usage import record_message
+
+        record_message(self._meter, msg)
         raw = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
         return raw, str(getattr(msg, "stop_reason", "unknown"))
 

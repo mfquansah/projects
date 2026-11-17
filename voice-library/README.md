@@ -44,6 +44,9 @@ baby sounds), with Claude's one-line verdict and a Match / Partly / Related labe
   *Full Disk Access*; the page tells you exactly how). (2) **Import a folder by path**: read in place. (3) Drop audio files or a folder onto the page.
   Files read in place are never changed or deleted. Each file is transcribed, titled, sorted, indexed and checked for sounds, one at a time, with
   live progress. A bad file shows its error and never stops the others. Anything already imported is skipped.
+  **Test batch**: *Try a test batch (25 newest)* imports your newest recordings that aren't in the library yet, times every step, counts Claude
+  tokens, and shows an estimate for the rest (time, tokens and, if you set `VL_PRICE_IN_PER_MTOK` / `VL_PRICE_OUT_PER_MTOK` in USD per million
+  tokens, dollars; I don't guess prices). Every folder import is newest-first, so recent recordings are searchable first.
   **Automatic sync** (Import screen, off by default): checks Voice Memos every 10 minutes and imports new recordings; the sidebar shows
   "Synced 3 min ago · 2 new" with Sync now. Turning it on asks first, because the first sync imports the whole library (hours for ~1,000 notes).
   It is one-way and read-only, remembers what it has seen, retries failures a few times, and reports (never re-imports) recordings you trimmed after import.
