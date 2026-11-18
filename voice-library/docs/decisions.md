@@ -281,3 +281,10 @@
 - Why: after the user granted the permission, the Import screen reported "505 recordings found" and showed the test-batch and import-all buttons. The user's earlier figure was from memory.
 - Reversible? n/a
 - Source: confirmed (the app's own count, seen in the user's screenshot)
+
+### 2026-11-18 - "Import the next 100" now; batching is a build-phase measure, the product syncs
+- Decision: add an "Import the next 100" button (the newest 100 recordings not yet imported, with the same timing and usage report) and continue the real import in chunks while we measure. In a finished product the user would not pick batches: connecting Voice Memos starts a background catch-up of the whole library (newest first, with progress and an estimate, pausable), after which sync keeps it current.
+- Alternatives considered/rejected: importing all 505 in one go (about 19 hours at the measured rate, no pause button yet); fixing speed before importing more (the report's "where the time went" needs the next batch to tell us).
+- Why: user: "let's do the next 100. but this is only because we're building the first one. in more product-ready builds ... we will sync, right?" I confirmed, and noted the first catch-up remains and speed matters more for it.
+- Reversible? yes
+- Source: confirmed

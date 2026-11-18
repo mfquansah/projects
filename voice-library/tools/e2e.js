@@ -150,9 +150,10 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   const total = async () => (await (await fetch('http://127.0.0.1:8798/api/home')).json()).total_notes;
   const until = async (fn, ms = 90000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return true; await new Promise(r => setTimeout(r, 300)); } return false; };
   const base = await total();
+  log('batch buttons present', (await page.$$('button:has-text("Import the next 100")')).length === 1 && (await page.$$('button:has-text("Try a test batch (25 newest)")')).length === 1);
   await page.click('button:has-text("Try a test batch (25 newest)")');
-  await page.waitForSelector('section[aria-label="Test batch results"]', { timeout: 90000 });
-  const reportText = await page.textContent('section[aria-label="Test batch results"]');
+  await page.waitForSelector('section[aria-label="Batch results"]', { timeout: 90000 });
+  const reportText = await page.textContent('section[aria-label="Batch results"]');
   log('batch imported newest 25 only', (await total()) - base === 25);
   log('report says 25 processed', /25 recordings processed/.test(reportText));
   log('report has time, Claude usage, estimate', /Time:/.test(reportText) && /Claude:/.test(reportText) && /The other 5 recordings/.test(reportText));
@@ -164,7 +165,7 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   const rest = await until(async () => (await total()) - base === 30);
   log('remaining 5 imported', rest);
   if (!rest) errors.push('remaining recordings were not imported');
-  await page.waitForFunction(() => !document.querySelector('section[aria-label="Test batch results"]') || true);
+  await page.waitForFunction(() => !document.querySelector('section[aria-label="Batch results"]') || true);
 
   // automatic sync (its switch is shelved, so it is driven through the API): the sidebar shows status; nothing is imported twice
   const post = (url, body) => page.evaluate(async ([u, b]) => (await fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) })).status, [url, body]);

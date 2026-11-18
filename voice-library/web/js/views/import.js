@@ -77,8 +77,8 @@ export async function importView({ main }) {
         }
       }
       if (r.failed.length) lines.push(h("p", { style: "margin:0;color:var(--danger)" }, `Failed (${r.failed.length}): ${r.failed.map((f) => `${f.name}: ${f.error}`).join("; ")}`));
-      put(reportBox, h("section", { class: "banner report", style: "flex-direction:column;align-items:stretch;gap:12px", "aria-label": "Test batch results" },
-        h("h2", { class: "eyebrow ul", style: "align-self:flex-start" }, `Test batch results · ${plural(r.processed, "recording")} processed`),
+      put(reportBox, h("section", { class: "banner report", style: "flex-direction:column;align-items:stretch;gap:12px", "aria-label": "Batch results" },
+        h("h2", { class: "eyebrow ul", style: "align-self:flex-start" }, `Batch results · ${plural(r.processed, "recording")} processed`),
         lines,
         h("div", { class: "actions" },
           rem && rem.files ? h("button", { type: "button", class: "primary", onclick: () => { put(reportBox); startFolder({ path: meta.folder }); } }, `Import the remaining ${rem.files}`) : null,
@@ -107,6 +107,7 @@ export async function importView({ main }) {
               h("div", { class: "muted", style: "font-size:14px" }, `${plural(vm.count, "recording")} found on this computer. They are read where they are and never changed.`)),
             h("div", { class: "actions" },
               h("button", { type: "button", class: "ghost", title: "Imports your newest recordings first and reports how long it took and what Claude cost, so you can estimate the whole library", onclick: () => startFolder({ source: "voice_memos", newest: Math.min(25, vm.count) }) }, `Try a test batch (${Math.min(25, vm.count)} newest)`),
+              h("button", { type: "button", class: "ghost", title: "Imports the next 100 newest recordings that aren't in the library yet, and reports time and Claude usage when done", onclick: () => startFolder({ source: "voice_memos", newest: Math.min(100, vm.count) }) }, "Import the next 100"),
               h("button", { type: "button", class: "primary", onclick: () => startFolder({ source: "voice_memos" }) }, `Import all ${vm.count}`)))
         : h("div", { class: "sysnote", style: "margin:0" }, vm.problem));
     } catch (_) { vmBox.replaceChildren(); }
