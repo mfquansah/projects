@@ -1,12 +1,12 @@
 # Voice Note Library
-Product brief | Version 2 | Updated: 2026-11-16 | Status: prototype (built; verified on demo data, partly on the user's real notes) | Link: voice-library/ in mfquansah/projects
+Product brief | Version 3 | Updated: 2026-11-18 | Status: prototype (in use on the user's real library; bulk import under way) | Link: voice-library/ in mfquansah/projects
 
 ## 1. Product overview
 A searchable personal audio library for voice recordings. It transcribes each note on your computer, writes a title, summary, category and tags with Claude, listens for sounds like a baby laughing or babbling, and lets you find a recording by describing it in plain language, then play it. It is a personal audio library, not a generic AI note-taking app. `[confirmed]`
 It runs as a local web app (`python -m vl.cli serve`) with one big search box. A phone web app that mirrors it is the agreed next direction. `[confirmed]`
 
 ## 2. Problem statement
-About 1,000 recordings (ideas, conversations, family memories) live in Apple Voice Memos, which only labels them by date and location. There is no tagging, categorization or search, so a specific recording (for example the baby laughing two weeks or two years ago) cannot be found, and most old notes are no longer remembered at all. `[confirmed]`
+About 505 recordings (ideas, conversations, family memories; the user first guessed ~1,000) live in Apple Voice Memos, which only labels them by date and location. There is no tagging, categorization or search, so a specific recording (for example the baby laughing two weeks or two years ago) cannot be found, and most old notes are no longer remembered at all. `[confirmed]`
 
 ## 3. Target users
 The builder, as the only user for now. Wants to find any recording quickly and to see what a note is without playing it. `[confirmed]`
@@ -17,7 +17,7 @@ Replaces paid tools (Granola, Pocket) with something free to run. Audio and tran
 ## 5. Goals and success metrics (proposed until validated)
 - Retrieve a specific recording from a natural-language question, with its title, summary, category and working playback. `[inferred]`
 - A baby clip can be found fast (about 30 seconds). `[confirmed]`
-- The whole library (~1,000 notes) is imported and kept in sync without manual work. `[confirmed]`
+- The whole library (505 recordings) is imported and kept in sync without manual work. `[confirmed]`
 - Offered and not picked for the first-version bar: the right note near the top for most questions, and works on the phone too. `[confirmed]`
 - Search quality is not yet measured: an eval runner exists but has not been run on real recordings (the user plans to record clips with known answers first). `[confirmed]`
 
@@ -41,8 +41,8 @@ Replaces paid tools (Granola, Pocket) with something free to run. Audio and tran
 1. Speech pilot (import, transcribe, label, search). **Done on real notes.**
 2. Sound tagging. **Built; recall on a real baby giggle unconfirmed.**
 3. Web page, redesigned. **Built; the real-library experience is only partly seen.**
-4. Full run on ~1,000 notes. **Not started: time and cost unmeasured; needs newest-first order, an estimate and pause/resume.**
-5. Voice Memos sync. **Built; unverified on the user's Mac.**
+4. Full import of the 505 recordings. **In progress: a 25-recording test batch took about an hour with no failures (about 9 s of work per minute of audio, ~384 minutes of audio); at that rate the rest is roughly 19 hours, so it is run in chunks ("next 100"). Newest first. Pause/resume and a live estimate are on the shelf.**
+5. Voice Memos import and sync. **Import verified on the user's Mac (505 found, macOS Full Disk Access granted). Automatic sync is built and tested but its switch is shelved.**
 6. Phone web app mirroring everything, reaching the library through the user's Mac first (a cloud copy later), then a native app with in-app recording. **Agreed; not started. Comes after the large import.** `[confirmed]`
 
 ## 9. Designs and work products
@@ -55,8 +55,8 @@ Replaces paid tools (Granola, Pocket) with something free to run. Audio and tran
 | Implementation plan (rev 2) | ~/.claude/plans/fluttering-wondering-pebble.md (session-local, not in the repo) | Original architecture and milestones | Approved 2026-11-15; since extended |
 
 ## 10. Key risks and assumptions
-- Voice Memos folder location and macOS permission (Full Disk Access) are from memory and untested on the user's Mac. `[inferred]`
-- Importing ~1,000 notes may take hours and use Claude for each title; unmeasured. `[inferred]`
+- Voice Memos folder location and macOS permission: verified 2026-11-17 (Full Disk Access had to be granted to Terminal and Terminal fully restarted). `[confirmed]`
+- Time and cost: measured on 25 recordings (about 1 h; about 60,000 tokens in, 8,600 out); where the time goes is not yet known (the next batch reports it). Dollar cost not shown: prices are not set. `[confirmed]`
 - Baby-sound detection on home phone audio: baby babbling was detected clearly; a giggle was not found, so weak detections are now kept ("possibly"). Cutoffs 0.30/0.15 are guesses. `[inferred]`
 - Claude's match labels and meaning-search cutoff (0.25) are untuned. `[inferred]`
 - Date from the browser's file-modified time (uploads) may be the export time. `[inferred]`

@@ -1,0 +1,158 @@
+<title>Build trail</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: a quiet reading page. A summary strip, a status table, a searchable decision log, then the open lists and the brief. */
+:root {
+  --bg: #F2F0EF; --surface: #FBFAF9; --ink: #1F2429; --muted: #5E6670; --line: #E2DFDC; --accent: #2F3A44; --soft: #E6E5E3;
+  --ok: #1F5A3A; --ok-bg: #DDEBE2; --prog: #7A4B00; --prog-bg: #F1E6CF; --nv: #4A4F57; --nv-bg: #E3E4E6;
+  --next: #1F3A5A; --next-bg: #DDE6F0; --ns: #5A5D63; --ns-bg: #ECEBE9; --idea: #4F3B73; --idea-bg: #E8E2F1;
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif; --sans: Inter, -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #161715; --surface: #1D1F1C; --ink: #ECEAE4; --muted: #A3A69F; --line: #2D302B; --accent: #9FB4C6; --soft: #262925;
+  --ok: #8FD1A8; --ok-bg: #1F3328; --prog: #E3B866; --prog-bg: #3A2E14; --nv: #B7BBC2; --nv-bg: #2A2D31;
+  --next: #9DBEE6; --next-bg: #1E2B3C; --ns: #A3A6AB; --ns-bg: #26282B; --idea: #C3AEE6; --idea-bg: #2D2540; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #161715; --surface: #1D1F1C; --ink: #ECEAE4; --muted: #A3A69F; --line: #2D302B; --accent: #9FB4C6; --soft: #262925;
+  --ok: #8FD1A8; --ok-bg: #1F3328; --prog: #E3B866; --prog-bg: #3A2E14; --nv: #B7BBC2; --nv-bg: #2A2D31;
+  --next: #9DBEE6; --next-bg: #1E2B3C; --ns: #A3A6AB; --ns-bg: #26282B; --idea: #C3AEE6; --idea-bg: #2D2540; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 40px 72px; display: flex; flex-direction: column; gap: 44px; }
+h1, h2 { font-family: var(--serif); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(34px, 6vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
+h2 { font-size: 26px; line-height: 1.2; }
+a { color: var(--accent); }
+code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 1px 5px; border-radius: 5px; overflow-wrap: anywhere; }
+.sub { color: var(--muted); margin: 10px 0 0; max-width: 62ch; }
+.eyebrow { font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+nav.jump { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 18px; font-size: 14px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.stat dt { font-size: 12px; color: var(--muted); }
+.stat dd { margin: 2px 0 0; font: 400 30px/1.1 var(--serif); font-variant-numeric: tabular-nums; }
+.stat small { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.lede { margin: 0; max-width: 70ch; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-top: 1px solid var(--line); }
+tr:first-child th, tr:first-child td { border-top: 0; }
+th[scope="row"] { font-weight: 500; width: 30%; }
+.pill { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; vertical-align: 1px; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); } .pill.prog { color: var(--prog); background: var(--prog-bg); }
+.pill.nv { color: var(--nv); background: var(--nv-bg); } .pill.next { color: var(--next); background: var(--next-bg); }
+.pill.ns { color: var(--ns); background: var(--ns-bg); } .pill.idea { color: var(--idea); background: var(--idea-bg); }
+ol.steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 8px; }
+.controls input { flex: 1 1 220px; min-width: 0; font: inherit; padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); }
+.chip { font: inherit; font-size: 13px; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shown { font-size: 13px; color: var(--muted); margin: 0; }
+details.dec, details.grp { border-top: 1px solid var(--line); }
+details.dec:last-child, details.grp:last-child { border-bottom: 1px solid var(--line); }
+summary { cursor: pointer; padding: 13px 4px; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; margin-left: auto; color: var(--muted); font-size: 18px; line-height: 1; }
+details[open] > summary::after { content: "–"; }
+.date { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; flex: 0 0 42px; }
+.dtitle { font: 400 18px/1.3 var(--serif); flex: 1 1 240px; min-width: 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 11px; padding: 1px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.tag.conf { background: var(--soft); color: var(--ink); } .tag.norec { border-style: dashed; }
+dl { margin: 0; padding: 4px 4px 16px 56px; display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; }
+dl dt { color: var(--muted); } dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+details.grp ul, details.grp p { margin: 0 0 12px; padding: 0 4px 0 24px; }
+details.grp p { padding-left: 4px; }
+details.grp li { margin-bottom: 6px; }
+.count { font-size: 12px; color: var(--muted); }
+ul.shelf { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+footer { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+@media (max-width: 560px) { dl { padding-left: 4px; grid-template-columns: 1fr; gap: 2px; } dl dt { margin-top: 8px; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Voice Note Library</p>
+    <h1>Build trail</h1>
+    <p class="sub">The reasons behind each decision, what is built and what isn't verified, and what we put on the shelf. Rendered from the markdown in the repo, which stays the source of truth.</p>
+    <nav class="jump" aria-label="Sections"><a href="#now">Where we are</a><a href="#decisions">Decisions</a><a href="#open">Open items</a><a href="#shelf">Shelf</a><a href="#brief">Brief</a></nav>
+  </header>
+
+  <dl class="stats">
+    <div class="stat"><dt>Decisions logged</dt><dd>%%count%%</dd><small>from decisions.md</small></div>
+    <div class="stat"><dt>You confirmed</dt><dd>%%conf%%</dd><small>I inferred %%inf%%; some are both</small></div>
+    <div class="stat"><dt>Reason not recorded</dt><dd>%%norec%%</dd><small>left blank rather than invented</small></div>
+    <div class="stat"><dt>Open items</dt><dd>%%open_items%%</dd><small>%%done_items%% resolved, from revisit.md</small></div>
+    <div class="stat"><dt>On the shelf</dt><dd>%%shelf%%</dd><small>from build-later.md</small></div>
+  </dl>
+
+  <section id="now" aria-labelledby="now-h">
+    <div><p class="eyebrow">Progress report of %%prog_date%%</p><h2 id="now-h">Where we are</h2></div>
+    <p class="lede"><strong>Phase:</strong> %%phase%%</p>
+    <p class="lede"><strong>Milestones:</strong> %%milestones%%</p>
+    <div class="tablewrap"><table><tbody>
+%%status_rows%%
+    </tbody></table></div>
+    <div><p class="eyebrow">Next steps</p><ol class="steps">%%steps%%</ol></div>
+  </section>
+
+  <section id="decisions" aria-labelledby="dec-h">
+    <div><p class="eyebrow">Newest first</p><h2 id="dec-h">Decisions</h2></div>
+    <div class="controls">
+      <label for="q" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search decisions</label>
+      <input id="q" type="search" placeholder="Search decisions, e.g. sync or privacy">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" type="button" data-f="conf" aria-pressed="false">Confirmed</button>
+      <button class="chip" type="button" data-f="inf" aria-pressed="false">Inferred</button>
+      <button class="chip" type="button" data-f="norec" aria-pressed="false">Reason not recorded</button>
+    </div>
+    <p class="shown" id="shown" role="status" aria-live="polite"></p>
+    <div id="list">
+%%decisions%%
+    </div>
+  </section>
+
+  <section id="open" aria-labelledby="open-h">
+    <div><p class="eyebrow">Guesses and unverified things</p><h2 id="open-h">Open items</h2></div>
+    <div>%%revisit%%</div>
+  </section>
+
+  <section id="shelf" aria-labelledby="shelf-h">
+    <div><p class="eyebrow">Features we chose to defer</p><h2 id="shelf-h">Shelf</h2></div>
+    <ul class="shelf">%%later%%</ul>
+  </section>
+
+  <section id="brief" aria-labelledby="brief-h">
+    <div><p class="eyebrow">%%brief_head%%</p><h2 id="brief-h">Product brief</h2></div>
+    <div>%%brief%%</div>
+  </section>
+
+  <footer>Rendered %%today%% from voice-library/docs. Last build-trail wrap-up: %%state%%. If this page and the markdown ever disagree, the markdown is right.</footer>
+</main>
+
+<script>
+(function () {
+  var items = Array.prototype.slice.call(document.querySelectorAll("details.dec"));
+  var q = document.getElementById("q"), shown = document.getElementById("shown"), chips = document.querySelectorAll(".chip"), filter = "all";
+  var text = items.map(function (el) { return el.textContent.toLowerCase(); });
+  function apply() {
+    var term = q.value.trim().toLowerCase(), n = 0;
+    items.forEach(function (el, i) {
+      var okF = filter === "all" || (filter === "conf" && el.dataset.conf === "1") || (filter === "inf" && el.dataset.inf === "1") || (filter === "norec" && el.dataset.norec === "1");
+      var ok = okF && (!term || text[i].indexOf(term) !== -1);
+      el.hidden = !ok; if (ok) n++;
+    });
+    shown.textContent = "Showing " + n + " of " + items.length + " decisions";
+  }
+  chips.forEach(function (c) { c.addEventListener("click", function () {
+    filter = c.dataset.f; chips.forEach(function (x) { x.setAttribute("aria-pressed", x === c ? "true" : "false"); }); apply(); }); });
+  q.addEventListener("input", apply);
+  apply();
+})();
+</script>
