@@ -117,6 +117,12 @@ compare runs after a change. Misspelled filenames in the file stop the run inste
 Use `--modes search` for a free local-only run. Call counts are a proxy for cost; token usage isn't measured yet.
 The example file's filenames are placeholders: it only works on a library that has those notes.
 
+## Timing where the time goes
+```bash
+python -m vl.cli profile --voicememos 3          # newest 3 Voice Memos; add --no-sounds or --no-claude to skip a stage
+```
+Runs each recording through transcription, Claude, embedding and sound detection in a throwaway library (yours is not touched) and prints seconds per stage and the slowest stage.
+
 ## Tests
 ```bash
 pytest -q

@@ -288,3 +288,10 @@
 - Why: user: "let's do the next 100. but this is only because we're building the first one. in more product-ready builds ... we will sync, right?" I confirmed, and noted the first catch-up remains and speed matters more for it.
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-18 - Build a timing tool (`vl profile`) before changing anything for speed
+- Decision: add `python -m vl.cli profile` that runs a few recordings through every stage in a throwaway library, times model loading and each stage separately, and names the slowest stage. Shelve the blog notes and the morning to-do feature for now and work on speed.
+- Alternatives considered/rejected: waiting for the next-100 results card (same answer, hours later); guessing the slow stage (transcription and sound detection were only my guess).
+- Why: user: "let's shelf blog notes and morning to do for now. Let's work on the speed", then "yes, build the timing tool". Minutes instead of hours to learn where the time goes.
+- Reversible? yes
+- Source: confirmed

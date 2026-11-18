@@ -78,6 +78,70 @@ def cmd_sounds(args: argparse.Namespace) -> None:
     print(f"Checked {r['analyzed']} notes, found {r['events']} sound events, errors {r['errors']}.")
 
 
+def cmd_profile(args: argparse.Namespace) -> None:
+    """Time each stage on a few recordings, in a throwaway library (your real one is untouched)."""
+    import time
+
+    from vl.timing import format_profile, profile_files
+    from vl.voicememos import audio_files, find_voice_memos, newest_first
+
+    paths: list[Path] = []
+    for raw in args.paths:
+        p = Path(raw).expanduser()
+        if p.is_dir():
+            paths += newest_first(audio_files(p))
+        elif p.is_file():
+            paths.append(p)
+        else:
+            raise SystemExit(f"'{p}' is not a file or folder.")
+    if args.voicememos:
+        vm = find_voice_memos()
+        if not vm["found"]:
+            raise SystemExit(vm["problem"])
+        paths += newest_first(audio_files(Path(vm["path"])))[: args.voicememos]
+    paths = paths[: args.limit]
+    if not paths:
+        raise SystemExit("Give me recordings to time: file paths, a folder, or --voicememos 3.")
+
+    loads: dict[str, float] = {}
+
+    def timed(name, fn):
+        t = time.perf_counter()
+        obj = fn()
+        loads[name] = time.perf_counter() - t
+        return obj
+
+    from vl.index.embeddings import SentenceTransformerEmbedder
+    from vl.transcribe.whisper import FasterWhisperTranscriber
+
+    transcriber = timed(f"Whisper ({args.whisper_model})", lambda: FasterWhisperTranscriber(args.whisper_model))
+    embedder = timed("Embedding model", SentenceTransformerEmbedder)
+    tagger = None
+    if not args.no_sounds:
+        from vl.sounds.tagger import AudioSetTagger
+
+        tagger = timed("Sound model", lambda: AudioSetTagger(device=args.device))
+    if args.no_claude or not os.environ.get("ANTHROPIC_API_KEY"):
+        from vl.enrich.llm import EnrichmentResult
+
+        class _Skip:
+            model_version = "skipped"
+
+            def enrich(self, transcript, categories, recorded_at):
+                return EnrichmentResult(title="(skipped)", summary="", category="Other", model_version="skipped")
+
+        if not args.no_claude:
+            print("ANTHROPIC_API_KEY isn't set, so the Claude step is skipped (its time won't be measured).")
+        enricher = _Skip()
+    else:
+        from vl.enrich.llm import ClaudeEnricher
+
+        enricher = ClaudeEnricher(args.llm_model)
+    print(f"Timing {len(paths)} recording(s) in a throwaway library. Your real library is not touched.\n")
+    rows = profile_files(paths, transcriber, enricher, embedder, tagger, log=print)
+    print("\n" + format_profile(rows, loads))
+
+
 def cmd_serve(args: argparse.Namespace) -> None:
     if args.host not in ("127.0.0.1", "localhost"):
         raise SystemExit("For privacy the page only runs on this computer (127.0.0.1). "
@@ -314,6 +378,17 @@ def main() -> None:
     a.add_argument("--llm-model", default="claude-haiku-5-5")
     a.add_argument("--whisper-model", default="small")
     a.set_defaults(func=cmd_serve)
+
+    a = sub.add_parser("profile", help="time each stage on a few recordings (nothing is added to your library)")
+    a.add_argument("paths", nargs="*", help="audio files or folders")
+    a.add_argument("--voicememos", type=int, metavar="N", help="also use the N newest Voice Memos recordings")
+    a.add_argument("--limit", type=int, default=5, help="time at most this many recordings (default 5)")
+    a.add_argument("--whisper-model", default="small")
+    a.add_argument("--llm-model", default="claude-haiku-5-5")
+    a.add_argument("--device", default=None, help="sound model device, e.g. mps (untested)")
+    a.add_argument("--no-sounds", action="store_true", help="skip sound detection")
+    a.add_argument("--no-claude", action="store_true", help="skip the Claude step (no key needed)")
+    a.set_defaults(func=cmd_profile)
 
     a = sub.add_parser("process", help="transcribe, enrich and index imported notes")
     a.add_argument("--limit", type=int)

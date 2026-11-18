@@ -91,3 +91,7 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 
 ## J. Waiting on results (2026-11-17)
 - [ ] **Test batch on the real Mac is running**: its results card (time, Claude tokens, estimate for the other ~480) is the next thing to record. After it, refresh `docs/brief.md` (library size is 505, not ~1,000) and write the next progress report at the next wrap-up.
+
+## K. Timing tool (2026-11-18)
+- [ ] **`vl profile` is tested with fakes only**; run it on the Mac (`python -m vl.cli profile --voicememos 3`) and record the per-stage seconds. The first recording may be slower (warm-up); `--device mps` for sounds is untested.
+- [ ] Decide the speed fix from its numbers (separate sound pass, smaller Whisper model, parallel Claude calls).
