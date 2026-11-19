@@ -323,3 +323,14 @@ def test_a_file_over_the_size_limit_is_rejected_cleanly(env, tmp_path, monkeypat
     r = c.post("/api/import", files=[("files", ("big.m4a", b"x" * 50, "audio/mp4"))])
     assert r.status_code == 400
     assert not list((tmp_path / "up").rglob("*.m4a"))
+
+
+def test_page_files_are_revalidated_not_cached(tmp_path):
+    from fastapi.testclient import TestClient
+    from vl.api.main import create_app
+    from vl.db import make_session_factory
+
+    app = create_app(make_session_factory(tmp_path / "t.db"))
+    c = TestClient(app)
+    assert c.get("/").headers["cache-control"] == "no-cache"
+    assert c.get("/static/js/app.js").headers["cache-control"] == "no-cache"

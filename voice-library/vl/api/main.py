@@ -117,14 +117,22 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             raise HTTPException(400, str(exc)) from exc
 
     if WEB_DIR.is_dir():
-        app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
+        class _FreshStatic(StaticFiles):
+            """Local app: always re-check the page's files so an update shows straight away (no stale cached scripts)."""
+
+            async def get_response(self, path, scope):
+                resp = await super().get_response(path, scope)
+                resp.headers["Cache-Control"] = "no-cache"
+                return resp
+
+        app.mount("/static", _FreshStatic(directory=WEB_DIR), name="static")
 
     @app.get("/")
     def index():
         page = WEB_DIR / "index.html"
         if not page.is_file():
             raise HTTPException(404, "web/index.html is missing")
-        return FileResponse(page)
+        return FileResponse(page, headers={"Cache-Control": "no-cache"})
 
     @app.get("/api/settings")
     def get_settings():
