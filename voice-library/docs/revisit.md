@@ -95,3 +95,4 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 ## K. Timing tool (2026-11-18)
 - [ ] **`vl profile` is tested with fakes only**; run it on the Mac (`python -m vl.cli profile --voicememos 3`) and record the per-stage seconds. The first recording may be slower (warm-up); `--device mps` for sounds is untested.
 - [ ] Decide the speed fix from its numbers (separate sound pass, smaller Whisper model, parallel Claude calls).
+- [ ] **One unexplained test failure (2026-11-19)**: the suite failed once (1 of 230) right after the logo rename, then passed 9 runs in a row. I didn't capture which test. Likely a timing-sensitive background-thread test (jobs/sync). If it recurs, run `pytest -q 2>&1 | grep FAILED` to name it.
