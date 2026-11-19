@@ -102,7 +102,7 @@ class DetailsBody(BaseModel):
 def create_app(session_factory, embedder=None, parser=None, reranker=None, audio_root: Path | None = None,
                claude_unavailable_reason: str | None = None, import_manager=None, cache_dir: Path | None = None,
                upload_dir: Path | None = None, sync_manager=None) -> FastAPI:
-    app = FastAPI(title="Kasa Daka", docs_url=None, redoc_url=None)
+    app = FastAPI(title="Kasa Adaka", docs_url=None, redoc_url=None)
     # defend against DNS-rebinding: only answer requests addressed to this computer
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
     claude_ok = parser is not None

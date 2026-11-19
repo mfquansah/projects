@@ -18,7 +18,7 @@ CANDIDATES = [
 MAX_FILES = 5000
 
 PERMISSION_HELP = ("macOS is blocking access to Voice Memos. Open System Settings, then Privacy & Security, then Full Disk Access, "
-                   "turn it on for Terminal (or whichever app you started this from), and restart Kasa Daka. "
+                   "turn it on for Terminal (or whichever app you started this from), and restart Kasa Adaka. "
                    "Or drag your recordings out of Voice Memos into a Finder folder and import that folder instead.")
 
 

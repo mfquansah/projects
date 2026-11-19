@@ -20,7 +20,7 @@ export async function library({ main }) {
     h("div", { class: "hero-wave", "aria-hidden": "true" }, bars),
     h("div", { class: "inner" },
       h("div", { class: "eyebrow" }, `A personal archive · ${plural(total, "recording")}`),
-      h("h1", {}, "Kasa Daka"),
+      h("h1", {}, "Your library"),
       h("p", {}, "Voice notes, transcribed and searchable. Audio stays on this computer; only text goes to Claude.")));
 
   const tries = (home?.try || []).map((q) => h("a", { href: `#/search?q=${encodeURIComponent(q)}` }, `${q} ↗`));
