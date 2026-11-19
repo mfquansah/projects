@@ -38,6 +38,20 @@ Here's the order I worked in. Each step had its own surprise.
 - **It was slow.** 25 recordings took about an hour, and nearly all of that was transcription. So I measured first, with a test batch, before importing the rest.
 - **Tests that passed on one machine failed on the other.** The tests ran fine in the cloud and failed on my Mac, which led to the date fix above.
 
+## Designing it with Claude Design
+
+This was the most fun part. Before any screen existed in code, I worked on mockups in Claude Design: the library, search, a single recording, and import. I brought my own earlier mockup, and we pushed it toward something more minimal. [Add the first mockup and the final version side by side.]
+
+I gave a lot of feedback, one round at a time, and the design moved with it:
+- **The search box:** make it taller, and put the prompt ("Find a thought, recording or memory…") in a serif font, upright and a little faint.
+- **The look:** my first reaction was "it looks like a Claude app, and I don't want that." I pointed to a couple of sites I liked, including Harvard's. We tried a deep crimson, and it was too strong. We landed on soft ivory with slate and charcoal accents, and a background of `#F2F0EF`.
+- **The layout:** keep the collections on the welcome screen and in the sidebar too.
+- **The corners:** "quite sharp." I wanted the app to be beautiful and calming to look at, so everything got softer.
+
+Then there was the logo. The name is **Kasa Adaka**, which is Twi for roughly "talk box" (*kasa*, speech, and *adaka*, box). The icon is four bars of different heights, like a sound wave, inside a rounded outline. I designed it in Claude Design, in green, gold and red. [Add the logo. Say here if the colours mean something to you.]
+
+A small lesson from the logo: **give the tool the source, not a picture of it.** I sent screenshots, and Claude guessed at the font three times and got it wrong each time. When I pasted the actual HTML from the design file, the answer was right there: the font was Sora, with exact sizes and colours. A screenshot shows what something looks like, and the source says what it is.
+
 ## The tech stack, in plain language
 
 | Job | What does it | Where it runs |
