@@ -73,10 +73,26 @@ The app also has 230 automated tests, plus a test that drives the app in a real 
 
 One lesson stands out: **when you build with AI tools, engage with how they work.** Ask what each tool is doing and why. Several of my best moments were asking "wait, what are we testing right now?"
 
+## The problem right now: importing takes forever
+
+The biggest bottleneck is speed. I set a timer on the test import to record it: **25 recordings took about an hour**, roughly 2 minutes each. At that rate:
+
+| Import | Recordings | Rough time |
+|---|---|---|
+| The test batch | 25 | about 1 hour (measured) |
+| The next batch | 100 | about 4 hours |
+| Everything left | about 480 | about 18 to 19 hours (an estimate) |
+
+A tool I built to time each stage showed where the time goes: **about 90% is transcription**, turning speech into text. Titling, indexing and sound detection together are small by comparison. [Add the result of the next 100 and the time breakdown.]
+
+So what's the answer? The best fix for how it *feels* is **automatic syncing in the background**. I don't want to import in batches and sit watching a progress bar. I want the app to quietly pick up each new recording from Voice Memos as I make it, and by the time I look for it, it's there. A single new recording takes a couple of minutes, which nobody notices in the background.
+
+To be honest about it, sync doesn't make the work any faster. It hides the wait. Importing my 500 old recordings for the first time is still a long job, so I'm also looking at making transcription itself faster. The options I haven't tried yet are a quicker way of decoding the speech, processing it in chunks at the same time, and using the Mac's graphics chip. [Add which one you try and what it changed.]
+
 ## What's next
 
 - **Error analysis and evals.** I need to check that the AI is giving the right output, using recordings where I know the answer.
-- **Making sync automatic.** Right now I import from Voice Memos on my Mac. I'm working on getting it to run by itself.
+- **Making sync automatic.** Right now I import from Voice Memos on my Mac and I choose when. The sync is built and tested, and the next step is getting it to run by itself in the background.
 - **The phone.** Nobody really wants this only on a desktop. As far as I can tell, Apple doesn't give apps a simple way to pull Voice Memos off the phone, so I need an approved way to sync that ends up on a mobile app. [Confirm the wording on Apple's limits before publishing.]
 
 ---
