@@ -22,6 +22,22 @@ The design began on paper, because I still love paper. I took the sketches to Ch
 
 The part that made this really cool: while building, I created a skill called **build trail**. It records the process as we go (every decision, why we made it, and what's still a guess) and then generates a product brief from that record. So I can look back at not just what the app does, but why it does it that way. [Link to the decision log or the build-trail page.]
 
+## The steps
+
+Here's the order I worked in. Each step had its own surprise.
+
+**1. Figure out how to export the audio.** I assumed I could drag recordings out of Voice Memos and into the app. It doesn't work: dragging out of Voice Memos hands over a "promise" of a file, not a file, so a browser gets nothing. Then I found that macOS blocks apps from reading the Voice Memos folder unless you grant Full Disk Access, and Terminal has to be fully restarted for it to count. The fix was to have the app read the Mac's Voice Memos library directly, with a clear message that explains the permission. That's also when I learned I have **505 recordings, not the 1,000 I'd guessed**.
+
+**2. Categorize the audio.** As each recording comes in, Claude reads the transcript and gives it a title, a short summary, a few tags and a collection. I started with five collections (Ideas, Family memories, Work & projects, Personal reflections and Other). Claude can suggest new ones, but nothing changes until I accept. There's also a review list for recordings that may be accidental, and a rule I set early: **archive, never delete.**
+
+**3. Make it searchable.** I wanted to type the way I'd talk: "the recording of my baby laughing" or "my longest note about work". The app combines exact-word search with search by meaning, and Claude works out the question: the topic, the dates, "my longest". Then it labels each result as a clear match, a partial match or only related, and says why. Sounds are searchable too, even when nobody speaks.
+
+**4. Importing issues.** This was where the real world pushed back:
+- **Every date was wrong.** The first 19 imports all carried the date I exported them, not the date I recorded them. The fix was to read the date from inside the audio file itself.
+- **Installs and updates broke things.** Downloads timed out on my Mac, and a dependency update stopped transcription completely until we pinned the older version.
+- **It was slow.** 25 recordings took about an hour, and nearly all of that was transcription. So I measured first, with a test batch, before importing the rest.
+- **Tests that passed on one machine failed on the other.** The tests ran fine in the cloud and failed on my Mac, which led to the date fix above.
+
 ## The tech stack, in plain language
 
 | Job | What does it | Where it runs |
