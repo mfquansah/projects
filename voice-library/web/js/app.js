@@ -27,11 +27,25 @@ function syncLine() {
     h("button", { type: "button", class: "link", onclick: async () => { try { await api("/api/sync/run", { method: "POST", body: {} }); } catch (_) { /* shown on refresh */ } refreshSync(); } }, "Sync now"));
 }
 
+// The Kasa Adaka logo, copied from the design file (icon 64x64, wordmark 116x76; the words are stretched to the same width).
+const LOGO_SVG = `<svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kasa Adaka">
+<rect x="3" y="3" width="58" height="58" fill="none" rx="13" stroke="#26323C" stroke-width="3.5"/>
+<rect x="14" y="23" width="6" height="18" fill="#1E8A5C" rx="3"/><rect x="24" y="13" width="6" height="38" fill="#EDB231" rx="3"/>
+<rect x="34" y="16" width="6" height="32" fill="#D2432B" rx="3"/><rect x="44" y="26" width="6" height="12" fill="#EDB231" rx="3"/></svg>
+<svg class="logo-word" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116 76" aria-hidden="true">
+<text x="0" y="36" textLength="116" lengthAdjust="spacing" font-family="'Sora', system-ui, sans-serif" font-weight="700" font-size="46" fill="#26323C">kasa</text>
+<text x="0" y="76" textLength="116" lengthAdjust="spacing" font-family="'Sora', system-ui, sans-serif" font-weight="300" font-size="38" fill="#26323C">adaka</text></svg>`;
+
+function brandLogo() {
+  const el = h("a", { class: "brand", href: "#/", "aria-label": "Kasa Adaka, home" });
+  el.innerHTML = LOGO_SVG;  // fixed markup above, no user data
+  return el;
+}
+
 function renderSide() {
   const home = state.home, side = $("#side");
   put(side,
-    h("div", { class: "brand" }, h("div", { class: "mark", "aria-hidden": "true" }, [["#1E8A5C", 12], ["#EDB231", 25], ["#D2432B", 21], ["#EDB231", 8]].map(([c, ht]) => h("i", { style: `height:${ht}px;background:${c}` }))),
-      h("div", { class: "word" }, h("b", {}, "kasa"), h("span", {}, "adaka"))),
+    brandLogo(),
     h("div", { class: "nav" },
       h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, "Library"),
       h("a", { href: "#/search", ...(current.name === "search" ? { "aria-current": "page" } : {}) }, "Search"),
