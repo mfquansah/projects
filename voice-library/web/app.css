@@ -21,11 +21,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .app { display: flex; flex-wrap: wrap; min-height: 100vh; }
 .side { flex: 0 0 248px; padding: 32px 24px; display: flex; flex-direction: column; gap: 36px; border-right: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
-.brand .mark { display: flex; align-items: center; justify-content: center; gap: 2px; width: 30px; height: 36px; background: var(--accent); border-radius: 9px; }
-.brand .mark i { width: 3px; background: var(--accent-ink); border-radius: 2px; }
-.brand .word { display: flex; flex-direction: column; line-height: 1.1; }
-.brand .word b { font: 400 20px var(--serif); letter-spacing: .14em; text-transform: uppercase; }
-.brand .word span { font: 400 11px var(--serif); letter-spacing: .34em; text-transform: uppercase; color: var(--muted); }
+.brand .mark { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 36px; flex: none; }
+.brand .mark i { display: block; height: 3px; background: #175F41; border-radius: 2px; }
+.brand .mark i.gold { background: #E4A030; height: 3.5px; }
+.brand .word { display: flex; flex-direction: column; line-height: 1; gap: 1px; font-family: -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif; color: #17201B; }
+.brand .word b { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.brand .word span { font-size: 24px; font-weight: 300; letter-spacing: -.005em; color: inherit; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav a { padding: 9px 12px; border-radius: var(--r-sm); }
 .nav a[aria-current="page"] { background: var(--nav-active); font-weight: 500; }

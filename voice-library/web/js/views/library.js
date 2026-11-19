@@ -3,6 +3,11 @@ import { h, api, plural, put } from "../util.js";
 import { state, go } from "../core.js";
 import { searchBox, noteRows, emptyLibrary } from "./common.js";
 
+function greeting(now = new Date()) {
+  const hr = now.getHours();
+  return hr < 5 ? "Still up?" : hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+}
+
 export async function library({ main }) {
   main.classList.add("flush");
   const home = state.home;
@@ -20,7 +25,7 @@ export async function library({ main }) {
     h("div", { class: "hero-wave", "aria-hidden": "true" }, bars),
     h("div", { class: "inner" },
       h("div", { class: "eyebrow" }, `A personal archive · ${plural(total, "recording")}`),
-      h("h1", {}, "Your library"),
+      h("h1", {}, greeting()),
       h("p", {}, "Voice notes, transcribed and searchable. Audio stays on this computer; only text goes to Claude.")));
 
   const tries = (home?.try || []).map((q) => h("a", { href: `#/search?q=${encodeURIComponent(q)}` }, `${q} ↗`));
