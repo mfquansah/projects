@@ -30,7 +30,7 @@ function syncLine() {
 function renderSide() {
   const home = state.home, side = $("#side");
   put(side,
-    h("div", { class: "brand" }, h("div", { class: "mark", "aria-hidden": "true" }, [32, 58, 83, 58, 32].map((w, i) => h("i", { class: i === 2 ? "gold" : "", style: `width:${Math.round(w * 0.42)}px` }))),
+    h("div", { class: "brand" }, h("div", { class: "mark", "aria-hidden": "true" }, [["#0E6B47", 14], ["#E9A912", 25], ["#C8402A", 18], ["#E9A912", 9]].map(([c, ht]) => h("i", { style: `height:${ht}px;background:${c}` }))),
       h("div", { class: "word" }, h("b", {}, "kasa"), h("span", {}, "adaka"))),
     h("div", { class: "nav" },
       h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, "Library"),

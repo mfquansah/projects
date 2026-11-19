@@ -21,9 +21,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .app { display: flex; flex-wrap: wrap; min-height: 100vh; }
 .side { flex: 0 0 248px; padding: 32px 24px; display: flex; flex-direction: column; gap: 36px; border-right: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
-.brand .mark { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 36px; flex: none; }
-.brand .mark i { display: block; height: 3px; background: #175F41; border-radius: 2px; }
-.brand .mark i.gold { background: #E4A030; height: 3.5px; }
+.brand .mark { display: flex; align-items: center; justify-content: center; gap: 3px; width: 40px; height: 40px; flex: none; box-sizing: border-box; background: var(--surface); border: 1px solid #2F3A44; border-radius: 6px; }
+.brand .mark i { display: block; width: 4px; border-radius: 2px; }
 .brand .word { display: flex; flex-direction: column; line-height: 1; gap: 1px; font-family: -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif; color: #17201B; }
 .brand .word b { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
 .brand .word span { font-size: 24px; font-weight: 300; letter-spacing: -.005em; color: inherit; }
