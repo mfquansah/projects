@@ -1,6 +1,6 @@
-/* Kasa Adaka: ivory and slate, editorial. Local only: no external fonts or scripts (Figtree is bundled in web/fonts, OFL licence). */
-@font-face { font-family: 'Figtree'; font-weight: 300; font-style: normal; font-display: swap; src: url('/static/fonts/figtree-latin-300-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Figtree'; font-weight: 700; font-style: normal; font-display: swap; src: url('/static/fonts/figtree-latin-700-normal.woff2') format('woff2'); }
+/* Kasa Adaka: ivory and slate, editorial. Local only: no external fonts or scripts (Montserrat is bundled in web/fonts, OFL licence). */
+@font-face { font-family: 'Montserrat'; font-weight: 400; font-style: normal; font-display: swap; src: url('/static/fonts/montserrat-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 700; font-style: normal; font-display: swap; src: url('/static/fonts/montserrat-latin-700-normal.woff2') format('woff2'); }
 :root {
   --bg: #F2F0EF; --surface: #FBFAF9; --ink: #1F2429; --muted: #5E6670; --line: #E2DFDC; --line-strong: #D7D3CF;
   --accent: #2F3A44; --accent-ink: #F2F0EF; --accent-soft: #E6E5E3; --nav-active: #E6E3E0; --link-line: #8A96A0;
@@ -23,11 +23,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .app { display: flex; flex-wrap: wrap; min-height: 100vh; }
 .side { flex: 0 0 248px; padding: 32px 24px; display: flex; flex-direction: column; gap: 36px; border-right: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
-.brand .mark { display: flex; align-items: center; justify-content: center; gap: 3px; width: 40px; height: 40px; flex: none; box-sizing: border-box; background: var(--surface); border: 1px solid #2F3A44; border-radius: 6px; }
-.brand .mark i { display: block; width: 4px; border-radius: 2px; }
-.brand .word { display: flex; flex-direction: column; line-height: 1; gap: 1px; font-family: "Figtree", -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif; color: #17201B; }
-.brand .word b { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
-.brand .word span { font-size: 24px; font-weight: 300; letter-spacing: -.005em; color: inherit; }
+.brand .mark { display: flex; align-items: center; justify-content: center; gap: 3px; width: 40px; height: 40px; flex: none; box-sizing: border-box; background: transparent; border: 1.5px solid #26323C; border-radius: 6px; }
+.brand .mark i { display: block; width: 3.6px; border-radius: 2px; }
+.brand .word { display: flex; flex-direction: column; line-height: 1; gap: 2px; font-family: "Montserrat", -apple-system, system-ui, sans-serif; color: #26323C; letter-spacing: .04em; }
+.brand .word b { font-size: 20px; font-weight: 700; }
+.brand .word span { font-size: 20px; font-weight: 400; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav a { padding: 9px 12px; border-radius: var(--r-sm); }
 .nav a[aria-current="page"] { background: var(--nav-active); font-weight: 500; }
