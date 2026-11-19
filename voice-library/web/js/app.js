@@ -31,7 +31,7 @@ function renderSide() {
   const home = state.home, side = $("#side");
   put(side,
     h("div", { class: "brand" }, h("div", { class: "mark", "aria-hidden": "true" }, [11, 20, 14, 7].map((n) => h("i", { style: `height:${n}px` }))),
-      h("div", { class: "word" }, h("b", {}, "Voice"), h("span", {}, "Library"))),
+      h("div", { class: "word" }, h("b", {}, "Kasa"), h("span", {}, "Daka"))),
     h("div", { class: "nav" },
       h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, "Library"),
       h("a", { href: "#/search", ...(current.name === "search" ? { "aria-current": "page" } : {}) }, "Search"),

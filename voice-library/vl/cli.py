@@ -192,7 +192,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
                      claude_unavailable_reason=reason, import_manager=manager,
                      cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads", sync_manager=sync)
     url = f"http://127.0.0.1:{args.port}"
-    print(f"Voice Note Library running at {url}  (Ctrl+C to stop)")
+    print(f"Kasa Daka running at {url}  (Ctrl+C to stop)")
     if reason:
         print(f"  note: {reason}")
     if args.open:
