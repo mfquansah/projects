@@ -61,6 +61,7 @@ function renderSide() {
       h("a", { href: "#/attention", class: `attn${home && home.attention_count ? "" : " none"}` }, h("span", { class: "dot", "aria-hidden": "true" }), h("span", {}, "Needs attention"),
         home && home.attention_count ? h("span", { class: "n" }, home.attention_count) : null),
       syncLine(),
+      h("a", { class: "manual-link", href: "/manual", target: "_blank", rel: "noopener" }, "Manual: start, stop, settings ↗"),
       h("p", { class: "privacy" }, "Audio stays on this computer. Transcript text is sent to Claude to write titles and answer questions.")));
 }
 

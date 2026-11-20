@@ -136,6 +136,13 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             raise HTTPException(404, "web/index.html is missing")
         return FileResponse(page, headers={"Cache-Control": "no-cache"})
 
+    @app.get("/manual")
+    def manual():
+        page = WEB_DIR / "manual.html"
+        if not page.is_file():
+            raise HTTPException(404, "web/manual.html is missing")
+        return FileResponse(page, headers={"Cache-Control": "no-cache"})
+
     @app.get("/api/settings")
     def get_settings():
         return {"claude": claude_ok, "max_minutes": max_minutes or 0,

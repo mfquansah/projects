@@ -334,3 +334,15 @@ def test_page_files_are_revalidated_not_cached(tmp_path):
     c = TestClient(app)
     assert c.get("/").headers["cache-control"] == "no-cache"
     assert c.get("/static/js/app.js").headers["cache-control"] == "no-cache"
+
+
+def test_manual_page_is_served_and_not_cached(tmp_path):
+    from fastapi.testclient import TestClient
+    from vl.api.main import create_app
+    from vl.db import make_session_factory
+
+    c = TestClient(create_app(make_session_factory(tmp_path / "t.db")))
+    r = c.get("/manual")
+    assert r.status_code == 200 and "pocket manual" in r.text.lower()
+    assert r.headers["cache-control"] == "no-cache"
+    assert "--max-minutes" in r.text            # the length limit is documented
