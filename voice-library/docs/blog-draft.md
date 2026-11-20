@@ -79,6 +79,31 @@ The app also has 230 automated tests, plus a test that drives the app in a real 
 
 One lesson stands out: **when you build with AI tools, engage with how they work.** Ask what each tool is doing and why. Several of my best moments were asking "wait, what are we testing right now?"
 
+## The import side: making it safe to press the button twice
+
+Importing sounds boring until you have 500 recordings and an import that takes hours. Then it's the whole game. I wanted one rule: **I should be able to press Import as many times as I like, and nothing bad happens.**
+
+The trick is that the app doesn't care what a file is called. It takes a **fingerprint of the audio itself**. Same sound, same fingerprint, same recording, wherever it came from. That one idea buys a lot:
+
+- **Pressing it twice is harmless.** Recordings already in the library are skipped. Nothing is transcribed again, nothing is sent to Claude again, and nothing is overwritten. Any titles or tags I've edited stay exactly as I left them.
+- **Stopping half-way is fine.** If I quit in the middle, the next run picks up only what's missing. A recording that was transcribed but not titled only gets its title.
+- **"Import the next 100" really means 100 new ones.** Finished recordings don't use up the count.
+- **"Import all" takes a quick look at everything,** marks what's already done, and carries on with the rest. That quick look takes a few seconds, because the app has to read each file to fingerprint it.
+
+[Add a screenshot of the import list with the "Already in your library" rows.]
+
+My originals in Voice Memos are never touched. The app only reads them and keeps its own copy.
+
+**Things I decided to leave out.** I measured before deciding. Of my 499 recordings, 42 were longer than 45 minutes, and together they added up to almost 56 hours of audio. Those are mostly work meetings, which I didn't want in a family library anyway, and they'd have eaten nearly half the import time. So the app now skips anything over 45 minutes, before it copies the file, transcribes it or sends a word to Claude. The results say how many were skipped, and I can change the limit whenever I like.
+
+**One honest catch.** If I trim a recording in Voice Memos after it's been imported, its audio changes, so it gets a new fingerprint and the app sees it as a brand-new recording. The old version stays. I'd rather have that than have the app quietly overwrite something I'd already organised.
+
+**No pause button (yet).** To stop an import I press Ctrl+C and run it again later, and it carries on where it left off. The recording being worked on starts its current step again, but everything finished is kept. A real pause button is on my list.
+
+Newest recordings go first, so the memories I'm most likely to want are searchable while the long tail of old ones is still working through.
+
+[Add a screenshot of the results card: time, where the time went, and the number skipped.]
+
 ## The problem right now: importing takes forever
 
 The biggest bottleneck is speed. I set a timer on the test import to record it: **25 recordings took about an hour**, roughly 2 minutes each. At that rate:
