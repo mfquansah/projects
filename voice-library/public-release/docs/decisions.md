@@ -323,3 +323,10 @@
 - Why: user: "to the greeting.. we can add Good evening, <name> .. like my name."
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - Share a recording by email (Mail draft) or download
+- Decision: a "Share..." panel on the recording page with an optional recipient, an optional message and optional summary/transcript. "Open in Mail" opens a draft in the Mac's Mail app with the audio attached under a readable name, and the person presses Send. "Download audio" saves the file under a readable name (for Gmail and others). The app never sends email itself and stores no email password. A warning shows above 20 MB.
+- Alternatives considered/rejected: the app sending the email over SMTP (it would have to store an email or app password, a real security risk for a private library); a mailto link alone (can't attach a file).
+- Why: user: "are we able to share audios? if not, let's create a share button that shares by email, and then we can optionally add a message", then chose "Apple Mail app ... but I'd also like a download, so I can do gmail".
+- Reversible? yes
+- Source: confirmed

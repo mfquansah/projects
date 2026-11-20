@@ -193,7 +193,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
     app = create_app(factory, embedder=embedder, parser=parser, reranker=reranker, audio_root=home() / "audio",
                      claude_unavailable_reason=reason, import_manager=manager,
                      cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads", sync_manager=sync,
-                     max_minutes=args.max_minutes, display_name=display_name)
+                     max_minutes=args.max_minutes, display_name=display_name, share_dir=home() / "shares")
     url = f"http://127.0.0.1:{args.port}"
     print(f"Kasa Adaka running at {url}  (Ctrl+C to stop)")
     if reason:

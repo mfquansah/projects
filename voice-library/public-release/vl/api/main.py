@@ -8,6 +8,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import shutil
+import tempfile
 import uuid
 from pathlib import Path
 
@@ -29,6 +30,7 @@ from vl.snippets import best_snippet, query_terms
 from vl.sounds.store import sounds_coverage
 import os
 
+from vl import share
 from vl.batch import DEFAULT_MAX_MINUTES, build_report, pick_new, remaining_audio_seconds, split_by_length
 from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos, newest_first
 
@@ -82,6 +84,13 @@ class FlagBody(BaseModel):
     flag: str | None = None  # "archived" | "keep" | null to clear
 
 
+class ShareMailBody(BaseModel):
+    to: str | None = Field(default=None, max_length=200)          # optional recipient; empty = choose it in Mail
+    message: str | None = Field(default=None, max_length=5000)    # optional note to put above everything else
+    include_summary: bool = False
+    include_transcript: bool = False
+
+
 class FolderBody(BaseModel):
     path: str | None = None
     source: str | None = None  # "voice_memos"
@@ -102,7 +111,8 @@ class DetailsBody(BaseModel):
 def create_app(session_factory, embedder=None, parser=None, reranker=None, audio_root: Path | None = None,
                claude_unavailable_reason: str | None = None, import_manager=None, cache_dir: Path | None = None,
                upload_dir: Path | None = None, sync_manager=None,
-               max_minutes: float | None = DEFAULT_MAX_MINUTES, display_name: str = "") -> FastAPI:
+               max_minutes: float | None = DEFAULT_MAX_MINUTES, display_name: str = "",
+               share_dir: Path | None = None) -> FastAPI:
     app = FastAPI(title="Kasa Adaka", docs_url=None, redoc_url=None)
     # defend against DNS-rebinding: only answer requests addressed to this computer
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
@@ -234,6 +244,51 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
         if not path.is_file():
             raise HTTPException(404, "The audio file is missing from disk.")
         return FileResponse(path, media_type=AUDIO_TYPES.get(path.suffix.lower(), "application/octet-stream"))
+
+    # ---- sharing ----
+    def _audio_file(note_id: int) -> tuple[Path, str, str, str]:
+        """(audio path, friendly title, summary, transcript) for a note, with the same folder guard as playback."""
+        with sess() as s:
+            n = s.get(Note, note_id)
+            if n is None:
+                raise HTTPException(404, "No such note")
+            en, tr = s.get(Enrichment, note_id), s.get(Transcript, note_id)
+            path = Path(n.path).resolve()
+            info = (path, (en.title if en else "") or Path(n.original_name or "").stem, en.summary if en else "", tr.text if tr else "")
+        if audio_root is not None and audio_root not in path.parents:
+            raise HTTPException(403, "That file is outside the audio folder.")
+        if not path.is_file():
+            raise HTTPException(404, "The audio file is missing from disk.")
+        return info
+
+    @app.get("/api/notes/{note_id}/share")
+    def share_info(note_id: int):
+        """What the Share panel needs: the file name the recipient will see, the size, and whether Mail drafts work here."""
+        path, title, _summary, _text = _audio_file(note_id)
+        return {"filename": share.friendly_filename(title, path.suffix), "mail_available": share.is_mac(), **share.size_info(path)}
+
+    @app.get("/api/notes/{note_id}/download")
+    def download(note_id: int):
+        """The audio as a download with a readable file name (not the library's code name)."""
+        path, title, _summary, _text = _audio_file(note_id)
+        return FileResponse(path, media_type=AUDIO_TYPES.get(path.suffix.lower(), "application/octet-stream"),
+                            filename=share.friendly_filename(title, path.suffix))
+
+    @app.post("/api/notes/{note_id}/share/mail")
+    def share_mail(note_id: int, body: ShareMailBody):
+        """Open a draft in the Mac's Mail app with the audio attached. Nothing is sent: the person reviews and presses Send."""
+        path, title, summary, text = _audio_file(note_id)
+        try:
+            to = share.clean_address(body.to)
+            name = share.friendly_filename(title, path.suffix)
+            text_body = share.build_body(body.message, summary, text, body.include_summary, body.include_transcript)
+            if not share.is_mac():
+                raise share.ShareError("Mail drafts only work on a Mac with the Mail app. Use Download instead, then attach the file yourself.")
+            copy = share.prepare_copy(path, share_dir or Path(tempfile.gettempdir()) / "kasa-adaka-shares", name)
+            share.compose_in_mail(copy, title or "A voice recording", text_body, to)
+        except share.ShareError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {"ok": True, "filename": name, **share.size_info(path)}
 
     # ---- curation ----
     @app.get("/api/attention")

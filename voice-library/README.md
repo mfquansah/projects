@@ -123,6 +123,9 @@ python -m vl.cli profile --voicememos 3          # newest 3 Voice Memos; add --n
 ```
 Runs each recording through transcription, Claude, embedding and sound detection in a throwaway library (yours is not touched) and prints seconds per stage and the slowest stage.
 
+## Sharing
+On a recording's page, **Share…** opens a draft in the Mac's Mail app with the audio attached (the app never sends anything itself), or **Download audio** saves it under a readable name.
+
 ## Pocket manual
 Every everyday command (start, stop, update, import limits, sounds, timing, fixes) is on one printable page: open it from the **Manual** link at the bottom of the sidebar, or at `/manual` (`web/manual.html`). A longer markdown version is `docs/manual.md`.
 

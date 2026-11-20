@@ -109,3 +109,10 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Delete can't recall what was already sent to Claude** (transcripts for imported recordings).
 - [ ] **The deleted-recording check runs when a file is imported**, so the first import after a delete re-reads each file's fingerprint (the same hashing the app already does).
 - [ ] The greeting name is set from the command line once (`serve --name ...`); there is no settings screen for it.
+
+## N. Sharing (2026-11-20)
+- [ ] **The Mail draft has never run on a real Mac**: it was tested with a stand-in for macOS scripting. Try "Open in Mail" once. The first time, macOS will ask whether Terminal may control Mail (Privacy & Security, Automation); say yes.
+- [ ] **Needs the Mail app with an account set up.** Gmail in the browser works through Download only.
+- [ ] **Copies for drafts stay in `~/VoiceLibrary/shares`** for a day, then are tidied away the next time someone shares.
+- [ ] **Large recordings**: over 20 MB the page warns; many mail services refuse anything above 20 to 25 MB. No compression or clip-trimming yet.
+- [ ] **Sharing sends the full recording** (and a transcript if ticked) to whoever you pick: the recording may contain other people's voices.

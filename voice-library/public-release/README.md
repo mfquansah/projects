@@ -69,8 +69,8 @@ pytest -q
 
 ## Wish list
 
-Share a single recording; a family library where several people load their voice notes and share them; a phone app;
-faster transcription; a settings screen. Ideas and pull requests are welcome (see `CONTRIBUTING.md`).
+A family library where several people load their voice notes and share them; a phone app; faster transcription; a
+settings screen; a share link that needs no email app. (Sharing one recording by email draft or download already works.) Ideas and pull requests are welcome (see `CONTRIBUTING.md`).
 
 ## Licence and name
 

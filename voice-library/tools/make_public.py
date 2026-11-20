@@ -203,8 +203,8 @@ pytest -q
 
 ## Wish list
 
-Share a single recording; a family library where several people load their voice notes and share them; a phone app;
-faster transcription; a settings screen. Ideas and pull requests are welcome (see `CONTRIBUTING.md`).
+A family library where several people load their voice notes and share them; a phone app; faster transcription; a
+settings screen; a share link that needs no email app. (Sharing one recording by email draft or download already works.) Ideas and pull requests are welcome (see `CONTRIBUTING.md`).
 
 ## Licence and name
 
@@ -214,7 +214,9 @@ project please give it your own name and logo (`BRAND.md`).
 
 
 def tracked_files() -> list[str]:
-    out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    # tracked files plus new ones not yet committed (but never ignored ones such as recordings or the library)
+    out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard"], cwd=ROOT,
+                         capture_output=True, text=True, check=True).stdout
     return [line for line in out.splitlines() if line]
 
 

@@ -148,6 +148,12 @@ mark { background: var(--mark); color: var(--ink); border-radius: 5px; padding: 
 .ghost.danger { color: #A83220; border-color: #E2C4BD; }
 .ghost.danger:hover { border-color: #A83220; }
 .ghost.danger.solid { background: #A83220; border-color: #A83220; color: #fff; }
+.share-panel { border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-md); padding: 14px; }
+.share-panel input[type="email"], .share-panel textarea { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: #fff; color: var(--ink); resize: vertical; }
+.share-panel .check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.ghost.solid-ink { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ghost.solid-ink[disabled] { opacity: .5; cursor: not-allowed; }
+a.ghost { display: inline-block; text-decoration: none; color: inherit; }
 .confirm-delete { border: 1px solid #E2C4BD; background: #FBF1EE; border-radius: var(--r-md); padding: 14px; }
 .primary { border: 0; border-radius: var(--r-sm); background: var(--accent); color: var(--accent-ink); padding: 10px 18px; font-weight: 500; }
 .primary:hover { background: #1F2A33; }

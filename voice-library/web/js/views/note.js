@@ -11,6 +11,7 @@ export async function note({ main, params, query }) {
   const id = Number(params[0]);
   let d;
   let confirmingDelete = false;
+  let sharing = false, shareInfo = null;
   try { d = await api(`/api/notes/${id}`); }
   catch (err) { main.append(h("div", { class: "col" }, h("a", { class: "back", href: "#/" }, "← Library"), h("div", { class: "empty" }, err.message))); return; }
 
@@ -135,11 +136,49 @@ export async function note({ main, params, query }) {
         h("dl", { class: "det" }, rows.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))),
       d.related && d.related.length ? h("section", { class: "related" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:6px" }, "Related"),
         d.related.map((r) => h("a", { href: `#/note/${r.id}` }, h("b", {}, r.title), h("span", {}, [r.category, fmtDate(r.recorded_at, { year: true })].filter(Boolean).join(" · "))))) : null,
+      sharing ? sharePanel() : null,
       confirmingDelete ? deleteConfirm() : h("div", { style: "display:flex;flex-direction:column;gap:8px" },
+        sharing ? null : h("button", { type: "button", class: "ghost", onclick: openShare }, "Share…"),
         h("button", { type: "button", class: "ghost", onclick: async () => {
           try { await api(`/api/notes/${id}/flag`, { body: { flag: "archived" } }); await refreshHome(); toast("Archived. You can restore it from Needs attention."); go("#/"); }
           catch (err) { toast(err.message); } } }, "Archive this recording"),
         h("button", { type: "button", class: "ghost danger", onclick: () => { confirmingDelete = true; drawSide(); } }, "Delete permanently…")));
+  }
+
+  async function openShare() {
+    sharing = true;
+    shareInfo = null;
+    drawSide();
+    try { shareInfo = await api(`/api/notes/${id}/share`); } catch (err) { toast(err.message); sharing = false; }
+    drawSide();
+  }
+
+  function sharePanel() {
+    const info = shareInfo;
+    const to = h("input", { type: "email", placeholder: "Optional: who it's for", "aria-label": "Recipient (optional)", autocomplete: "off" });
+    const msg = h("textarea", { rows: "3", placeholder: "Optional message to go with it", "aria-label": "Message (optional)" });
+    const sum = h("input", { type: "checkbox" }), tr = h("input", { type: "checkbox" });
+    const status = h("p", { class: "muted", style: "margin:0;font-size:14px", role: "status" });
+    const mailBtn = h("button", { type: "button", class: "ghost solid-ink", disabled: info && !info.mail_available ? "true" : null, onclick: async () => {
+      mailBtn.disabled = true; status.textContent = "Opening Mail…";
+      try {
+        await api(`/api/notes/${id}/share/mail`, { body: { to: to.value, message: msg.value, include_summary: sum.checked, include_transcript: tr.checked } });
+        status.textContent = "A draft is open in Mail. Review it and press Send.";
+      } catch (err) { status.textContent = err.message; }
+      mailBtn.disabled = false; } }, "Open in Mail");
+    return h("div", { class: "share-panel", "aria-label": "Share this recording" },
+      h("p", { style: "margin:0 0 8px" }, h("strong", {}, "Share this recording")),
+      !info ? h("p", { class: "muted", style: "margin:0" }, "Loading…") : [
+        h("p", { class: "muted", style: "margin:0 0 8px;font-size:14px" }, `Sent as "${info.filename}" (${info.size_mb} MB).`),
+        info.too_big ? h("p", { class: "sysnote", style: "margin:0 0 8px" }, `This is over ${info.limit_mb} MB, which many email services won't accept. Download it and send it another way, or share a shorter recording.`) : null,
+        h("div", { style: "display:flex;flex-direction:column;gap:8px" }, to, msg,
+          h("label", { class: "check" }, sum, " Include the summary"),
+          h("label", { class: "check" }, tr, " Include the transcript")),
+        !info.mail_available ? h("p", { class: "muted", style: "margin:8px 0 0;font-size:14px" }, "Mail drafts need a Mac with the Mail app. You can still download the audio.") : null,
+        h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:10px" }, mailBtn,
+          h("a", { class: "ghost", href: `/api/notes/${id}/download`, download: "" }, "Download audio"),
+          h("button", { type: "button", class: "ghost", onclick: () => { sharing = false; drawSide(); } }, "Close")),
+        h("div", { style: "margin-top:8px" }, status)]);
   }
 
   function deleteConfirm() {
