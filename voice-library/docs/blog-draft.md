@@ -12,9 +12,9 @@ That started me down this path: **how can I make a voice library that's easy to 
 
 ## Why photo search works, and how I borrowed it
 
-I'm not an authority on how Apple does this, but here's what I found when I looked into it. Apple uses metadata to search your photos: information attached to an image that describes what's in it. We used to be expected to add that ourselves, with keywords and descriptions, and almost nobody did. On a phone it's even harder, because the Photos app only gives you a caption field. What I read is that Photos does that work for you instead. It uses machine learning to look at each image in the background and build its own database of what it finds, so even if you've never tagged a single picture, the metadata exists. [Add the source for this idea.]
+Here's the thing that got me. I can type "dog on the beach" into Apple Photos and it finds the picture. I never tagged it. Nobody tags their photos; who has the time? I'm no expert on how Apple does it, but from what I've read, the secret is metadata: a hidden layer of description attached to every image. And Photos builds it for you, quietly, in the background, using machine learning to look at each picture and note what's in it. By the time you search, the work is already done. [Add the source for this idea.]
 
-That's how I'm building this. When a recording is imported, the app builds its metadata. It transcribes the speech, then Claude reads that transcript and writes a title, a summary, a collection and tags, and a sound model listens for things like a baby laughing. Then it makes all of that searchable. I never tag anything by hand, and the heavy work happens once, up front, so searching afterwards is fast.
+I wanted that for audio, so that's what I built. The moment a recording comes in, the app gets to work. It turns the speech into text. Claude reads that text and gives the recording a title, a summary and a home in a collection. A sound model listens for the good stuff, like a baby laughing. I never tag a thing. And because all the heavy lifting happens once, up front, searching is fast.
 
 ## Where it is now
 
