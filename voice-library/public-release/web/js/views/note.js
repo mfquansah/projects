@@ -106,7 +106,6 @@ export async function note({ main, params, query }) {
 
   // ---------- summary + tags ----------
   const summaryBox = h("section", { class: "pcard", style: "display:flex;flex-direction:column;gap:12px" });
-  let tagsEl = h("div", { class: "tags" });
   // ---------- transcript ----------
   let segEls = [];
   const transBox = h("section", { class: "pcard transcard", "aria-label": "Transcript" });
@@ -123,16 +122,29 @@ export async function note({ main, params, query }) {
       segsBox.append(h("p", { class: "summary", style: "font-size:15px" }, d.transcript || "(no speech was transcribed)"));
       return;
     }
-    let shown = 0;
+    // Flowing text, not one row per line: segments run together in paragraphs, each with a time you can click.
+    // The segment being spoken is highlighted in place, and every segment is clickable to jump there.
+    const paras = [];
     d.segments.forEach((s, i) => {
-      if (q && !s.text.toLowerCase().includes(q)) { segEls.push(h("div")); return; }
-      const parts = [];
-      if (q) { let rest = s.text, low = rest.toLowerCase(), at; while ((at = low.indexOf(q)) >= 0) { parts.push(rest.slice(0, at), h("mark", {}, rest.slice(at, at + q.length))); rest = rest.slice(at + q.length); low = rest.toLowerCase(); } parts.push(rest); }
-      const el = h("div", { class: `seg${i === activeIdx ? " active" : ""}` },
-        h("button", { type: "button", class: "t", "aria-label": `Play from ${fmtDur(s.start)}`, onclick: () => seek(s.start, true) }, fmtDur(s.start)),
-        h("span", {}, q ? parts : s.text));
-      segEls.push(el); segsBox.append(el); shown++;
+      const last = paras[paras.length - 1];
+      if (!last || last.n >= 4 || last.chars > 280) paras.push({ start: s.start, items: [], n: 0, chars: 0 });
+      const para = paras[paras.length - 1];
+      para.items.push(i); para.n++; para.chars += s.text.length;
     });
+    let shown = 0;
+    segEls = new Array(d.segments.length);
+    for (const para of paras) {
+      const p = h("p", {});
+      for (const i of para.items) {
+        const sg = d.segments[i];
+        const parts = [];
+        if (q) { let rest = sg.text, low = rest.toLowerCase(), at; while ((at = low.indexOf(q)) >= 0) { parts.push(rest.slice(0, at), h("mark", {}, rest.slice(at, at + q.length))); shown++; rest = rest.slice(at + q.length); low = rest.toLowerCase(); } parts.push(rest); }
+        const el = h("span", { class: `seg${i === activeIdx ? " active" : ""}`, title: `Play from ${fmtDur(sg.start)}`, onclick: () => seek(sg.start, true) }, q ? parts : sg.text);
+        segEls[i] = el; p.append(el, " ");
+      }
+      segsBox.append(h("div", { class: "para" },
+        h("button", { type: "button", class: "t", "aria-label": `Play from ${fmtDur(para.start)}`, onclick: () => seek(para.start, true) }, fmtDur(para.start)), p));
+    }
     if (q && !shown) segsBox.append(h("div", { class: "empty" }, "Nothing in this transcript matches."));
   }
 
@@ -144,7 +156,6 @@ export async function note({ main, params, query }) {
     put(side,
       h("section", { class: "pcard", style: "display:flex;flex-direction:column;gap:10px" }, h("h2", { class: "eyebrow ul" }, "Details"),
         h("dl", { class: "det" }, rows.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))),
-      h("section", { class: "pcard", style: "display:flex;flex-direction:column;gap:10px" }, h("h2", { class: "eyebrow ul" }, "Tags"), tagsEl),
       d.related && d.related.length ? h("section", { class: "pcard related" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:2px" }, "Related recordings"),
         d.related.map((r) => h("a", { href: `#/note/${r.id}` }, h("b", {}, r.title), h("span", {}, [r.category, fmtDate(r.recorded_at, { year: true })].filter(Boolean).join(" · "))))) : null,
       confirmingDelete ? deleteConfirm() : h("div", { style: "display:flex;flex-direction:column;gap:8px" },
@@ -270,7 +281,7 @@ export async function note({ main, params, query }) {
     }
   }
   function drawSummary(editor) {
-    const tags = tagsEl = h("div", { class: "tags" }, d.tags.map((t) => h("span", { class: "tag" }, t,
+    const tags = h("div", { class: "tags" }, d.tags.map((t) => h("span", { class: "tag" }, t,
       editing ? h("button", { type: "button", "aria-label": `Remove ${t}`, onclick: async () => { if (await save({ tags: d.tags.filter((x) => x !== t) })) render(); } }, "×") : null)));
     const add = h("button", { type: "button", class: "tagadd", onclick: () => {
       const input = h("input", { class: "tagin", "aria-label": "New tag", maxlength: "40", placeholder: "tag" });
@@ -279,7 +290,7 @@ export async function note({ main, params, query }) {
       input.addEventListener("blur", () => { if (!input.value.trim()) render(); });
       add.replaceWith(input); input.focus(); } }, "+ Add tag");
     tags.append(add);
-    put(summaryBox, h("h2", { class: "eyebrow ul" }, "Summary"), editor || h("p", { class: "summary" }, d.summary || "No summary yet."));
+    put(summaryBox, h("h2", { class: "eyebrow ul" }, "Summary"), editor || h("p", { class: "summary" }, d.summary || "No summary yet."), tags);
   }
   function render() { drawTop(); drawTranscript(); drawSide(); }
 

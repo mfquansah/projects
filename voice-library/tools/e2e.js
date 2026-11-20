@@ -63,16 +63,16 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   await page.screenshot({ path: path.join(tmp, '3-note.png'), fullPage: true });
   await sane('note');
   // transcript click seeks; play button toggles
-  await page.click('.seg:nth-child(4) button.t');
+  await page.click('.seg >> nth=3');
   await page.waitForTimeout(500);
   log('time after clicking 0:09 row', await page.textContent('.time'));
-  log('active segment', (await page.textContent('.seg.active span')).slice(0, 30));
+  log('active segment', (await page.textContent('.seg.active')).slice(0, 30));
   await page.click('.big');
   await page.waitForTimeout(200);
   log('play button label', await page.getAttribute('.big', 'aria-label'));
   // transcript find
   await page.fill('.transhead input', 'oats');
-  log('rows after find "oats"', await page.$$eval('.seg:not(:empty)', e => e.length));
+  log('rows after find "oats"', await page.$$eval('.seg:has(mark)', e => e.length));
   await page.fill('.transhead input', '');
 
   // edit title + add a tag
