@@ -302,3 +302,10 @@
 - Why: user: "let's shelf that as well. that's stuff I'll decide on in the end."
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - Skip recordings longer than 45 minutes at import
+- Decision: folder, Voice Memos and sync imports skip recordings longer than a limit (default 45 minutes; `serve --max-minutes N`, 0 = off). Skipped before copying or transcribing, so nothing is sent to Claude. A file whose length can't be read is kept. The results say how many were skipped. Drag-and-drop uploads are not limited (a deliberate choice by the user).
+- Alternatives considered/rejected: importing everything; a delete or exclusion list (shelved by the user).
+- Why: user: "is it possible to not import files longer than 45 minutes? those are most likely work meetings." Measured on the user's Mac: 42 of 499 recordings are longer, adding up to 55.9 hours of audio (roughly 9 hours of processing at the measured rate, about half the estimate for the rest of the library). Source of the 9 hours: audio minutes times 9.4 seconds, not a new measurement.
+- Reversible? yes (raise or turn off the limit; skipped files are picked up on the next import or sync)
+- Source: confirmed

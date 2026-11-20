@@ -15,6 +15,7 @@ import threading
 from pathlib import Path
 
 from vl.jobs import DONE, DUPLICATE
+from vl.batch import split_by_length
 from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos, icloud_placeholders, newest_first
 
 MAX_FAILURES = 3
@@ -26,12 +27,15 @@ def _now() -> str:
 
 
 class SyncManager:
-    def __init__(self, import_manager, state_dir: Path, source_resolver=None, poll_seconds: float | None = None) -> None:
+    def __init__(self, import_manager, state_dir: Path, source_resolver=None, poll_seconds: float | None = None,
+                 max_minutes: float | None = None) -> None:
         """`source_resolver(source) -> (folder|None, problem|None)`. Default: 'voice_memos' or a folder path.
 
         `poll_seconds` overrides the interval (tests only).
         """
         self._im = import_manager
+        self._max_minutes = max_minutes  # recordings longer than this are left alone (None/0 = no limit)
+        self._durations: dict = {}
         self._dir = Path(state_dir)
         self._resolve = source_resolver or self._default_resolver
         self._poll_override = poll_seconds
@@ -111,14 +115,16 @@ class SyncManager:
     # ---------- the check ----------
     def run_once(self) -> dict:
         """One check: find new recordings and hand them to the importer. Returns what it found. Never raises."""
-        found = {"at": _now(), "files": 0, "new": 0, "changed": 0, "placeholders": 0, "problem": None}
+        found = {"at": _now(), "files": 0, "new": 0, "changed": 0, "placeholders": 0, "too_long": 0, "problem": None}
         try:
             folder, problem = self._resolve(self.settings["source"])
             if folder is None:
                 found["problem"] = problem or "The folder to sync isn't available."
             else:
                 files = newest_first(audio_files(folder))  # newest first: recent recordings become searchable first
+                files, too_long = split_by_length(files, self._max_minutes, self._durations)
                 found["files"] = len(files)
+                found["too_long"] = len(too_long)
                 if self.settings["source"] == "voice_memos":
                     found["placeholders"] = icloud_placeholders(folder)
                 items = []

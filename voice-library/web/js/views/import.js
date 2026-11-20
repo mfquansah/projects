@@ -104,7 +104,7 @@ export async function importView({ main }) {
       put(vmBox, vm.found
         ? h("div", { style: "display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px" },
             h("div", { style: "flex:1 1 280px" }, h("strong", {}, "Voice Memos"),
-              h("div", { class: "muted", style: "font-size:14px" }, `${plural(vm.count, "recording")} found on this computer. They are read where they are and never changed.`)),
+              h("div", { class: "muted", style: "font-size:14px" }, `${plural(vm.count, "recording")} found on this computer. They are read where they are and never changed.${state.settings?.max_minutes ? ` Recordings longer than ${state.settings.max_minutes} minutes (usually meetings) are skipped.` : ""}`)),
             h("div", { class: "actions" },
               h("button", { type: "button", class: "ghost", title: "Imports your newest recordings first and reports how long it took and what Claude cost, so you can estimate the whole library", onclick: () => startFolder({ source: "voice_memos", newest: Math.min(25, vm.count) }) }, `Try a test batch (${Math.min(25, vm.count)} newest)`),
               h("button", { type: "button", class: "ghost", title: "Imports the next 100 newest recordings that aren't in the library yet, and reports time and Claude usage when done", onclick: () => startFolder({ source: "voice_memos", newest: Math.min(100, vm.count) }) }, "Import the next 100"),
@@ -205,6 +205,7 @@ export async function importView({ main }) {
         h("h2", { style: "margin:0;font-size:15px;font-weight:600" }, snap.finished ? `Imported ${plural(snap.total, "recording")}` : `Importing ${plural(snap.total, "recording")}`)),
       h("div", { class: "muted", style: "font-size:14px" }, [`${snap.done} done`, snap.working ? `${snap.working} in progress` : null, snap.waiting ? `${snap.waiting} waiting` : null, snap.errors ? `${snap.errors} failed` : null].filter(Boolean).join(" · ")),
       h("div", { class: "meter", role: "progressbar", "aria-label": "Import progress", "aria-valuemin": "0", "aria-valuemax": String(snap.total), "aria-valuenow": String(finishedCount) }, h("div", { style: `width:${snap.total ? (finishedCount / snap.total) * 100 : 0}%` })),
+      snap.meta && snap.meta.skipped_long ? h("div", { class: "sysnote" }, `${plural(snap.meta.skipped_long, "recording")} not imported because ${snap.meta.skipped_long === 1 ? "it is" : "they are"} longer than ${snap.meta.max_minutes} minutes.`) : null,
       rejected.length ? h("div", { class: "sysnote" }, `Skipped: ${rejected.map((r) => `${r.name} (${r.reason})`).join("; ")}`) : null,
       h("div", {}, snap.files.map(row)),
       snap.finished ? banner(snap) : null));

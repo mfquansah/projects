@@ -185,12 +185,13 @@ def cmd_serve(args: argparse.Namespace) -> None:
     sync_holder: dict = {}
     manager = ImportManager(factory, home() / "audio", import_deps,
                             on_file_done=lambda f: sync_holder["sync"].on_file_done(f))
-    sync = sync_holder["sync"] = SyncManager(manager, home())
+    sync = sync_holder["sync"] = SyncManager(manager, home(), max_minutes=args.max_minutes)
     if sync.settings["enabled"]:
         sync.start()
     app = create_app(factory, embedder=embedder, parser=parser, reranker=reranker, audio_root=home() / "audio",
                      claude_unavailable_reason=reason, import_manager=manager,
-                     cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads", sync_manager=sync)
+                     cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads", sync_manager=sync,
+                     max_minutes=args.max_minutes)
     url = f"http://127.0.0.1:{args.port}"
     print(f"Kasa Adaka running at {url}  (Ctrl+C to stop)")
     if reason:
@@ -377,6 +378,9 @@ def main() -> None:
     a.add_argument("--open", action="store_true", help="open the page in your browser")
     a.add_argument("--llm-model", default="claude-haiku-5-5")
     a.add_argument("--whisper-model", default="small")
+    from vl.batch import DEFAULT_MAX_MINUTES
+    a.add_argument("--max-minutes", type=float, default=DEFAULT_MAX_MINUTES,
+                   help=f"skip recordings longer than this many minutes when importing from a folder or Voice Memos (default {DEFAULT_MAX_MINUTES}; 0 = no limit)")
     a.set_defaults(func=cmd_serve)
 
     a = sub.add_parser("profile", help="time each stage on a few recordings (nothing is added to your library)")

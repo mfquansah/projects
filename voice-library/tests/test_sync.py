@@ -191,3 +191,19 @@ def test_sync_api_unavailable_without_a_manager(tmp_path):
     assert c.get("/api/sync").json() == {"available": False}
     assert c.post("/api/sync/run").status_code == 503
     assert c.post("/api/sync/settings", json={"enabled": True}).status_code == 503
+
+
+def test_sync_leaves_long_recordings_alone(env, monkeypatch):
+    import vl.batch as b
+    sync, mgr, folder, factory = env
+    lens = {"20260101 090000-AAA.m4a": 120.0, "20260102 090000-BBB.m4a": 70 * 60.0}
+    monkeypatch.setattr(b, "probe_duration", lambda p: lens[p.name])
+    sync._max_minutes = 45
+    found = sync.run_once()
+    assert found["new"] == 1 and found["too_long"] == 1
+    settle(mgr)
+    assert notes(factory) == 1                      # only the short one was imported
+    sync._max_minutes = 0                           # raise the limit: the long one is picked up on the next check
+    assert sync.run_once()["new"] == 1
+    settle(mgr)
+    assert notes(factory) == 2

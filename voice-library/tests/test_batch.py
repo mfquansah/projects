@@ -307,3 +307,57 @@ def test_report_adds_up_where_the_time_went():
     r = build_report(files, 0, None)
     assert r["stages"] == {"import": 1.5, "transcribe": 60.0, "enrich": 15.0, "sounds": 12.0}
     assert build_report([f("x", seconds=1, audio_s=1)], 0, None)["stages"] == {}              # no timing info: empty, not an error
+
+
+# ---------- the length limit ----------
+
+def test_split_by_length_skips_only_known_long_files(tmp_path, monkeypatch):
+    import vl.batch as b
+    names = {"short.m4a": 600.0, "long.m4a": 50 * 60.0, "exact.m4a": 45 * 60.0, "unknown.m4a": None}
+    files = []
+    for n in names:
+        p = tmp_path / n
+        p.write_bytes(n.encode())
+        files.append(p)
+    monkeypatch.setattr(b, "probe_duration", lambda p: names[p.name])
+    keep, long_ = b.split_by_length(files, 45)
+    assert [p.name for p in keep] == ["short.m4a", "exact.m4a", "unknown.m4a"]   # 45:00 exactly is allowed; unknown is kept
+    assert [p.name for p in long_] == ["long.m4a"]
+    assert b.split_by_length(files, 0) == (files, [])                              # 0 turns the limit off
+    assert b.split_by_length(files, None) == (files, [])
+
+
+def test_split_by_length_remembers_lengths(tmp_path, monkeypatch):
+    import vl.batch as b
+    p = tmp_path / "a.m4a"
+    p.write_bytes(b"x")
+    calls = []
+    monkeypatch.setattr(b, "probe_duration", lambda q: calls.append(q) or 100.0)
+    cache: dict = {}
+    b.split_by_length([p], 45, cache)
+    b.split_by_length([p], 45, cache)
+    assert len(calls) == 1
+
+
+def test_folder_import_skips_long_recordings_and_says_so(tmp_path, monkeypatch):
+    import vl.batch as b
+    folder = tmp_path / "vm"
+    folder.mkdir()
+    for n in ("20261101 100000.m4a", "20261102 100000.m4a", "20261103 100000.m4a"):
+        (folder / n).write_bytes(n.encode())
+    lens = {"20261101 100000.m4a": 300.0, "20261102 100000.m4a": 90 * 60.0, "20261103 100000.m4a": 400.0}
+    monkeypatch.setattr(b, "probe_duration", lambda p: lens[p.name])
+    factory = make_session_factory(tmp_path / "t.db")
+    mgr = ImportManager(factory, tmp_path / "audio", Deps(FakeTranscriber(), FakeEnricher(), FakeEmbedder()))
+    c = TestClient(create_app(factory, embedder=FakeEmbedder(), audio_root=tmp_path / "audio", import_manager=mgr,
+                              upload_dir=tmp_path / "up", max_minutes=45))
+    assert c.get("/api/settings").json()["max_minutes"] == 45
+    r = c.post("/api/import/folder", json={"path": str(folder)}).json()
+    assert r["accepted"] == 2 and r["skipped_long"] == 1
+    assert mgr.wait(10)
+    snap = c.get(f"/api/import/{r['job_id']}").json()
+    assert {f["name"] for f in snap["files"]} == {"20261101 100000.m4a", "20261103 100000.m4a"}
+    assert snap["meta"]["skipped_long"] == 1 and snap["meta"]["max_minutes"] == 45
+    # the batch picker spends its count on importable recordings only
+    r2 = c.post("/api/import/folder", json={"path": str(folder), "newest": 5})
+    assert r2.status_code == 400   # everything importable is already in the library

@@ -84,9 +84,9 @@ def test_without_claude_ask_is_a_basic_search_and_says_so(env):
 
 def test_settings_say_whether_claude_is_connected_and_there_is_no_switch(env):
     off = client(env, parser=None, reason="No ANTHROPIC_API_KEY set.")
-    assert off.get("/api/settings").json() == {"claude": False, "reason": "No ANTHROPIC_API_KEY set."}
+    assert off.get("/api/settings").json() == {"claude": False, "max_minutes": 45, "reason": "No ANTHROPIC_API_KEY set."}
     on = client(env, parser=FakeParser(), reranker=FakeReranker())
-    assert on.get("/api/settings").json() == {"claude": True, "reason": None}
+    assert on.get("/api/settings").json() == {"claude": True, "max_minutes": 45, "reason": None}
     assert on.post("/api/settings", json={"use_claude": False}).status_code in (404, 405)  # Claude is always used
 
 

@@ -29,7 +29,7 @@ from vl.snippets import best_snippet, query_terms
 from vl.sounds.store import sounds_coverage
 import os
 
-from vl.batch import build_report, pick_new, remaining_audio_seconds
+from vl.batch import DEFAULT_MAX_MINUTES, build_report, pick_new, remaining_audio_seconds, split_by_length
 from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos, newest_first
 
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
@@ -101,11 +101,13 @@ class DetailsBody(BaseModel):
 
 def create_app(session_factory, embedder=None, parser=None, reranker=None, audio_root: Path | None = None,
                claude_unavailable_reason: str | None = None, import_manager=None, cache_dir: Path | None = None,
-               upload_dir: Path | None = None, sync_manager=None) -> FastAPI:
+               upload_dir: Path | None = None, sync_manager=None,
+               max_minutes: float | None = DEFAULT_MAX_MINUTES) -> FastAPI:
     app = FastAPI(title="Kasa Adaka", docs_url=None, redoc_url=None)
     # defend against DNS-rebinding: only answer requests addressed to this computer
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
     claude_ok = parser is not None
+    dur_cache: dict = {}  # remembered recording lengths for the "too long" check
     audio_root = Path(audio_root).resolve() if audio_root else None
     upload_dir = Path(upload_dir) if upload_dir else None
     sess = session_factory
@@ -136,7 +138,7 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
 
     @app.get("/api/settings")
     def get_settings():
-        return {"claude": claude_ok,
+        return {"claude": claude_ok, "max_minutes": max_minutes or 0,
                 "reason": None if claude_ok else (claude_unavailable_reason or "Claude isn't connected.")}
 
     @app.get("/api/home")
@@ -340,6 +342,9 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
         if not files:
             raise HTTPException(400, f"No audio files (.m4a, .mp3, .wav, .aac, .caf) found in {folder}.")
         files = newest_first(files)   # newest first: recent recordings become searchable first
+        files, too_long = split_by_length(files, max_minutes, dur_cache)
+        if not files:
+            raise HTTPException(400, f"Every recording in that folder is longer than {max_minutes:g} minutes, so they were all skipped.")
         total_files = len(files)
         if body.newest:
             with sess() as s:
@@ -353,8 +358,10 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             except OSError:
                 when = None
             items.append((p.name, p, when, False))  # False: never delete the original
-        meta = {"folder": str(folder), "total_files": total_files, "batch": bool(body.newest)}
-        return {"job_id": import_manager.submit(items, meta=meta), "accepted": len(items), "folder": str(folder), "batch": bool(body.newest)}
+        meta = {"folder": str(folder), "total_files": total_files, "batch": bool(body.newest),
+                "skipped_long": len(too_long), "max_minutes": max_minutes or 0}
+        return {"job_id": import_manager.submit(items, meta=meta), "accepted": len(items), "folder": str(folder),
+                "batch": bool(body.newest), "skipped_long": len(too_long)}
 
     @app.get("/api/import/{job_id}/report")
     def import_report(job_id: str):
@@ -371,6 +378,7 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             try:
                 batch_names = {f["name"] for f in snap["files"]}
                 rest = [p for p in audio_files(Path(meta["folder"])) if p.name not in batch_names]
+                rest, _long = split_by_length(rest, max_minutes, dur_cache)   # skipped long recordings aren't part of "the rest"
                 remaining_files = len(rest)
                 remaining_s = remaining_audio_seconds(rest, (sum(done_audio) / len(done_audio)) if done_audio else None)
             except OSError:

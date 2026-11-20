@@ -10,6 +10,37 @@ from vl.db import Enrichment, Note
 from vl.ingest.importer import probe_duration, sha256_of
 
 
+DEFAULT_MAX_MINUTES = 45  # recordings longer than this (usually meetings) are skipped at import; 0 turns the limit off
+
+
+def split_by_length(files: list[Path], max_minutes: float | None, cache: dict | None = None) -> tuple[list[Path], list[Path]]:
+    """Split into (recordings to import, recordings longer than the limit). Order is kept.
+
+    A file whose length can't be read is kept (we only skip what we know is long). `cache` remembers lengths
+    per (path, size, modified time) so repeated checks, like sync's, don't re-read every file.
+    """
+    if not max_minutes or max_minutes <= 0:
+        return list(files), []
+    limit_s = max_minutes * 60
+    keep: list[Path] = []
+    too_long: list[Path] = []
+    for p in files:
+        try:
+            st = p.stat()
+            key = (str(p), st.st_size, int(st.st_mtime))
+        except OSError:
+            keep.append(p)
+            continue
+        if cache is not None and key in cache:
+            d = cache[key]
+        else:
+            d = probe_duration(p)
+            if cache is not None:
+                cache[key] = d
+        (too_long if d is not None and d > limit_s else keep).append(p)
+    return keep, too_long
+
+
 def pick_new(files: list[Path], n: int, session: Session) -> list[Path]:
     """The first `n` files (in the order given, so pass newest first) that still need importing.
 
