@@ -138,7 +138,8 @@ export async function note({ main, params, query }) {
         d.related.map((r) => h("a", { href: `#/note/${r.id}` }, h("b", {}, r.title), h("span", {}, [r.category, fmtDate(r.recorded_at, { year: true })].filter(Boolean).join(" · "))))) : null,
       sharing ? sharePanel() : null,
       confirmingDelete ? deleteConfirm() : h("div", { style: "display:flex;flex-direction:column;gap:8px" },
-        sharing ? null : h("button", { type: "button", class: "ghost", onclick: openShare }, "Share…"),
+        sharing ? null : h("button", { type: "button", class: "ghost", onclick: openShare }, "Share by email…"),
+        h("a", { class: "ghost", href: `/api/notes/${id}/download`, download: "" }, "Download audio"),
         h("button", { type: "button", class: "ghost", onclick: async () => {
           try { await api(`/api/notes/${id}/flag`, { body: { flag: "archived" } }); await refreshHome(); toast("Archived. You can restore it from Needs attention."); go("#/"); }
           catch (err) { toast(err.message); } } }, "Archive this recording"),
@@ -155,29 +156,33 @@ export async function note({ main, params, query }) {
 
   function sharePanel() {
     const info = shareInfo;
-    const to = h("input", { type: "email", placeholder: "Optional: who it's for", "aria-label": "Recipient (optional)", autocomplete: "off" });
-    const msg = h("textarea", { rows: "3", placeholder: "Optional message to go with it", "aria-label": "Message (optional)" });
+    const to = h("input", { id: "share-to", type: "email", placeholder: "name@example.com", autocomplete: "off" });
+    const msg = h("textarea", { id: "share-msg", rows: "3", placeholder: "Write a note to go with the recording" });
     const sum = h("input", { type: "checkbox" }), tr = h("input", { type: "checkbox" });
     const status = h("p", { class: "muted", style: "margin:0;font-size:14px", role: "status" });
     const mailBtn = h("button", { type: "button", class: "ghost solid-ink", disabled: info && !info.mail_available ? "true" : null, onclick: async () => {
       mailBtn.disabled = true; status.textContent = "Opening Mail…";
       try {
         await api(`/api/notes/${id}/share/mail`, { body: { to: to.value, message: msg.value, include_summary: sum.checked, include_transcript: tr.checked } });
-        status.textContent = "A draft is open in Mail. Review it and press Send.";
+        status.textContent = "The draft is open in Mail. Check it there and press Send.";
       } catch (err) { status.textContent = err.message; }
       mailBtn.disabled = false; } }, "Open in Mail");
-    return h("div", { class: "share-panel", "aria-label": "Share this recording" },
-      h("p", { style: "margin:0 0 8px" }, h("strong", {}, "Share this recording")),
+    return h("div", { class: "share-panel", role: "group", "aria-label": "Share this recording" },
+      h("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px" },
+        h("strong", {}, "Share by email"),
+        h("button", { type: "button", class: "x-close", "aria-label": "Close", title: "Close", onclick: () => { sharing = false; drawSide(); } }, "×")),
       !info ? h("p", { class: "muted", style: "margin:0" }, "Loading…") : [
-        h("p", { class: "muted", style: "margin:0 0 8px;font-size:14px" }, `Sent as "${info.filename}" (${info.size_mb} MB).`),
-        info.too_big ? h("p", { class: "sysnote", style: "margin:0 0 8px" }, `This is over ${info.limit_mb} MB, which many email services won't accept. Download it and send it another way, or share a shorter recording.`) : null,
-        h("div", { style: "display:flex;flex-direction:column;gap:8px" }, to, msg,
+        h("p", { class: "muted", style: "margin:0 0 10px;font-size:14px" }, `Attached as "${info.filename}" (${info.size_mb} MB).`),
+        info.too_big ? h("p", { class: "sysnote", style: "margin:0 0 10px" }, `This is over ${info.limit_mb} MB, which many email services won't accept. Share a shorter recording, or use Download and send it another way.`) : null,
+        h("div", { style: "display:flex;flex-direction:column;gap:10px" },
+          h("div", { class: "field" }, h("label", { for: "share-to" }, "Email address"), to),
+          h("div", { class: "field" }, h("label", { for: "share-msg" }, "Message ", h("span", { class: "muted" }, "(optional)")), msg),
           h("label", { class: "check" }, sum, " Include the summary"),
           h("label", { class: "check" }, tr, " Include the transcript")),
-        !info.mail_available ? h("p", { class: "muted", style: "margin:8px 0 0;font-size:14px" }, "Mail drafts need a Mac with the Mail app. You can still download the audio.") : null,
-        h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:10px" }, mailBtn,
-          h("a", { class: "ghost", href: `/api/notes/${id}/download`, download: "" }, "Download audio"),
-          h("button", { type: "button", class: "ghost", onclick: () => { sharing = false; drawSide(); } }, "Close")),
+        h("p", { class: "muted", style: "margin:12px 0 0;font-size:13px" },
+          info.mail_available ? "This opens a draft in the Mail app with the recording attached. You review it there and press Send; nothing is sent from here."
+                              : "Mail drafts need a Mac with the Mail app, so this can't open one here."),
+        h("div", { style: "margin-top:10px" }, mailBtn),
         h("div", { style: "margin-top:8px" }, status)]);
   }
 

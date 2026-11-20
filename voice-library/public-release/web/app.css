@@ -152,6 +152,11 @@ mark { background: var(--mark); color: var(--ink); border-radius: 5px; padding: 
 .ghost.danger.solid { background: #A83220; border-color: #A83220; color: #fff; }
 .share-panel { border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-md); padding: 14px; }
 .share-panel input[type="email"], .share-panel textarea { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: #fff; color: var(--ink); resize: vertical; }
+.share-panel .field { display: flex; flex-direction: column; gap: 4px; }
+.share-panel .field label { font-size: 14px; font-weight: 600; }
+.x-close { background: none; border: 0; font-size: 24px; line-height: 1; padding: 0 4px; color: var(--muted); cursor: pointer; border-radius: var(--r-xs); }
+.x-close:hover { color: var(--ink); background: var(--accent-soft); }
+a.ghost { text-align: center; }
 .share-panel .check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
 .ghost.solid-ink { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ghost.solid-ink[disabled] { opacity: .5; cursor: not-allowed; }
