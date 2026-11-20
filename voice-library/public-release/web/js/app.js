@@ -54,13 +54,20 @@ function collIcon(name) {
   return h("span", { class: "ico" }, pick(18));
 }
 
+const isOther = (c) => (c.name || "").trim().toLowerCase() === "other";
+
 // The sidebar's collections: the biggest few, then "See more". A collection you are looking at is always shown.
 function collectionsNav(home) {
   const all = (home?.categories || []).filter((c) => c.count > 0 || c.id !== null)
     .map((c) => ({ ...c, key: c.id === null ? "none" : String(c.id) }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-  const rest = all.slice(SIDE_COLLECTIONS);
-  const shown = sideExpanded ? all : [...all.slice(0, SIDE_COLLECTIONS), ...rest.filter((c) => c.key === current.colId)];
+    .sort((a, b) => (isOther(a) - isOther(b)) || b.count - a.count || a.name.localeCompare(b.name));   // biggest first, "Other" always last
+  // Collapsed: the biggest few, then "Other" (kept in view at the end); a collection you are looking at is always shown.
+  const other = all.find(isOther);
+  const head = all.filter((c) => c !== other).slice(0, other ? SIDE_COLLECTIONS - 1 : SIDE_COLLECTIONS);
+  const picked = new Set([...head, ...(other ? [other] : [])]);
+  const extra = all.filter((c) => !picked.has(c) && c.key === current.colId);
+  const shown = sideExpanded ? all : all.filter((c) => picked.has(c) || extra.includes(c));
+  const rest = all.filter((c) => !picked.has(c) && !extra.includes(c));   // the ones "See more" reveals
   return h("div", { class: "cols" }, h("p", { class: "eyebrow" }, "Collections"),
     shown.map((c) => h("a", { href: `#/collection/${c.key}`, ...(current.colId === c.key ? { "aria-current": "page" } : {}) },
       collIcon(c.name), h("span", { class: "name" }, c.name), h("span", { class: "c" }, c.count))),

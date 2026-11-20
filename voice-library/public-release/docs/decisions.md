@@ -381,3 +381,7 @@
 - Decision: after seeing the mockup image: the transcript stays one row per passage (time on the left, text on the right) on the same card colour as the rest, with generous spacing. The passage being spoken is a full-width tinted band with a bold time; no dark edge. Card headings (Summary, Transcript) are bold serif; the summary card says "Written automatically" (or "Edited by you"). Player: time on the left, back 10 / play / forward 10 in the middle as round buttons, speed on the right; the played part of the waveform is dark. Header: collection pill and "Title and collection suggested automatically" above the title, date and length below. Tags stay under the summary (max 12 per recording).
 - Why: user shared the mockup; my earlier flowing-paragraph and darker-panel versions were guesses and were wrong.
 - Kept our palette: the highlight is a cool grey-blue (#DDE3E6), not the mockup's teal.
+
+## 2026-11-20 - "Other" is always the last collection in the sidebar
+- Decision: the sidebar lists collections biggest first, with "Other" always last. When the list is collapsed, "Other" stays visible at the end and the biggest others fill the rest of the five slots; "See more" reveals the remainder, still ahead of "Other".
+- Why: user asked for "Other" as the last collection item.
