@@ -3,9 +3,11 @@ import { h, api, plural, put } from "../util.js";
 import { state, go } from "../core.js";
 import { searchBox, noteRows, emptyLibrary } from "./common.js";
 
-function greeting(now = new Date()) {
+function greeting(name = "", now = new Date()) {
   const hr = now.getHours();
-  return hr < 5 ? "Still up?" : hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+  if (hr < 5) return name ? `Still up, ${name}?` : "Still up?";
+  const hello = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+  return name ? `${hello}, ${name}` : hello;
 }
 
 export async function library({ main }) {
@@ -25,7 +27,7 @@ export async function library({ main }) {
     h("div", { class: "hero-wave", "aria-hidden": "true" }, bars),
     h("div", { class: "inner" },
       h("div", { class: "eyebrow" }, `A personal archive · ${plural(total, "recording")}`),
-      h("h1", {}, greeting()),
+      h("h1", {}, greeting(state.settings?.name || "")),
       h("p", {}, "Voice notes, transcribed and searchable. Audio stays on this computer; only text goes to Claude.")));
 
   const tries = (home?.try || []).map((q) => h("a", { href: `#/search?q=${encodeURIComponent(q)}` }, `${q} ↗`));

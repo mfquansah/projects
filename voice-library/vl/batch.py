@@ -6,7 +6,7 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from vl.db import Enrichment, Note
+from vl.db import DeletedNote, Enrichment, Note
 from vl.ingest.importer import probe_duration, sha256_of
 
 
@@ -52,7 +52,10 @@ def pick_new(files: list[Path], n: int, session: Session) -> list[Path]:
         if len(out) >= n:
             break
         try:
-            note = session.query(Note).filter_by(sha256=sha256_of(p)).first()
+            digest = sha256_of(p)
+            if session.get(DeletedNote, digest) is not None:
+                continue   # deleted by the user: never offered again
+            note = session.query(Note).filter_by(sha256=digest).first()
             if note is None or session.get(Enrichment, note.id) is None:
                 out.append(p)
         except OSError:

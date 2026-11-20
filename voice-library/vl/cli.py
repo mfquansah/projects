@@ -163,8 +163,10 @@ def cmd_serve(args: argparse.Namespace) -> None:
     factory = make_session_factory(home() / "library.db")
     embedder = SentenceTransformerEmbedder()
 
+    from vl.profile import load_name, save_name
     from vl.usage import UsageMeter
 
+    display_name = save_name(home(), args.name) if args.name is not None else load_name(home())
     meter = UsageMeter()
 
     def import_deps() -> Deps:  # loaded on the first import, not at startup
@@ -191,7 +193,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
     app = create_app(factory, embedder=embedder, parser=parser, reranker=reranker, audio_root=home() / "audio",
                      claude_unavailable_reason=reason, import_manager=manager,
                      cache_dir=home() / "cache" / "peaks", upload_dir=home() / "uploads", sync_manager=sync,
-                     max_minutes=args.max_minutes)
+                     max_minutes=args.max_minutes, display_name=display_name)
     url = f"http://127.0.0.1:{args.port}"
     print(f"Kasa Adaka running at {url}  (Ctrl+C to stop)")
     if reason:
@@ -378,6 +380,7 @@ def main() -> None:
     a.add_argument("--open", action="store_true", help="open the page in your browser")
     a.add_argument("--llm-model", default="claude-haiku-5-5")
     a.add_argument("--whisper-model", default="small")
+    a.add_argument("--name", default=None, help='your first name for the greeting, e.g. --name Michael (remembered in ~/VoiceLibrary/profile.json; --name "" removes it)')
     from vl.batch import DEFAULT_MAX_MINUTES
     a.add_argument("--max-minutes", type=float, default=DEFAULT_MAX_MINUTES,
                    help=f"skip recordings longer than this many minutes when importing from a folder or Voice Memos (default {DEFAULT_MAX_MINUTES}; 0 = no limit)")

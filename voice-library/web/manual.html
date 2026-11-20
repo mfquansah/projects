@@ -105,6 +105,7 @@ footer { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; f
         <tr><td><code>--port 8766</code></td><td>another page address if 8765 is busy</td></tr>
         <tr><td><code>--whisper-model base</code></td><td>faster, less accurate transcription (default <code>small</code>)</td></tr>
         <tr><td><code>--llm-model NAME</code></td><td>which Claude writes titles and answers</td></tr>
+        <tr><td><code>--name Michael</code></td><td>your name in the greeting; saved after the first time</td></tr>
       </table>
       <p>Before starting, in the same window: <code>export VL_HOME=/path</code> keeps the library on another drive.</p>
     </section>
@@ -155,7 +156,7 @@ du -sh ~/VoiceLibrary</pre></div>
     <section>
       <h2><i>10</i>Not built yet</h2>
       <ul>
-        <li>No <b>delete</b> button. <b>Archive</b> hides a recording and can be undone (Needs attention, then Archived).</li>
+        <li><b>Archive</b> hides a recording and can be undone (Needs attention, then Archived). <b>Delete permanently</b> (below it, on the recording page) can't be undone and the recording is skipped by later imports. Your original in Voice Memos is never touched.</li>
         <li>No pause button for imports (see 3).</li>
         <li>Sync is built but off, and only runs while the app is open.</li>
         <li>Collection lists sort newest first only. In search, ask in words: "my longest note about work".</li>

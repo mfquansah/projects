@@ -102,7 +102,7 @@ class DetailsBody(BaseModel):
 def create_app(session_factory, embedder=None, parser=None, reranker=None, audio_root: Path | None = None,
                claude_unavailable_reason: str | None = None, import_manager=None, cache_dir: Path | None = None,
                upload_dir: Path | None = None, sync_manager=None,
-               max_minutes: float | None = DEFAULT_MAX_MINUTES) -> FastAPI:
+               max_minutes: float | None = DEFAULT_MAX_MINUTES, display_name: str = "") -> FastAPI:
     app = FastAPI(title="Kasa Adaka", docs_url=None, redoc_url=None)
     # defend against DNS-rebinding: only answer requests addressed to this computer
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
@@ -145,7 +145,7 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
 
     @app.get("/api/settings")
     def get_settings():
-        return {"claude": claude_ok, "max_minutes": max_minutes or 0,
+        return {"claude": claude_ok, "max_minutes": max_minutes or 0, "name": display_name,
                 "reason": None if claude_ok else (claude_unavailable_reason or "Claude isn't connected.")}
 
     @app.get("/api/home")
@@ -270,6 +270,15 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             else:
                 guarded(lambda: lib.set_flag(s, note_id, body.flag))
         return {"ok": True}
+
+    @app.delete("/api/notes/{note_id}")
+    def delete_note(note_id: int):
+        """Permanently delete a recording from the library (the original in Voice Memos is never touched)."""
+        with sess() as s:
+            try:
+                return lib.delete_note(s, note_id, audio_root, cache_dir)
+            except ValueError as exc:
+                raise HTTPException(404, str(exc)) from exc
 
     @app.get("/api/review")
     def review():

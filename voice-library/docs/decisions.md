@@ -309,3 +309,17 @@
 - Why: user: "is it possible to not import files longer than 45 minutes? those are most likely work meetings." Measured on the user's Mac: 42 of 499 recordings are longer, adding up to 55.9 hours of audio (roughly 9 hours of processing at the measured rate, about half the estimate for the rest of the library). Source of the 9 hours: audio minutes times 9.4 seconds, not a new measurement.
 - Reversible? yes (raise or turn off the limit; skipped files are picked up on the next import or sync)
 - Source: confirmed
+
+## 2026-11-20 - Build permanent delete (un-shelved)
+- Decision: a "Delete permanently..." button on the recording page, with a confirmation. It removes the library's data and its own copy of the audio (never the original in Voice Memos) and remembers the recording's fingerprint so imports and sync skip it ("Skipped: you deleted this recording earlier"). Archive stays as the reversible option. No bulk delete yet.
+- Alternatives considered/rejected: leaving it shelved (the earlier shelving the same day was reversed by the user); deleting without remembering the fingerprint (the next sync would bring it back).
+- Why: user: "no let's add the delete button. I want to get rid of some things at some point."
+- Reversible? no for the deleted recording (the original in Voice Memos can be imported again only if the fingerprint record is removed from the database by hand); the feature itself yes.
+- Source: confirmed
+
+## 2026-11-20 - Greeting uses the user's name, kept outside the code
+- Decision: the hero greeting reads "Good evening, <name>". The name is set once with `serve --name <name>` and saved in `~/VoiceLibrary/profile.json`, not in the repository.
+- Alternatives considered/rejected: hard-coding the name in the page (it would be in the repository).
+- Why: user: "to the greeting.. we can add Good evening, Michael .. like my name."
+- Reversible? yes
+- Source: confirmed

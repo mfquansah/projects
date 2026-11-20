@@ -192,6 +192,7 @@ export async function importView({ main }) {
     if (f.state === "done") status = h("div", { style: "display:flex;gap:10px;align-items:flex-start" }, h("span", { style: "color:var(--accent);margin-top:3px" }, icons.check(16)),
       h("span", {}, "Saved as ", h("a", { class: "link", href: `#/note/${f.note_id}` }, f.title), f.category ? h("span", { class: "muted" }, ` in ${f.category}`) : null));
     else if (f.state === "duplicate") status = h("span", { class: "muted" }, "Already in your library", f.title ? [": ", h("a", { class: "link", href: `#/note/${f.note_id}` }, f.title)] : null);
+    else if (f.state === "removed") status = h("span", { class: "muted" }, "Skipped: you deleted this recording earlier");
     else if (f.state === "error") status = h("span", {}, f.error || "Something went wrong");
     else if (f.state === "transcribing") status = h("div", {}, `Transcribing · ${f.pct}%`, h("div", { class: "mini" }, h("div", { style: `width:${f.pct}%` })));
     else status = h("span", { class: "muted" }, STATE_TEXT[f.state] || f.state);
@@ -203,7 +204,7 @@ export async function importView({ main }) {
     put(live, h("section", { "aria-label": "Progress" },
       h("div", { style: "display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px" },
         h("h2", { style: "margin:0;font-size:15px;font-weight:600" }, snap.finished ? `Imported ${plural(snap.total, "recording")}` : `Importing ${plural(snap.total, "recording")}`)),
-      h("div", { class: "muted", style: "font-size:14px" }, [`${snap.done} done`, snap.working ? `${snap.working} in progress` : null, snap.waiting ? `${snap.waiting} waiting` : null, snap.errors ? `${snap.errors} failed` : null].filter(Boolean).join(" · ")),
+      h("div", { class: "muted", style: "font-size:14px" }, [`${snap.done} done`, snap.removed ? `${snap.removed} skipped (deleted earlier)` : null, snap.working ? `${snap.working} in progress` : null, snap.waiting ? `${snap.waiting} waiting` : null, snap.errors ? `${snap.errors} failed` : null].filter(Boolean).join(" · ")),
       h("div", { class: "meter", role: "progressbar", "aria-label": "Import progress", "aria-valuemin": "0", "aria-valuemax": String(snap.total), "aria-valuenow": String(finishedCount) }, h("div", { style: `width:${snap.total ? (finishedCount / snap.total) * 100 : 0}%` })),
       snap.meta && snap.meta.skipped_long ? h("div", { class: "sysnote" }, `${plural(snap.meta.skipped_long, "recording")} not imported because ${snap.meta.skipped_long === 1 ? "it is" : "they are"} longer than ${snap.meta.max_minutes} minutes.`) : null,
       rejected.length ? h("div", { class: "sysnote" }, `Skipped: ${rejected.map((r) => `${r.name} (${r.reason})`).join("; ")}`) : null,

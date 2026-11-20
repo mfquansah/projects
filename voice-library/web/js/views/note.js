@@ -10,6 +10,7 @@ const DATE_FROM = { metadata: "the audio file", filename: "the file name", "file
 export async function note({ main, params, query }) {
   const id = Number(params[0]);
   let d;
+  let confirmingDelete = false;
   try { d = await api(`/api/notes/${id}`); }
   catch (err) { main.append(h("div", { class: "col" }, h("a", { class: "back", href: "#/" }, "← Library"), h("div", { class: "empty" }, err.message))); return; }
 
@@ -134,9 +135,23 @@ export async function note({ main, params, query }) {
         h("dl", { class: "det" }, rows.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))),
       d.related && d.related.length ? h("section", { class: "related" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:6px" }, "Related"),
         d.related.map((r) => h("a", { href: `#/note/${r.id}` }, h("b", {}, r.title), h("span", {}, [r.category, fmtDate(r.recorded_at, { year: true })].filter(Boolean).join(" · "))))) : null,
-      h("button", { type: "button", class: "ghost", onclick: async () => {
-        try { await api(`/api/notes/${id}/flag`, { body: { flag: "archived" } }); await refreshHome(); toast("Archived. You can restore it from Needs attention."); go("#/"); }
-        catch (err) { toast(err.message); } } }, "Archive this recording"));
+      confirmingDelete ? deleteConfirm() : h("div", { style: "display:flex;flex-direction:column;gap:8px" },
+        h("button", { type: "button", class: "ghost", onclick: async () => {
+          try { await api(`/api/notes/${id}/flag`, { body: { flag: "archived" } }); await refreshHome(); toast("Archived. You can restore it from Needs attention."); go("#/"); }
+          catch (err) { toast(err.message); } } }, "Archive this recording"),
+        h("button", { type: "button", class: "ghost danger", onclick: () => { confirmingDelete = true; drawSide(); } }, "Delete permanently…")));
+  }
+
+  function deleteConfirm() {
+    return h("div", { class: "confirm-delete", role: "alertdialog", "aria-label": "Delete this recording?" },
+      h("p", { style: "margin:0 0 6px" }, h("strong", {}, "Delete this recording for good?")),
+      h("p", { class: "muted", style: "margin:0 0 10px;font-size:14px" },
+        "This removes its transcript, title, summary and this app's copy of the audio. Your original in Voice Memos is not touched, and this recording will not be imported again. It can't be undone."),
+      h("div", { style: "display:flex;gap:8px;flex-wrap:wrap" },
+        h("button", { type: "button", class: "ghost danger solid", onclick: async () => {
+          try { await api(`/api/notes/${id}`, { method: "DELETE" }); await refreshHome(); toast("Deleted."); go("#/"); }
+          catch (err) { confirmingDelete = false; drawSide(); toast(err.message); } } }, "Yes, delete it"),
+        h("button", { type: "button", class: "ghost", onclick: () => { confirmingDelete = false; drawSide(); } }, "Cancel")));
   }
 
   async function save(body) {

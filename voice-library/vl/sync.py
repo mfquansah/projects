@@ -14,7 +14,7 @@ import json
 import threading
 from pathlib import Path
 
-from vl.jobs import DONE, DUPLICATE
+from vl.jobs import DONE, DUPLICATE, REMOVED
 from vl.batch import split_by_length
 from vl.voicememos import PERMISSION_HELP, audio_files, find_voice_memos, icloud_placeholders, newest_first
 
@@ -164,7 +164,7 @@ class SyncManager:
             sig = self._inflight.pop(key, None)
             if sig is None:
                 return
-            if f.state in (DONE, DUPLICATE):
+            if f.state in (DONE, DUPLICATE, REMOVED):
                 self.state["seen"][key] = sig
                 self.state["failures"].pop(key, None)
             else:

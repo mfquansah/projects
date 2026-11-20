@@ -85,6 +85,7 @@ Add these to the `serve` command:
 | `--port 8766` | use a different page address, if 8765 is busy |
 | `--whisper-model base` | a smaller, faster transcription model (less accurate); the default is `small` |
 | `--llm-model NAME` | which Claude model writes titles and answers; the default is `claude-haiku-5-5` |
+| `--name Michael` | the name in the greeting ("Good evening, Michael"). Saved after the first time, so you don't repeat it. `--name ""` removes it |
 
 Example, a faster and looser setup:
 ```bash
@@ -178,7 +179,8 @@ Back it up with Time Machine, or copy the folder.
 
 ## 11. What's built and what isn't (so nothing surprises you)
 
-- **Archive** hides a recording and can be undone (Needs attention, then Archived). **There's no delete button** yet; it's on the shelf.
+- **Archive** hides a recording and can be undone (Needs attention, then Archived).
+- **Delete permanently** (recording page, below Archive) erases the app's data and its copy of the audio, **can't be undone**, and the recording is skipped by later imports. Your original in Voice Memos is never touched; delete it there yourself if you want it gone. One recording at a time.
 - **No pause button** for imports yet (use Ctrl+C and restart, section 4).
 - **Sync** (automatic import of new recordings) is built but switched off on the page, and it only runs while the app is open.
 - **Sorting** collection lists is newest first only. In search, ask in words: "my longest note about work".

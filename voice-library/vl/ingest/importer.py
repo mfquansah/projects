@@ -15,7 +15,7 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from vl.db import Note
+from vl.db import DeletedNote, Note
 
 AUDIO_EXTS = {".m4a", ".mp3", ".wav", ".aac", ".caf", ".qta"}
 
@@ -186,6 +186,10 @@ def probe_duration(path: Path) -> float | None:
         return None
 
 
+class DeletedEarlier(Exception):
+    """This recording was deleted from the library by the user, so it is not imported again."""
+
+
 def import_one(session: Session, path: Path, store_dir: Path, original_name: str | None = None,
                fallback_date: dt.datetime | None = None) -> tuple[Note, bool]:
     """Add one file to the library. Returns (note, created); created is False if the same audio is already there.
@@ -200,6 +204,8 @@ def import_one(session: Session, path: Path, store_dir: Path, original_name: str
     existing = session.query(Note).filter_by(sha256=digest).first()
     if existing:
         return existing, False
+    if session.get(DeletedNote, digest) is not None:
+        raise DeletedEarlier(name)
     recorded_at, source = best_date(path, name)
     if fallback_date is not None and source in ("birthtime", "mtime"):
         recorded_at, source = fallback_date, "file-modified"
@@ -226,6 +232,8 @@ def import_folder(session: Session, folder: Path, store_dir: Path, limit: int | 
                 result.added += 1
             else:
                 result.skipped += 1
+        except DeletedEarlier:
+            result.skipped += 1
         except OSError:
             session.rollback()
             result.failed += 1

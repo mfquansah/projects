@@ -145,6 +145,10 @@ mark { background: var(--mark); color: var(--ink); border-radius: 5px; padding: 
 .titlerow { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .ghost { border: 1px solid var(--line-strong); background: transparent; border-radius: var(--r-sm); padding: 6px 12px; font-size: 14px; }
 .ghost:hover { border-color: var(--accent); }
+.ghost.danger { color: #A83220; border-color: #E2C4BD; }
+.ghost.danger:hover { border-color: #A83220; }
+.ghost.danger.solid { background: #A83220; border-color: #A83220; color: #fff; }
+.confirm-delete { border: 1px solid #E2C4BD; background: #FBF1EE; border-radius: var(--r-md); padding: 14px; }
 .primary { border: 0; border-radius: var(--r-sm); background: var(--accent); color: var(--accent-ink); padding: 10px 18px; font-weight: 500; }
 .primary:hover { background: #1F2A33; }
 .primary:disabled { opacity: .5; cursor: default; }

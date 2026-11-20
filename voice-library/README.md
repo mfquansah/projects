@@ -53,7 +53,7 @@ baby sounds), with Claude's one-line verdict and a Match / Partly / Related labe
   It runs while `vl serve` runs; starting at login isn't built yet.
   **Dragging straight out of the Voice Memos app does not work in a browser** (it hands over file promises, not files); the page says so.
 - **Needs attention**: Claude's suggested collections (Accept / Dismiss), recordings that may be accidental (Keep / Archive), tags you can turn
-  into collections, and Archived (Restore). **Archive only hides a recording; nothing is ever deleted.**
+  into collections, and Archived (Restore). **Archive only hides a recording.** *Delete permanently* (on the recording page, with a confirmation) erases the app's data and its copy of the audio and makes imports skip that recording; your original in Voice Memos is never touched.
 
 Claude is part of the app, not an option. Without `ANTHROPIC_API_KEY` the page says so, searches are basic, and importing explains what's missing.
 Audio and transcription never leave your computer; transcript text and your questions go to Claude. The page listens on 127.0.0.1 only, checks the

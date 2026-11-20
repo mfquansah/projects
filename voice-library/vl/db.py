@@ -111,6 +111,15 @@ class NoteEdit(Base):
     fields: Mapped[str] = mapped_column(Text, default="[]")
 
 
+class DeletedNote(Base):
+    """A recording the user deleted for good. Only its fingerprint is kept, so a later import or sync skips it."""
+    __tablename__ = "deleted_notes"
+    sha256: Mapped[str] = mapped_column(String(64), primary_key=True)
+    original_name: Mapped[str] = mapped_column(String(512), default="")
+    deleted_at: Mapped[dt.datetime] = mapped_column(
+        DateTime, default=lambda: dt.datetime.now(dt.timezone.utc).replace(tzinfo=None))
+
+
 FTS_DDL = (
     "CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5("
     "title, summary, body, tags, note_id UNINDEXED)"

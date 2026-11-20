@@ -17,7 +17,7 @@ from pathlib import Path
 
 from vl.db import Category, Enrichment, Status
 from vl.index.search import effective_duration
-from vl.ingest.importer import import_one
+from vl.ingest.importer import DeletedEarlier, import_one
 from vl.pipeline import ProcessResult, process_note
 from vl.sounds.store import analyze_note, record_sounds_error
 
@@ -25,7 +25,8 @@ from vl.sounds.store import analyze_note, record_sounds_error
 QUEUED, IMPORTING, TRANSCRIBING, TITLING, INDEXING, LISTENING = (
     "queued", "importing", "transcribing", "titling", "indexing", "listening")
 DONE, DUPLICATE, ERROR = "done", "duplicate", "error"
-FINISHED = {DONE, DUPLICATE, ERROR}
+REMOVED = "removed"  # the user deleted this recording earlier, so it is skipped
+FINISHED = {DONE, DUPLICATE, ERROR, REMOVED}
 _STAGE_STATE = {"transcribe": TRANSCRIBING, "enrich": TITLING, "index": INDEXING}
 
 
@@ -132,6 +133,7 @@ class ImportManager:
         return {
             "id": job.id, "total": n, "files": files, "meta": job.meta,
             "done": sum(f["state"] in (DONE, DUPLICATE) for f in files),
+            "removed": sum(f["state"] == REMOVED for f in files),
             "errors": sum(f["state"] == ERROR for f in files),
             "working": sum(f["state"] not in FINISHED and f["state"] != QUEUED for f in files),
             "waiting": sum(f["state"] == QUEUED for f in files),
@@ -213,7 +215,11 @@ class ImportManager:
     def _process_steps(self, f: FileJob, deps, lap) -> None:
         self._set(f, state=IMPORTING)
         with self._factory() as s:
-            note, created = import_one(s, f.path, self._store, original_name=f.name, fallback_date=f.modified)
+            try:
+                note, created = import_one(s, f.path, self._store, original_name=f.name, fallback_date=f.modified)
+            except DeletedEarlier:
+                self._set(f, state=REMOVED)
+                return
             self._set(f, note_id=note.id)
             if not created and s.get(Enrichment, note.id) is not None:
                 en = s.get(Enrichment, note.id)

@@ -102,3 +102,10 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **No page control for the limit** (command line only: `serve --max-minutes N`); a settings control is not built. Changing it needs an app restart.
 - [ ] **Verified with fakes and a demo library only**, not yet on the real Voice Memos folder. Sync re-checks lengths with a cache, but the first check of ~500 files reads each file's header (should take seconds; unmeasured).
 - [ ] Uploads by drag-and-drop are not limited.
+
+## M. Delete and the greeting name (2026-11-20)
+- [ ] **Delete is tested with fakes and the demo library only**, not on the real library. Try it on one recording you don't mind losing first.
+- [ ] **No bulk delete** (one recording at a time) and no list of deleted recordings or way to undo one (only a database edit removes the fingerprint record).
+- [ ] **Delete can't recall what was already sent to Claude** (transcripts for imported recordings).
+- [ ] **The deleted-recording check runs when a file is imported**, so the first import after a delete re-reads each file's fingerprint (the same hashing the app already does).
+- [ ] The greeting name is set from the command line once (`serve --name ...`); there is no settings screen for it.

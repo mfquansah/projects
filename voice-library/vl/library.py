@@ -1,15 +1,19 @@
 """Browsing and curation: categories, suggested categories, tags, review queue, note details.
 
-Nothing here deletes a recording. 'Archive' only hides a note; the audio file and its data stay.
+'Archive' only hides a note; the audio file and its data stay. `delete_note` is the one permanent removal: it erases the
+library's own copy and data (never the user's original in Voice Memos) and remembers the fingerprint so it is not re-imported.
 """
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
-from vl.db import Category, Embedding, Enrichment, Note, NoteEdit, NoteFlag, SoundEvent, Transcript
+from vl.db import (
+    Category, DeletedNote, Embedding, Enrichment, Note, NoteEdit, NoteFlag, SoundEvent, Status, Transcript,
+)
 from vl.index.embeddings import cosine_scores, from_blob
 from vl.index.search import Hit, effective_duration, make_hit
 
@@ -153,6 +157,39 @@ def set_flag(s: Session, note_id: int, flag: str) -> None:
 def clear_flag(s: Session, note_id: int) -> None:
     s.query(NoteFlag).filter_by(note_id=note_id).delete()
     s.commit()
+
+
+def delete_note(s: Session, note_id: int, audio_root: Path | None = None, cache_dir: Path | None = None) -> dict:
+    """Permanently remove a recording from the library: its data, the library's copy of the audio and its waveform cache.
+
+    The user's original (e.g. in Voice Memos) is never touched. The recording's fingerprint is remembered so that a later
+    import or sync skips it. The audio copy is only removed if it sits inside `audio_root`.
+    Raises ValueError if there is no such note.
+    """
+    note = s.get(Note, note_id)
+    if note is None:
+        raise ValueError("No such note.")
+    sha, name, path = note.sha256, note.original_name, Path(note.path)
+    for model in (Transcript, Enrichment, Embedding, SoundEvent, Status, NoteFlag, NoteEdit):
+        s.query(model).filter_by(note_id=note_id).delete()
+    s.execute(text("DELETE FROM notes_fts WHERE note_id = :id"), {"id": note_id})
+    s.delete(note)
+    s.merge(DeletedNote(sha256=sha, original_name=name or ""))
+    s.commit()
+    audio_removed = False
+    try:
+        if audio_root is not None and Path(audio_root).resolve() in path.resolve().parents and path.is_file():
+            path.unlink()
+            audio_removed = True
+    except OSError:
+        pass   # the data is gone; a leftover file can be removed by hand
+    if cache_dir is not None:
+        for f in Path(cache_dir).glob(f"{sha[:32]}-*.json"):
+            try:
+                f.unlink()
+            except OSError:
+                pass
+    return {"deleted": True, "audio_removed": audio_removed}
 
 
 def review_queue(s: Session, min_junk: float = 0.5, limit: int = 50) -> list[dict]:
