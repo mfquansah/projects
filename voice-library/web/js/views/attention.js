@@ -30,7 +30,7 @@ export async function attention({ main }) {
         h("div", { class: "actions" },
           h("button", { type: "button", class: "ghost", onclick: act(() => api(`/api/notes/${n.id}/flag`, { body: { flag: "keep" } }), "Kept.") }, "Keep"),
           h("button", { type: "button", class: "ghost", onclick: act(() => api(`/api/notes/${n.id}/flag`, { body: { flag: "archived" } }), "Archived.") }, "Archive"))))) : null,
-      d.tags.length ? section("Turn a tag into a collection", h("div", { class: "chips" }, d.tags.map((t) => h("button", { type: "button", title: "Create a collection from this tag", onclick: () => collectionDialog({ fromTag: t.tag, onDone: load }) }, `${t.tag} · ${t.count}`)))) : null,
+      d.tags.length ? section("Turn a tag into a collection", h("div", { class: "tagchips" }, d.tags.map((t) => h("button", { type: "button", title: "Create a collection from this tag", onclick: () => collectionDialog({ fromTag: t.tag, onDone: load }) }, `${t.tag} · ${t.count}`)))) : null,
       d.archived.length ? section("Archived", d.archived.map((n) => h("div", { class: "card" },
         h("div", { class: "l" }, h("a", { href: `#/note/${n.id}` }, n.title), h("div", { class: "small" }, fmtDate(n.recorded_at, { year: true }))),
         h("button", { type: "button", class: "ghost", onclick: act(() => api(`/api/notes/${n.id}/flag`, { body: { flag: null } }), "Restored.") }, "Restore")))) : null);

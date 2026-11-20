@@ -91,8 +91,8 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
 
   // collection via sidebar
   await page.click('.cols a:has-text("Family memories")');
-  await page.waitForSelector('.row');
-  log('collection rows', await page.$$eval('.row', e => e.length));
+  await page.waitForSelector('.lrow');
+  log('collection rows', await page.$$eval('.lrow', e => e.length));
 
   // attention: accept suggestion, archive from review, restore
   await page.click('.attn');
@@ -221,21 +221,31 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
 
   // All recordings: sort, filters and select mode (nothing is archived or deleted here)
   await page.goto('http://127.0.0.1:8798/#/all');
-  await page.waitForSelector('.row');
-  log('all recordings count', await page.textContent('.col [role=status]'));
-  log('all recordings filters', await page.$$eval('.listbar .fld > span', e => e.map(x => x.textContent).slice(0, 5).join(', ')));
-  const firstTitle = await page.$eval('.row .t', e => e.textContent);
-  await page.selectOption('.listbar select >> nth=0', 'oldest');
-  await page.waitForTimeout(400);
-  log('sort changes the order', (await page.$eval('.row .t', e => e.textContent)) !== firstTitle);
-  await page.selectOption('label.fld:has(span:text-is("Date")) select', 'custom');
+  await page.waitForSelector('.lrow');
+  log('all recordings count', await page.textContent('.subtitle'));
+  log('all recordings filters', await page.$$eval('.chips .chip', e => e.map(x => x.textContent.trim()).join(' | ')));
+  log('year headings', await page.$$eval('.yhead span:first-child', e => e.map(x => x.textContent).join(',')));
+  const firstTitle = await page.$eval('.lrow .lt', e => e.textContent);
+  const pickChip = async (chipText, option) => {
+    await page.click(`.chips .chip:has-text("${chipText}")`);
+    await page.waitForSelector('.menu [role=option]');
+    await page.click(`.menu [role=option]:has-text("${option}")`);
+    await page.waitForTimeout(400);
+  };
+  await pickChip('Sort', 'Oldest first');
+  log('sort changes the order', (await page.$eval('.lrow .lt', e => e.textContent)) !== firstTitle);
+  await page.click('.chips .chip:has-text("Sort")');
+  await page.keyboard.press('Escape');
+  log('menu closes with Esc', (await page.$$('.menu')).length === 0);
+  await pickChip('Any time', 'Custom range');
   await page.fill('input[aria-label="From date"]', '2099-01-01');
   await page.waitForTimeout(500);
   log('a filter with no matches says so', /No recordings match/.test(await page.textContent('.empty')));
+  log('active filter chip is marked', (await page.$$('.chip.active')).length > 0);
   await page.click('.empty >> text=Clear filters');
   await page.waitForTimeout(400);
-  await page.click('button:has-text("Select")');
-  await page.click('.row >> nth=0');
+  await page.click('.selbtn');
+  await page.click('.lrow >> nth=0');
   log('select mode counts', await page.textContent('.bulkcount'));
   await page.click('text=Delete permanently…');
   await page.waitForSelector('[role=alertdialog]');

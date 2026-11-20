@@ -365,3 +365,9 @@
 - Why: user: "just on list, not on search, like in the collections. Also can we get a page that has all recordings... sort recordings, longest shortest... maybe top 50", then "All recordings is fine. let's filter by date as well. are there other things we can filter by?" and chose Length and Tag.
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - All recordings restyled to the Claude Design mockup (chips, year headings, new rows)
+- Decision: the filters are now chip buttons that open small menus with counts (collection, date, length, tag); the active ones turn dark; Sort sits on the right; "Select" is a chip with a check icon. Year headings with "N recordings" when sorted by date. Each row is: round play button, serif title, one-line summary, collection pill, date and length on the right. The subtitle reads like "4 of 118 recordings, oldest first". Collection pages share the same list.
+- Why: user brought a mockup and asked for the page to match it.
+- Notes: menus are keyboard-operable (arrows, Home, End, Esc). The older tag-chip styles on the Needs attention page were renamed (`tagchips`) because they leaked into the new menus.
+- Not changed: search, the recording page, sidebar icons (next: second mockup).
