@@ -208,6 +208,17 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   }
   await sane('sidebar collections');
 
+  // the share card (a pop-up): opens, is labelled, closes with Esc, and Download is its own visible button
+  await page.goto('http://127.0.0.1:8798/#/note/2');
+  await page.waitForSelector('.noteSide');
+  log('download is its own button', await page.isVisible('a:has-text("Download audio")'));
+  await page.click('text=Share by email…');
+  await page.waitForSelector('.share-card');
+  log('share card fields', await page.$$eval('.share-card label', e => e.map(x => x.textContent.trim().split('\n')[0]).slice(0, 2).join(' | ')));
+  await sane('share card');
+  await page.keyboard.press('Escape');
+  log('share card closes with Esc', (await page.$$('.share-card')).length === 0);
+
   // phone width
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto('http://127.0.0.1:8798/#/');

@@ -11,7 +11,7 @@ export async function note({ main, params, query }) {
   const id = Number(params[0]);
   let d;
   let confirmingDelete = false;
-  let sharing = false, shareInfo = null;
+  let shareModal = null;   // the open "Share by email" card, if any
   try { d = await api(`/api/notes/${id}`); }
   catch (err) { main.append(h("div", { class: "col" }, h("a", { class: "back", href: "#/" }, "← Library"), h("div", { class: "empty" }, err.message))); return; }
 
@@ -136,9 +136,8 @@ export async function note({ main, params, query }) {
         h("dl", { class: "det" }, rows.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))),
       d.related && d.related.length ? h("section", { class: "related" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:6px" }, "Related"),
         d.related.map((r) => h("a", { href: `#/note/${r.id}` }, h("b", {}, r.title), h("span", {}, [r.category, fmtDate(r.recorded_at, { year: true })].filter(Boolean).join(" · "))))) : null,
-      sharing ? sharePanel() : null,
       confirmingDelete ? deleteConfirm() : h("div", { style: "display:flex;flex-direction:column;gap:8px" },
-        sharing ? null : h("button", { type: "button", class: "ghost", onclick: openShare }, "Share by email…"),
+        h("button", { type: "button", class: "ghost", onclick: openShare }, "Share by email…"),
         h("a", { class: "ghost", href: `/api/notes/${id}/download`, download: "" }, "Download audio"),
         h("button", { type: "button", class: "ghost", onclick: async () => {
           try { await api(`/api/notes/${id}/flag`, { body: { flag: "archived" } }); await refreshHome(); toast("Archived. You can restore it from Needs attention."); go("#/"); }
@@ -146,44 +145,76 @@ export async function note({ main, params, query }) {
         h("button", { type: "button", class: "ghost danger", onclick: () => { confirmingDelete = true; drawSide(); } }, "Delete permanently…")));
   }
 
-  async function openShare() {
-    sharing = true;
-    shareInfo = null;
-    drawSide();
-    try { shareInfo = await api(`/api/notes/${id}/share`); } catch (err) { toast(err.message); sharing = false; }
-    drawSide();
+  // The share card: a centred pop-up (design from Claude Design). Static markup below; the file name and size are filled in as text.
+  const MAIL_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>';
+  const SHARE_CARD = `
+    <header class="sc-head"><h2 id="sc-title">Share by email</h2>
+      <button type="button" class="sc-x" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <div class="sc-file">
+      <span class="sc-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><rect x="5" y="10" width="3" height="8" rx="1.5" fill="#1E8A5C"/><rect x="10.5" y="6" width="3" height="16" rx="1.5" fill="#EDB231"/><rect x="16" y="7" width="3" height="14" rx="1.5" fill="#D2432B"/><rect x="21.5" y="11.5" width="3" height="5" rx="1.5" fill="#EDB231"/></svg></span>
+      <div class="sc-filetext"><span class="sc-name"></span><span class="sc-meta"></span></div></div>
+    <p class="sysnote sc-warn" hidden></p>
+    <div class="sc-field"><label for="sc-to">Send to</label><input id="sc-to" type="email" placeholder="name@example.com" autocomplete="off"></div>
+    <div class="sc-field"><div class="sc-row"><label for="sc-msg">Message</label><span>Optional</span></div><textarea id="sc-msg" rows="4" placeholder="Add a note to go with the recording"></textarea></div>
+    <fieldset class="sc-checks"><legend>Add to the email</legend>
+      <label class="sc-check"><input type="checkbox" id="sc-sum"><span><b>Summary</b><small>A short recap of what was said</small></span></label>
+      <label class="sc-check"><input type="checkbox" id="sc-tr"><span><b>Transcript</b><small>The full text, with timestamps</small></span></label></fieldset>
+    <div class="sc-actions"><button type="button" class="sc-go">${MAIL_ICON}<span>Open in Mail</span></button>
+      <div class="sc-note"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span class="sc-notetext"></span></div>
+      <p class="sc-status" role="status"></p></div>`;
+
+  function closeShare() {
+    if (!shareModal) return;
+    document.removeEventListener("keydown", shareModal.onKey);
+    shareModal.el.remove();
+    const back = shareModal.opener;
+    shareModal = null;
+    if (back && back.isConnected) back.focus();
   }
 
-  function sharePanel() {
-    const info = shareInfo;
-    const to = h("input", { id: "share-to", type: "email", placeholder: "name@example.com", autocomplete: "off" });
-    const msg = h("textarea", { id: "share-msg", rows: "3", placeholder: "Write a note to go with the recording" });
-    const sum = h("input", { type: "checkbox" }), tr = h("input", { type: "checkbox" });
-    const status = h("p", { class: "muted", style: "margin:0;font-size:14px", role: "status" });
-    const mailBtn = h("button", { type: "button", class: "ghost solid-ink", disabled: info && !info.mail_available ? "true" : null, onclick: async () => {
-      mailBtn.disabled = true; status.textContent = "Opening Mail…";
+  async function openShare(ev) {
+    if (shareModal) return;
+    const opener = ev && ev.currentTarget;   // read now: the event's target is cleared once we await
+    let info;
+    try { info = await api(`/api/notes/${id}/share`); } catch (err) { toast(err.message); return; }
+    const card = h("section", { class: "share-card", role: "dialog", "aria-modal": "true", "aria-labelledby": "sc-title" });
+    card.innerHTML = SHARE_CARD;   // fixed markup above; nothing from the library goes through innerHTML
+    const backdrop = h("div", { class: "modal-backdrop", onclick: (e) => { if (e.target === backdrop) closeShare(); } }, card);
+    const q = (sel) => card.querySelector(sel);
+    q(".sc-name").textContent = info.filename;
+    q(".sc-meta").textContent = `Attached as audio · ${info.size_mb} MB`;
+    q(".sc-notetext").textContent = info.mail_available
+      ? "This opens a draft in Mail with the recording attached. Nothing is sent until you press Send there."
+      : "Mail drafts need a Mac with the Mail app, so this can't open one here. Use Download audio instead.";
+    if (info.too_big) {
+      const warn = q(".sc-warn");
+      warn.hidden = false;
+      warn.textContent = `This is over ${info.limit_mb} MB, which many email services won't accept. Share a shorter recording, or use Download audio and send it another way.`;
+    }
+    const go = q(".sc-go"), status = q(".sc-status");
+    if (!info.mail_available) go.disabled = true;
+    go.addEventListener("click", async () => {
+      go.disabled = true; status.textContent = "Opening Mail…";
       try {
-        await api(`/api/notes/${id}/share/mail`, { body: { to: to.value, message: msg.value, include_summary: sum.checked, include_transcript: tr.checked } });
+        await api(`/api/notes/${id}/share/mail`, { body: { to: q("#sc-to").value, message: q("#sc-msg").value, include_summary: q("#sc-sum").checked, include_transcript: q("#sc-tr").checked } });
         status.textContent = "The draft is open in Mail. Check it there and press Send.";
       } catch (err) { status.textContent = err.message; }
-      mailBtn.disabled = false; } }, "Open in Mail");
-    return h("div", { class: "share-panel", role: "group", "aria-label": "Share this recording" },
-      h("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px" },
-        h("strong", {}, "Share by email"),
-        h("button", { type: "button", class: "x-close", "aria-label": "Close", title: "Close", onclick: () => { sharing = false; drawSide(); } }, "×")),
-      !info ? h("p", { class: "muted", style: "margin:0" }, "Loading…") : [
-        h("p", { class: "muted", style: "margin:0 0 10px;font-size:14px" }, `Attached as "${info.filename}" (${info.size_mb} MB).`),
-        info.too_big ? h("p", { class: "sysnote", style: "margin:0 0 10px" }, `This is over ${info.limit_mb} MB, which many email services won't accept. Share a shorter recording, or use Download and send it another way.`) : null,
-        h("div", { style: "display:flex;flex-direction:column;gap:10px" },
-          h("div", { class: "field" }, h("label", { for: "share-to" }, "Email address"), to),
-          h("div", { class: "field" }, h("label", { for: "share-msg" }, "Message ", h("span", { class: "muted" }, "(optional)")), msg),
-          h("label", { class: "check" }, sum, " Include the summary"),
-          h("label", { class: "check" }, tr, " Include the transcript")),
-        h("p", { class: "muted", style: "margin:12px 0 0;font-size:13px" },
-          info.mail_available ? "This opens a draft in the Mail app with the recording attached. You review it there and press Send; nothing is sent from here."
-                              : "Mail drafts need a Mac with the Mail app, so this can't open one here."),
-        h("div", { style: "margin-top:10px" }, mailBtn),
-        h("div", { style: "margin-top:8px" }, status)]);
+      go.disabled = !info.mail_available ? true : false;
+    });
+    q(".sc-x").addEventListener("click", closeShare);
+    const onKey = (e) => {
+      if (e.key === "Escape") { closeShare(); return; }
+      if (e.key !== "Tab") return;   // keep keyboard focus inside the card
+      const f = [...card.querySelectorAll("button:not([disabled]), input, textarea")];
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    shareModal = { el: backdrop, onKey, opener };
+    document.body.appendChild(backdrop);
+    q("#sc-to").focus();
   }
 
   function deleteConfirm() {
@@ -253,5 +284,5 @@ export async function note({ main, params, query }) {
     const go0 = () => seek(t0, true);
     if (audio.readyState >= 1) go0(); else audio.addEventListener("loadedmetadata", go0, { once: true });
   }
-  return () => { audio.pause(); audio.removeAttribute("src"); audio.load(); bus.removeEventListener("audio", onOtherAudio); };
+  return () => { closeShare(); audio.pause(); audio.removeAttribute("src"); audio.load(); bus.removeEventListener("audio", onOtherAudio); };
 }

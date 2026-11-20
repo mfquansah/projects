@@ -337,3 +337,10 @@
 - Why: user: "the collections list is growing in the side bar. let's keep it at perhaps 5.. starting with the most in the collection, and then a little 'see more collections' to expand the list."
 - Reversible? yes (one constant, `SIDE_COLLECTIONS` in `web/js/app.js`)
 - Source: confirmed
+
+## 2026-11-20 - Share panel redesigned as a pop-up card; Download is its own button
+- Decision: "Share by email..." opens a centred pop-up card (layout from a Claude Design mockup): a file chip showing the name and size, "Send to" (an email address), "Message" marked Optional, summary and transcript tick boxes with one-line descriptions, a full-width "Open in Mail" button and a note that nothing is sent until you press Send in Mail. It closes with the X, Escape or a click outside, keeps keyboard focus inside, and returns focus to the button. "Download audio" is a separate always-visible button below it, not part of the card.
+- Alternatives considered/rejected: the inline panel in the side column (too narrow, "Optional: who it's for" read like a name field, and a Close button).
+- Why: user: "the download button shouldn't be on the share button... the form said 'optional: who it's for', like it's asking for a name... instead of a close button let's have an X ... a note that the mail is sent in the Mail app", then supplied a mockup to follow.
+- Reversible? yes
+- Source: confirmed
