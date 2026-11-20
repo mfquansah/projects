@@ -28,7 +28,7 @@ export async function library({ main }) {
     h("div", { class: "inner" },
       h("div", { class: "eyebrow" }, `A personal archive · ${plural(total, "recording")}`),
       h("h1", {}, greeting(state.settings?.name || "")),
-      h("p", {}, "Voice notes, transcribed and searchable. Audio stays on this computer; only text goes to Claude.")));
+      h("p", {}, "Voice notes, tagged, transcribed, and searchable.")));
 
   const tries = (home?.try || []).map((q) => h("a", { href: `#/search?q=${encodeURIComponent(q)}` }, `${q} ↗`));
   const box = searchBox({
