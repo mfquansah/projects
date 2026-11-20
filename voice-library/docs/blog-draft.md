@@ -10,6 +10,12 @@ So after recording my son singing at 2am, and then a week and 10 or 12 recording
 
 That started me down this path: **how can I make a voice library that's easy to categorize and search, so I can find a recording and share or export it?** I used AI to build it.
 
+## Why photo search works, and how I borrowed it
+
+Good photo search comes down to metadata: information attached to an image that describes what's in it. We used to be expected to add it ourselves, with keywords and descriptions, and almost nobody did. On a phone it's even harder, because the Photos app gives you little more than a caption field. What makes Photos different is that it does that work for you. It uses machine learning to look at each image in the background and build its own database of what it finds, so even if you've never tagged a single picture, the metadata exists. [Add the source for this idea.]
+
+That's how I'm building this. When a recording is imported, the app collects its metadata: a transcript, a title, a summary, a collection, tags, and the sounds it can hear. Then it makes all of that searchable. I never tag anything by hand, and the heavy work happens once, up front, so searching afterwards is fast.
+
 ## Where it is now
 
 The short version: I have a fairly functional app. It imports my recordings from Voice Memos on my Mac, and I can search my whole library in plain language. As it imports each recording, it gives it a title, writes a short summary and sorts it into collections like Ideas, Family memories and Work. It can also listen for sounds, like a baby laughing or crying, even when nobody is speaking. [Add the number of recordings imported so far, and one demo screenshot.]
