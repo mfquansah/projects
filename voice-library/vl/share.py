@@ -72,11 +72,13 @@ def build_subject(title: str | None) -> str:
     return f"Voice memo: {t}" if t else "Voice memo"
 
 
+DEFAULT_LINE = "A voice recording is attached."
+
+
 def build_body(message: str | None, summary: str | None = None, transcript: str | None = None,
                include_summary: bool = False, include_transcript: bool = False) -> str:
-    parts = []
-    if (message or "").strip():
-        parts.append(message.strip())
+    """The email body. If the sender wrote no message, a one-line note says what is attached; their own message replaces it."""
+    parts = [message.strip() if (message or "").strip() else DEFAULT_LINE]
     if include_summary and (summary or "").strip():
         parts.append("About this recording:\n" + summary.strip())
     if include_transcript and (transcript or "").strip():

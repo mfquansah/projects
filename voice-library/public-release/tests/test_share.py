@@ -44,8 +44,15 @@ def test_build_body_only_includes_what_was_asked_for():
     assert share.build_body("Listen to this!", "A sum", "Full text") == "Listen to this!"
     full = share.build_body("Hi", "A sum", "Full text", True, True)
     assert full == "Hi\n\nAbout this recording:\nA sum\n\nTranscript:\nFull text"
-    assert share.build_body(None, "s", "t", True, False) == "About this recording:\ns"
-    assert share.build_body("  ", None, None, True, True) == ""
+    assert share.build_body("Hi", "s", "t", True, False) == "Hi\n\nAbout this recording:\ns"
+
+
+def test_body_says_what_is_attached_when_no_message_was_written():
+    assert share.build_body(None) == "A voice recording is attached."
+    assert share.build_body("   ") == "A voice recording is attached."
+    assert share.build_body(None, "A sum", "Full", True, True) == (
+        "A voice recording is attached.\n\nAbout this recording:\nA sum\n\nTranscript:\nFull")
+    assert "A voice recording is attached." not in share.build_body("My own note")     # their message replaces it
 
 
 def test_prepare_copy_names_the_copy_and_tidies_old_ones(tmp_path):

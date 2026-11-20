@@ -351,3 +351,10 @@
 - Why: user: "can the subject indicate that it's an audio message... the subject could be misleading or create unintended reactions if they don't know it's an audio file I'm sharing."
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - A default line in the email body
+- Decision: if the sender writes no message, the email body starts with "A voice recording is attached." Their own message replaces it when they write one. The summary and transcript, if ticked, follow.
+- Alternatives considered/rejected: always adding the line (it would repeat what a written message already says).
+- Why: offered after the subject change; user: "yes, add the default line".
+- Reversible? yes
+- Source: confirmed
