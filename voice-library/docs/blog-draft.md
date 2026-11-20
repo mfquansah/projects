@@ -101,6 +101,17 @@ To be honest about it, sync doesn't make the work any faster. It hides the wait.
 - **Making sync automatic.** Right now I import from Voice Memos on my Mac and I choose when. The sync is built and tested, and the next step is getting it to run by itself in the background.
 - **The phone.** Nobody really wants this only on a desktop. As far as I can tell, Apple doesn't give apps a simple way to pull Voice Memos off the phone, so I need an approved way to sync that ends up on a mobile app. [Confirm the wording on Apple's limits before publishing.]
 
+## The wish list
+
+Here's where I'd love to take it. Right now this is a personal app that lives on my Mac, and the things I dream about next are all about *sharing*:
+
+- **Share a single recording.** The 2am singing clip is the reason I started. I want to find it and send it to a friend or a grandparent in two taps.
+- **A family library.** Wouldn't it be cool if everyone in my family could load their voice notes into one shared library? The kids' first sounds, a grandparent telling a story, a funny moment from a cousin, all searchable in one place. Then we'd share them with each other.
+- **On my phone.** Nobody really wants this only on a desktop.
+- **Open it up.** I'd like to put the code on GitHub so other people can play with it, fork it and make it better. [Decide this once you've picked a licence.]
+
+None of this is built yet, and a family library is a much bigger step than a personal app, because it means other people's recordings live somewhere shared, so privacy has to be designed in from the start. [Keep or cut that last line.]
+
 ---
 
 ### Notes for you
