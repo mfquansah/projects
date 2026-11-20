@@ -5,6 +5,7 @@ library's own copy and data (never the user's original in Voice Memos) and remem
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -232,6 +233,78 @@ def note_detail(s: Session, note_id: int) -> dict | None:
         "flag": flag.flag if flag else None, "imported_at": note.imported_at.isoformat() if note.imported_at else None,
         "edited": _edited(s, note_id),
     }
+
+
+SORTS = ("newest", "oldest", "longest", "shortest", "title")
+
+
+def _like_escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def browse_notes(s: Session, category_id: int | None = None, uncategorized: bool = False, sort: str = "newest",
+                 since: str | None = None, until: str | None = None, min_s: float | None = None, max_s: float | None = None,
+                 tag: str | None = None, limit: int = 50, offset: int = 0) -> tuple[list[Hit], int]:
+    """A page of notes plus how many match in all, for the All recordings page and collection lists.
+
+    Filters: collection, recorded date range (inclusive, 'YYYY-MM-DD'), length range in seconds (notes whose length isn't
+    known are left out of a length filter), and one tag. Sorting puts notes with an unknown length last. Archived notes
+    are never listed. Raises ValueError for an unknown sort or a bad date.
+    """
+    if sort not in SORTS:
+        raise ValueError(f"Unknown sort {sort!r}.")
+    try:
+        d_from = dt.datetime.combine(dt.date.fromisoformat(since), dt.time.min) if since else None
+        d_to = dt.datetime.combine(dt.date.fromisoformat(until), dt.time.min) + dt.timedelta(days=1) if until else None
+    except ValueError as exc:
+        raise ValueError("Dates must look like 2026-11-20.") from exc
+    archived = _archived(s)
+    q = s.query(Note.id).join(Enrichment, Enrichment.note_id == Note.id)
+    if uncategorized:
+        q = q.filter(Enrichment.category_id.is_(None))
+    elif category_id is not None:
+        q = q.filter(Enrichment.category_id == category_id)
+    if archived:
+        q = q.filter(~Note.id.in_(archived))
+    if d_from is not None:
+        q = q.filter(Note.recorded_at >= d_from)
+    if d_to is not None:
+        q = q.filter(Note.recorded_at < d_to)
+    if min_s is not None:
+        q = q.filter(Note.duration_s >= min_s)
+    if max_s is not None:
+        q = q.filter(Note.duration_s <= max_s)
+    if tag:
+        q = q.filter(Enrichment.tags_json.like(f'%"{_like_escape(tag.strip().lower())}"%', escape="\\"))
+    total = q.count()
+    newest = (Note.recorded_at.is_(None), Note.recorded_at.desc(), Note.id.desc())
+    order = {
+        "newest": newest,
+        "oldest": (Note.recorded_at.is_(None), Note.recorded_at.asc(), Note.id.asc()),
+        "longest": (Note.duration_s.is_(None), Note.duration_s.desc(), *newest),
+        "shortest": (Note.duration_s.is_(None), Note.duration_s.asc(), *newest),
+        "title": (func.lower(Enrichment.title).asc(), Note.id.asc()),
+    }[sort]
+    ids = [r[0] for r in q.order_by(*order).offset(max(offset, 0)).limit(min(max(limit, 1), 100))]
+    return [make_hit(s, i) for i in ids], total
+
+
+def bulk_action(s: Session, action: str, ids: list[int], audio_root: Path | None = None, cache_dir: Path | None = None) -> dict:
+    """Archive or permanently delete several notes. One that can't be processed is reported, and the rest still go through."""
+    if action not in ("archive", "delete"):
+        raise ValueError("Action must be 'archive' or 'delete'.")
+    done, failed = 0, []
+    for nid in dict.fromkeys(ids):
+        try:
+            if action == "archive":
+                set_flag(s, nid, "archived")
+            else:
+                delete_note(s, nid, audio_root, cache_dir)
+            done += 1
+        except ValueError as exc:
+            s.rollback()
+            failed.append({"id": nid, "error": str(exc)})
+    return {"done": done, "failed": failed}
 
 
 def list_notes(s: Session, category_id: int | None = None, uncategorized: bool = False,

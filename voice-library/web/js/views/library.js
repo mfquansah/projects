@@ -2,6 +2,7 @@
 import { h, api, plural, put } from "../util.js";
 import { state, go } from "../core.js";
 import { searchBox, noteRows, emptyLibrary } from "./common.js";
+import { recordingList } from "./list.js";
 
 function greeting(name = "", now = new Date()) {
   const hr = now.getHours();
@@ -61,7 +62,7 @@ export async function library({ main }) {
     if (total === 0) { put(below, emptyLibrary()); return; }
     put(below, cards(), h("section", { "aria-label": "Recent recordings" },
       h("div", { style: "display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:4px" },
-        h("h2", { class: "eyebrow ul" }, "Recent"), h("span", { class: "small" }, plural(total, "recording"))),
+        h("h2", { class: "eyebrow ul" }, "Recent"), h("span", { class: "small" }, plural(total, "recording"), " · ", h("a", { class: "link", href: "#/all" }, "See all"))),
       noteRows(r.hits, "Nothing here yet.")));
   }
   async function instant(q) {
@@ -80,10 +81,5 @@ export async function library({ main }) {
 export async function collection({ main, params }) {
   const id = params[0];
   const cat = (state.home?.categories || []).find((c) => (c.id === null ? "none" : String(c.id)) === id);
-  const r = await api(id === "none" ? "/api/browse?uncategorized=true&limit=100" : `/api/browse?category_id=${encodeURIComponent(id)}&limit=100`);
-  main.append(h("div", { class: "col" },
-    h("a", { class: "back", href: "#/" }, "← Library"),
-    h("h1", { class: "h1", style: "margin-top:8px" }, cat ? cat.name : "Collection"),
-    h("p", { class: "muted", style: "margin:0 0 12px" }, plural(r.hits.length, "recording")),
-    noteRows(r.hits, "Nothing in this collection yet.")));
+  return recordingList({ main, title: cat ? cat.name : "Collection", colId: id, back: { href: "#/", text: "← Library" } });
 }

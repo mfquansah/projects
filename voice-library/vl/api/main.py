@@ -12,7 +12,7 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -89,6 +89,11 @@ class ShareMailBody(BaseModel):
     message: str | None = Field(default=None, max_length=5000)    # optional note to put above everything else
     include_summary: bool = False
     include_transcript: bool = False
+
+
+class BulkBody(BaseModel):
+    action: str                                              # "archive" | "delete"
+    ids: list[int] = Field(min_length=1, max_length=200)
 
 
 class FolderBody(BaseModel):
@@ -176,10 +181,25 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             return {"hits": decorate(s, hits, query_terms(q))}
 
     @app.get("/api/browse")
-    def browse(category_id: int | None = None, uncategorized: bool = False, limit: int = 30, offset: int = 0):
-        """Newest notes first, optionally one category. Local only."""
+    def browse(category_id: int | None = None, uncategorized: bool = False, limit: int = 30, offset: int = 0,
+               sort: str = "newest", since: str | None = None, until: str | None = None,
+               min_length: float | None = Query(default=None, ge=0), max_length: float | None = Query(default=None, ge=0),
+               tag: str | None = None):
+        """A page of notes (newest first by default) with the total that match. Filters: collection, date range, length (seconds), tag."""
         with sess() as s:
-            return {"hits": decorate(s, lib.list_notes(s, category_id, uncategorized, limit, offset), [])}
+            hits, total = guarded(lambda: lib.browse_notes(s, category_id, uncategorized, sort, since, until, min_length, max_length, tag, limit, offset))
+            return {"hits": decorate(s, hits, []), "total": total}
+
+    @app.get("/api/tags")
+    def tags(limit: int = 60):
+        with sess() as s:
+            return {"tags": lib.tag_counts(s, min(max(limit, 1), 200))}
+
+    @app.post("/api/notes/bulk")
+    def bulk(body: BulkBody):
+        """Archive or permanently delete several recordings at once (from a list, never from search)."""
+        with sess() as s:
+            return guarded(lambda: lib.bulk_action(s, body.action, body.ids, audio_root, cache_dir))
 
     @app.post("/api/ask")
     def ask_question(body: AskBody):

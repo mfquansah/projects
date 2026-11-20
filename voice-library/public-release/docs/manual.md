@@ -180,6 +180,7 @@ Back it up with Time Machine, or copy the folder.
 ## 11. What's built and what isn't (so nothing surprises you)
 
 - **Share by email…** (recording page) opens a Mail draft with the audio attached and an optional message; you review it in Mail and press Send, so nothing is sent from the app. The first time, macOS asks whether Terminal may control Mail: say yes (Privacy & Security, Automation). **Download audio** is its own button just below, and saves the file under a readable name (use it for Gmail).
+- **All recordings** (sidebar) lists everything 50 at a time, with sort (newest, oldest, longest, shortest, A to Z) and filters (collection, date, length, tag). **Select** on that page, or on any collection page, lets you tick several recordings and **Archive** or **Delete permanently** them in one go (never from search results).
 - **Archive** hides a recording and can be undone (Needs attention, then Archived).
 - **Delete permanently** (recording page, below Archive) erases the app's data and its copy of the audio, **can't be undone**, and the recording is skipped by later imports. Your original in Voice Memos is never touched; delete it there yourself if you want it gone. One recording at a time.
 - **No pause button** for imports yet (use Ctrl+C and restart, section 4).

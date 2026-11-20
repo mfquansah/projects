@@ -219,6 +219,34 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   await page.keyboard.press('Escape');
   log('share card closes with Esc', (await page.$$('.share-card')).length === 0);
 
+  // All recordings: sort, filters and select mode (nothing is archived or deleted here)
+  await page.goto('http://127.0.0.1:8798/#/all');
+  await page.waitForSelector('.row');
+  log('all recordings count', await page.textContent('.col [role=status]'));
+  log('all recordings filters', await page.$$eval('.listbar .fld > span', e => e.map(x => x.textContent).slice(0, 5).join(', ')));
+  const firstTitle = await page.$eval('.row .t', e => e.textContent);
+  await page.selectOption('.listbar select >> nth=0', 'oldest');
+  await page.waitForTimeout(400);
+  log('sort changes the order', (await page.$eval('.row .t', e => e.textContent)) !== firstTitle);
+  await page.selectOption('label.fld:has(span:text-is("Date")) select', 'custom');
+  await page.fill('input[aria-label="From date"]', '2099-01-01');
+  await page.waitForTimeout(500);
+  log('a filter with no matches says so', /No recordings match/.test(await page.textContent('.empty')));
+  await page.click('.empty >> text=Clear filters');
+  await page.waitForTimeout(400);
+  await page.click('button:has-text("Select")');
+  await page.click('.row >> nth=0');
+  log('select mode counts', await page.textContent('.bulkcount'));
+  await page.click('text=Delete permanently…');
+  await page.waitForSelector('[role=alertdialog]');
+  await page.keyboard.press('Escape');
+  log('delete confirmation can be cancelled', (await page.$$('[role=alertdialog]')).length === 0);
+  await page.click('.bulkbar >> text=Done');
+  await sane('all recordings');
+  await page.goto('http://127.0.0.1:8798/#/search?q=baby');
+  await page.waitForTimeout(1000);
+  log('search has no select mode', (await page.$$('button:has-text("Select")')).length === 0);
+
   // phone width
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto('http://127.0.0.1:8798/#/');

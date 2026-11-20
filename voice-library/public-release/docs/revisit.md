@@ -116,3 +116,10 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] **Copies for drafts stay in `~/VoiceLibrary/shares`** for a day, then are tidied away the next time someone shares.
 - [ ] **Large recordings**: over 20 MB the page warns; many mail services refuse anything above 20 to 25 MB. No compression or clip-trimming yet.
 - [ ] **Sharing sends the full recording** (and a transcript if ticked) to whoever you pick: the recording may contain other people's voices.
+
+## O. All recordings page (2026-11-20)
+- [ ] **Tested on a demo library of six recordings and with unit tests**, not on the real 500. Check that sorting, the filters and "Show 50 more" feel quick on the real library.
+- [ ] **Length sorting and filters use the stored length**; a recording whose length couldn't be read goes last and is left out of length filters.
+- [ ] **Filters and the selection are not remembered** when you leave the page (only the sort is, until the app restarts).
+- [ ] **Bulk delete uses the same permanent delete as a single one** (no undo); archive is the reversible choice. Up to 200 recordings per action.
+- [ ] No sound filter ("has a baby laugh") and no "needs review" filter yet; both are easy to add.

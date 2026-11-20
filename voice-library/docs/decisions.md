@@ -358,3 +358,10 @@
 - Why: offered after the subject change; user: "yes, add the default line".
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - An "All recordings" page with sort, filters and bulk actions; no bulk actions in search
+- Decision: a new "All recordings" page in the sidebar. One shared list is also used by every collection page. Sort: newest, oldest, longest, shortest, A to Z (recordings with an unknown length go last). Filters: collection (not on a collection page), date (last 7 days, last 30 days, this year, custom range), length (under 1 min, 1 to 10, 10 to 45, over 45), and tag. 50 recordings at a time with "Show N more", and a count ("50 of 506"). A "Select" mode adds tick boxes and a bar with Archive and Delete permanently (with a confirmation that says how many), only on these lists, never in search. A "See all" link on the home page's Recent list.
+- Alternatives considered/rejected: a separate "Lists" section (the same idea on every list is simpler); a fixed top 50 (it would hide most of the library); numbered pages; sound and "needs review" filters (the user chose Length and Tag; they can be added without changing the layout).
+- Why: user: "just on list, not on search, like in the collections. Also can we get a page that has all recordings... sort recordings, longest shortest... maybe top 50", then "All recordings is fine. let's filter by date as well. are there other things we can filter by?" and chose Length and Tag.
+- Reversible? yes
+- Source: confirmed

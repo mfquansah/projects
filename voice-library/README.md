@@ -123,6 +123,9 @@ python -m vl.cli profile --voicememos 3          # newest 3 Voice Memos; add --n
 ```
 Runs each recording through transcription, Claude, embedding and sound detection in a throwaway library (yours is not touched) and prints seconds per stage and the slowest stage.
 
+## All recordings
+The **All recordings** page lists everything, 50 at a time, with sort (newest, oldest, longest, shortest, A to Z) and filters (collection, date, length, tag). On it, and on each collection page, **Select** lets you archive or permanently delete several recordings at once.
+
 ## Sharing
 On a recording's page, **Share by email…** opens a draft in the Mac's Mail app with the audio attached (the app never sends anything itself), and **Download audio** saves it under a readable name.
 

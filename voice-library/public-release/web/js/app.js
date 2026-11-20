@@ -2,6 +2,7 @@
 import { $, h, api, bus, shared, put } from "./util.js";
 import { state, refreshHome, refreshSync, ago } from "./core.js";
 import { library, collection } from "./views/library.js";
+import { allRecordings } from "./views/list.js";
 import { search } from "./views/search.js";
 import { note } from "./views/note.js";
 import { importView } from "./views/import.js";
@@ -9,6 +10,7 @@ import { attention } from "./views/attention.js";
 
 const routes = [
   [/^#\/?$/, "library", library],
+  [/^#\/all$/, "all", allRecordings],
   [/^#\/collection\/(\w+)$/, "library", collection],
   [/^#\/search$/, "search", search],
   [/^#\/note\/(\d+)$/, "library", note],
@@ -65,6 +67,7 @@ function renderSide() {
     brandLogo(),
     h("div", { class: "nav" },
       h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, "Library"),
+      h("a", { href: "#/all", ...(current.name === "all" ? { "aria-current": "page" } : {}) }, "All recordings"),
       h("a", { href: "#/search", ...(current.name === "search" ? { "aria-current": "page" } : {}) }, "Search"),
       h("a", { href: "#/import", ...(current.name === "import" ? { "aria-current": "page" } : {}) }, "Import")),
     collectionsNav(home),
