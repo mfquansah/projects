@@ -34,7 +34,7 @@ Here's the order I worked in. Each step had its own surprise.
 
 **1. Figure out how to export the audio.** I assumed I could drag recordings out of Voice Memos and into the app. It doesn't work: dragging out of Voice Memos hands over a "promise" of a file, not a file, so a browser gets nothing. Then I found that macOS blocks apps from reading the Voice Memos folder unless you grant Full Disk Access, and Terminal has to be fully restarted for it to count. The fix was to have the app read the Mac's Voice Memos library directly, with a clear message that explains the permission. That's also when I learned I have **505 recordings, not the 1,000 I'd guessed**.
 
-**2. Categorize the audio.** As each recording comes in, Claude reads the transcript and gives it a title, a short summary, a few tags and a collection. I started with five collections (Ideas, Family memories, Work & projects, Personal reflections and Other). Claude can suggest new ones, but nothing changes until I accept. There's also a review list for recordings that may be accidental, and a rule I set early: **archive, never delete.**
+**2. Categorize the audio.** As each recording comes in, Claude reads the transcript and gives it a title, a short summary, a few tags and a collection. I started with five collections (Ideas, Family memories, Work & projects, Personal reflections and Other). Claude can suggest new ones, but nothing changes until I accept. There's also a review list for recordings that may be accidental, and a rule I set early: **hide first, delete only when I'm sure.** Archiving hides a recording and can be undone. Later I added a permanent delete too, with a confirmation, and the app remembers what I deleted so it doesn't come back on the next import.
 
 **3. Make it searchable.** I wanted to type the way I'd talk: "the recording of my baby laughing" or "my longest note about work". The app combines exact-word search with search by meaning, and Claude works out the question: the topic, the dates, "my longest". Then it labels each result as a clear match, a partial match or only related, and says why. Sounds are searchable too, even when nobody speaks.
 
@@ -75,7 +75,7 @@ The design choice behind this table: **audio stays on my computer, and only text
 
 Some of the testing had to get quite technical, especially for sounds. The sound model doesn't say "that's a baby laughing". It gives a confidence score between 0 and 1, so someone has to choose where to draw the line. Our first line was too strict and may have hidden a faint giggle, so we lowered it and now show weaker matches as "possibly". [Check this against the real result once you've re-run the sound check.]
 
-The app also has 230 automated tests, plus a test that drives the app in a real browser and fails if it finds an error or stray text on screen.
+The app also has more than 250 automated tests, plus a test that drives the app in a real browser and fails if it finds an error or stray text on screen.
 
 One lesson stands out: **when you build with AI tools, engage with how they work.** Ask what each tool is doing and why. Several of my best moments were asking "wait, what are we testing right now?"
 
@@ -130,12 +130,12 @@ To be honest about it, sync doesn't make the work any faster. It hides the wait.
 
 Here's where I'd love to take it. Right now this is a personal app that lives on my Mac, and the things I dream about next are all about *sharing*:
 
-- **Share a single recording.** The 2am singing clip is the reason I started. I want to find it and send it to a friend or a grandparent in two taps.
+- **Share a single recording.** The 2am singing clip is the reason I started. This one now works: one click opens an email draft with the audio attached and a note from me, or I can download the file under a readable name. Next, I'd love a link you can send without an email app. [Say how the Mail draft worked when you tried it.]
 - **A family library.** Wouldn't it be cool if everyone in my family could load their voice notes into one shared library? The kids' first sounds, a grandparent telling a story, a funny moment from a cousin, all searchable in one place. Then we'd share them with each other.
 - **On my phone.** Nobody really wants this only on a desktop.
 - **Open it up.** I'd like to put the code on GitHub so other people can play with it, fork it and make it better. [Decide this once you've picked a licence.]
 
-None of this is built yet, and a family library is a much bigger step than a personal app, because it means other people's recordings live somewhere shared, so privacy has to be designed in from the start. [Keep or cut that last line.]
+The family library and the phone aren't built yet, and a family library is a much bigger step than a personal app, because it means other people's recordings live somewhere shared, so privacy has to be designed in from the start. [Keep or cut that last line.]
 
 ---
 
