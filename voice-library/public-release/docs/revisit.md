@@ -111,7 +111,7 @@ Status: `open` unless noted. Tick items off (and add a decision-log entry) when 
 - [ ] The greeting name is set from the command line once (`serve --name ...`); there is no settings screen for it.
 
 ## N. Sharing (2026-11-20)
-- [ ] **The Mail draft has never run on a real Mac**: it was tested with a stand-in for macOS scripting. Try "Open in Mail" once. The first time, macOS will ask whether Terminal may control Mail (Privacy & Security, Automation); say yes.
+- [x] **The Mail draft works on the user's Mac** (2026-11-20, screenshot): To line, subject, message, summary and the attachment all arrived. The first time, macOS asks whether Terminal may control Mail (Privacy & Security, Automation).
 - [ ] **Needs the Mail app with an account set up.** Gmail in the browser works through Download only.
 - [ ] **Copies for drafts stay in `~/VoiceLibrary/shares`** for a day, then are tidied away the next time someone shares.
 - [ ] **Large recordings**: over 20 MB the page warns; many mail services refuse anything above 20 to 25 MB. No compression or clip-trimming yet.

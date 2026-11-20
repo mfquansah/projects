@@ -344,3 +344,10 @@
 - Why: user: "the download button shouldn't be on the share button... the form said 'optional: who it's for', like it's asking for a name... instead of a close button let's have an X ... a note that the mail is sent in the Mail app", then supplied a mockup to follow.
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - The email subject says it is a voice memo
+- Decision: the Mail draft's subject is "Voice memo: <title>" (just "Voice memo" if there is no title), not the bare title.
+- Alternatives considered/rejected: the bare title (a title like "Investment strategies" could be misread as a message about that topic, and the recipient may not expect an audio file); putting the notice only in the body.
+- Why: user: "can the subject indicate that it's an audio message... the subject could be misleading or create unintended reactions if they don't know it's an audio file I'm sharing."
+- Reversible? yes
+- Source: confirmed

@@ -33,6 +33,13 @@ def test_clean_address():
             share.clean_address(bad)
 
 
+def test_subject_says_it_is_a_voice_memo():
+    assert share.build_subject("Investment strategies: stocks, options") == "Voice memo: Investment strategies: stocks, options"
+    assert share.build_subject("  Baby   singing ") == "Voice memo: Baby singing"
+    assert share.build_subject("") == "Voice memo" and share.build_subject(None) == "Voice memo"
+    assert share.build_subject("Voice memo 12") == "Voice memo 12"            # no doubled prefix
+
+
 def test_build_body_only_includes_what_was_asked_for():
     assert share.build_body("Listen to this!", "A sum", "Full text") == "Listen to this!"
     full = share.build_body("Hi", "A sum", "Full text", True, True)
@@ -155,6 +162,7 @@ def test_share_info_and_mail_draft(app_env, monkeypatch):
     r = c.post(f"/api/notes/{nid}/share/mail", json={"to": "ama@example.com", "message": "Listen!", "include_transcript": True})
     assert r.status_code == 200 and r.json()["ok"] is True
     subject, body, path, to = calls[0]
+    assert subject.startswith("Voice memo: ")
     assert to == "ama@example.com" and body.startswith("Listen!") and "Transcript:" in body and "baby singing" in body
     assert Path(path).name == r.json()["filename"] and Path(path).read_bytes() == b"baby singing a lullaby"
     assert str(tmp / "shares") in path                                    # copies live in the share folder

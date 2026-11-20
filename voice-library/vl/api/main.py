@@ -285,7 +285,7 @@ def create_app(session_factory, embedder=None, parser=None, reranker=None, audio
             if not share.is_mac():
                 raise share.ShareError("Mail drafts only work on a Mac with the Mail app. Use Download instead, then attach the file yourself.")
             copy = share.prepare_copy(path, share_dir or Path(tempfile.gettempdir()) / "kasa-adaka-shares", name)
-            share.compose_in_mail(copy, title or "A voice recording", text_body, to)
+            share.compose_in_mail(copy, share.build_subject(title), text_body, to)
         except share.ShareError as exc:
             raise HTTPException(400, str(exc)) from exc
         return {"ok": True, "filename": name, **share.size_info(path)}

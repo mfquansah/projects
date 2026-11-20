@@ -63,6 +63,15 @@ def clean_address(value: str | None) -> str:
     return v
 
 
+def build_subject(title: str | None) -> str:
+    """The email subject. It says what is attached, so a recipient isn't surprised by an audio file:
+    'Voice memo: <title>', or just 'Voice memo' when the recording has no title."""
+    t = " ".join((title or "").split())
+    if t.lower().startswith("voice memo"):
+        return t
+    return f"Voice memo: {t}" if t else "Voice memo"
+
+
 def build_body(message: str | None, summary: str | None = None, transcript: str | None = None,
                include_summary: bool = False, include_transcript: bool = False) -> str:
     parts = []
