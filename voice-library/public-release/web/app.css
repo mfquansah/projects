@@ -266,7 +266,7 @@ a.ghost { display: inline-block; text-decoration: none; color: inherit; }
 .bars i.on { background: var(--accent); }
 .mark-dot { position: absolute; top: 0; width: 9px; height: 9px; margin-left: -4px; border-radius: 50%; background: var(--sound); border: 0; padding: 0; }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
-.big { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); }
+.big { display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); }
 .skip { border: 0; background: none; padding: 8px; font-size: 14px; color: var(--muted); }
 .time { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .soundsline { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); }
@@ -338,20 +338,26 @@ dialog input { width: 100%; font: inherit; padding: 10px 12px; margin: 10px 0 8p
 .pcard { padding: 22px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); }
 .noteMain { gap: 20px; } .noteSide { gap: 16px; }
 .player { display: flex; flex-direction: column; gap: 14px; }
-.skip { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--r-sm); }
-.skip b { font-size: 12px; font-weight: 500; }
-.skip:hover { background: var(--accent-soft); color: var(--ink); }
+.skip { display: inline-flex; align-items: center; }
 .speedbtn { padding: 6px 12px; }
-.pcard.transcard { background: #E9E6E2; border-color: var(--line-strong); display: flex; flex-direction: column; gap: 12px; }
+.pcard.transcard { display: flex; flex-direction: column; gap: 14px; }
 .transcard .transhead { padding-bottom: 0; }
-.transcard .transhead input { background: var(--surface); }
-.segs { max-height: 520px; overflow-y: auto; position: relative; margin: 0 -8px; padding: 0 8px; }
-.para { display: flex; gap: 16px; padding: 10px 0; }
-.para button.t { flex: 0 0 44px; text-align: left; border: 0; background: none; padding: 2px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; align-self: flex-start; }
-.para p { flex: 1 1 0; min-width: 0; margin: 0; font-size: 16px; line-height: 1.75; }
-.pcard .seg { cursor: pointer; padding: 2px 0; border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-.pcard .seg:hover { background: rgba(255, 255, 255, .55); }
-.pcard .seg.active, .pcard .seg.active:hover { background: #fff; box-shadow: 0 0 0 3px #fff; }
+.ch { margin: 0; font: 600 22px/1.2 var(--serif); }
+.chrow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.segs { max-height: 640px; overflow-y: auto; position: relative; margin: 0 -8px; padding: 0 8px; }
+.seg { display: flex; gap: 16px; padding: 14px 14px; border-radius: 12px; cursor: pointer; line-height: 1.65; }
+.seg:hover { background: #F1F0EE; }
+.seg button.t { flex: 0 0 44px; text-align: left; border: 0; background: none; padding: 2px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seg span { flex: 1 1 0; min-width: 0; }
+.seg.active, .seg.active:hover { background: #DDE3E6; }
+.seg.active button.t { color: var(--accent); font-weight: 600; }
+.controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+.controls .speedbtn { justify-self: end; }
+.transport { display: flex; align-items: center; gap: 14px; }
+.time b { font-weight: 600; color: var(--ink); }
+.skip { width: 44px; height: 44px; justify-content: center; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink); background: var(--surface); }
+.skip:hover { background: var(--accent-soft); }
+.metaline select { border: 0; border-radius: 999px; background: var(--accent-soft); color: var(--ink); padding: 3px 12px; font-size: 13px; font-weight: 500; text-decoration: none; }
 .related.pcard a:first-of-type { border-top: 0; }
 @media (max-width: 720px) { .pcard { padding: 18px 16px; } .segs { max-height: 420px; } }
 .titlerow .ghost { white-space: nowrap; }

@@ -377,7 +377,7 @@
 - Why: user: "keep our palette, only copy the layout and icons", and wanted the transcript on a separate background with the audio's current section highlighted.
 - Notes: the highlight was already tracked by playback time; the new part is the styling and the auto-scroll. Not verified on a long real transcript yet.
 
-## 2026-11-20 - Transcript as flowing text; tags back under the summary
-- Decision: the transcript is now flowing paragraphs (about four segments each, with a clickable time at the start) instead of one boxed row per line. The segment being spoken is highlighted inline in white, any segment can be clicked to jump there, and the dark left edge was removed. Tags moved back under the summary (they had been in the right column), so many tags can't push the action buttons down. A recording can have at most 12 tags.
-- Why: user: the dark edge wasn't in the mockup, and separate rows with white space between lines read badly; tags in the side column could push the buttons down.
-- Caveat: I could not view the recording-page mockup image again, so this follows the user's description; the user should compare it with the mockup.
+## 2026-11-20 - Recording page matched to the actual mockup (transcript rows, tinted highlight)
+- Decision: after seeing the mockup image: the transcript stays one row per passage (time on the left, text on the right) on the same card colour as the rest, with generous spacing. The passage being spoken is a full-width tinted band with a bold time; no dark edge. Card headings (Summary, Transcript) are bold serif; the summary card says "Written automatically" (or "Edited by you"). Player: time on the left, back 10 / play / forward 10 in the middle as round buttons, speed on the right; the played part of the waveform is dark. Header: collection pill and "Title and collection suggested automatically" above the title, date and length below. Tags stay under the summary (max 12 per recording).
+- Why: user shared the mockup; my earlier flowing-paragraph and darker-panel versions were guesses and were wrong.
+- Kept our palette: the highlight is a cool grey-blue (#DDE3E6), not the mockup's teal.

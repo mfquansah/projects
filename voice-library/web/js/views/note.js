@@ -30,17 +30,19 @@ export async function note({ main, params, query }) {
   const barEls = Array.from({ length: N }, () => h("i", { style: "height:22px" }));
   const bars = h("div", { class: "bars", role: "slider", tabindex: "0", "aria-label": "Playback position", "aria-valuemin": "0" }, barEls);
   const wave = h("div", { class: "wave" }, bars);
-  const timeEl = h("span", { class: "time" }, `0:00 / ${fmtDur(dur())}`);
+  const timeEl = h("span", { class: "time" }, h("b", {}, "0:00"), ` / ${fmtDur(dur())}`);
   const playBtn = h("button", { type: "button", class: "big", "aria-label": "Play", onclick: toggle }, icons.play(16));
   const speedBtn = h("button", { type: "button", class: "ghost speedbtn", "aria-label": "Playback speed", onclick: () => {
     speed = (speed + 1) % SPEEDS.length; audio.playbackRate = SPEEDS[speed]; speedBtn.textContent = `${SPEEDS[speed]}× speed`; } }, "1× speed");
   const soundsLine = h("div", { class: "soundsline" });
   const player = h("section", { "aria-label": "Player", class: "pcard player" }, wave,
     h("div", { class: "controls" },
-      h("button", { type: "button", class: "skip", "aria-label": "Back 10 seconds", onclick: () => seek(audio.currentTime - 10) }, icons.back10(22), h("b", {}, "10")),
-      playBtn,
-      h("button", { type: "button", class: "skip", "aria-label": "Forward 10 seconds", onclick: () => seek(audio.currentTime + 10) }, icons.fwd10(22), h("b", {}, "10")),
-      timeEl, h("div", { class: "grow" }), speedBtn),
+      timeEl,
+      h("div", { class: "transport" },
+        h("button", { type: "button", class: "skip", "aria-label": "Back 10 seconds", title: "Back 10 seconds", onclick: () => seek(audio.currentTime - 10) }, icons.back10(20)),
+        playBtn,
+        h("button", { type: "button", class: "skip", "aria-label": "Forward 10 seconds", title: "Forward 10 seconds", onclick: () => seek(audio.currentTime + 10) }, icons.fwd10(20))),
+      speedBtn),
     soundsLine);
 
   function toggle() { if (audio.paused) { emit("audio", "note"); audio.play().catch(() => {}); } else audio.pause(); }
@@ -67,7 +69,7 @@ export async function note({ main, params, query }) {
     const total = dur(), t = audio.currentTime || 0, f = total ? t / total : 0;
     const upto = Math.floor(f * N);
     barEls.forEach((b, i) => b.classList.toggle("on", i < upto));
-    timeEl.textContent = `${fmtDur(t)} / ${fmtDur(total)}`;
+    timeEl.replaceChildren(h("b", {}, fmtDur(t)), ` / ${fmtDur(total)}`);
     bars.setAttribute("aria-valuenow", String(Math.round(t))); bars.setAttribute("aria-valuemax", String(Math.round(total)));
     bars.setAttribute("aria-valuetext", `${fmtDur(t)} of ${fmtDur(total)}`);
     let idx = -1;
@@ -115,36 +117,25 @@ export async function note({ main, params, query }) {
     const find = h("input", { type: "search", placeholder: "Find in transcript", "aria-label": "Find in transcript", value: findText,
       oninput: (e) => { findText = e.target.value; drawTranscript(); find2.focus(); } });
     const find2 = find;
-    put(transBox, h("div", { class: "transhead" }, h("h2", { class: "eyebrow ul" }, "Transcript"), find), segsBox);
+    put(transBox, h("div", { class: "transhead" }, h("h2", { class: "ch" }, "Transcript"), find), segsBox);
     segsBox.replaceChildren();
     segEls = [];
     if (!d.segments.length) {
       segsBox.append(h("p", { class: "summary", style: "font-size:15px" }, d.transcript || "(no speech was transcribed)"));
       return;
     }
-    // Flowing text, not one row per line: segments run together in paragraphs, each with a time you can click.
-    // The segment being spoken is highlighted in place, and every segment is clickable to jump there.
-    const paras = [];
-    d.segments.forEach((s, i) => {
-      const last = paras[paras.length - 1];
-      if (!last || last.n >= 4 || last.chars > 280) paras.push({ start: s.start, items: [], n: 0, chars: 0 });
-      const para = paras[paras.length - 1];
-      para.items.push(i); para.n++; para.chars += s.text.length;
-    });
+    // One row per spoken passage: its time on the left (click to jump), the text on the right.
+    // The passage being spoken gets a tinted band; clicking any row jumps there.
     let shown = 0;
     segEls = new Array(d.segments.length);
-    for (const para of paras) {
-      const p = h("p", {});
-      for (const i of para.items) {
-        const sg = d.segments[i];
-        const parts = [];
-        if (q) { let rest = sg.text, low = rest.toLowerCase(), at; while ((at = low.indexOf(q)) >= 0) { parts.push(rest.slice(0, at), h("mark", {}, rest.slice(at, at + q.length))); shown++; rest = rest.slice(at + q.length); low = rest.toLowerCase(); } parts.push(rest); }
-        const el = h("span", { class: `seg${i === activeIdx ? " active" : ""}`, title: `Play from ${fmtDur(sg.start)}`, onclick: () => seek(sg.start, true) }, q ? parts : sg.text);
-        segEls[i] = el; p.append(el, " ");
-      }
-      segsBox.append(h("div", { class: "para" },
-        h("button", { type: "button", class: "t", "aria-label": `Play from ${fmtDur(para.start)}`, onclick: () => seek(para.start, true) }, fmtDur(para.start)), p));
-    }
+    d.segments.forEach((sg, i) => {
+      const parts = [];
+      if (q) { let rest = sg.text, low = rest.toLowerCase(), at; while ((at = low.indexOf(q)) >= 0) { parts.push(rest.slice(0, at), h("mark", {}, rest.slice(at, at + q.length))); shown++; rest = rest.slice(at + q.length); low = rest.toLowerCase(); } parts.push(rest); }
+      const el = h("div", { class: `seg${i === activeIdx ? " active" : ""}`, onclick: (e) => { if (!e.target.closest("button")) seek(sg.start, true); } },
+        h("button", { type: "button", class: "t", "aria-label": `Play from ${fmtDur(sg.start)}`, onclick: () => seek(sg.start, true) }, fmtDur(sg.start)),
+        h("span", {}, q ? parts : sg.text));
+      segEls[i] = el; segsBox.append(el);
+    });
     if (q && !shown) segsBox.append(h("div", { class: "empty" }, "Nothing in this transcript matches."));
   }
 
@@ -263,7 +254,7 @@ export async function note({ main, params, query }) {
           d = { ...d, ...(await api(`/api/notes/${id}`)) }; await refreshHome(); toast("Moved."); render(); }
         catch (err) { toast(err.message); } } },
       h("option", { value: "" }, "Uncategorized"), cats.map((c) => h("option", { value: c.id, selected: c.id === d.category_id }, c.name)));
-    const editedNote = d.edited.length ? `You've edited this recording's ${d.edited.join(", ")}.` : "Title and collection were suggested automatically.";
+    const editedNote = d.edited.length ? `You've edited this recording's ${d.edited.join(", ")}.` : "Title and collection suggested automatically";
     if (editing) {
       const title = h("input", { class: "edit title", value: d.title, "aria-label": "Title", maxlength: "200" });
       const summary = h("textarea", { class: "edit", "aria-label": "Summary", maxlength: "2000" }, d.summary);
@@ -274,9 +265,9 @@ export async function note({ main, params, query }) {
       queueMicrotask(() => title.focus());
     } else {
       put(header,
+        h("div", { class: "metaline" }, sel, h("span", { class: "small" }, editedNote)),
         h("div", { class: "titlerow" }, h("h1", { class: "ntitle" }, d.title), h("button", { type: "button", class: "ghost", style: "margin-top:8px", onclick: () => { editing = true; render(); } }, "Edit details")),
-        h("div", { class: "metaline" }, sel, h("span", {}, "·"), h("span", {}, fmtDate(d.recorded_at, { year: true })), d.duration_s ? [h("span", {}, "·"), h("span", {}, fmtDur(d.duration_s))] : null),
-        h("div", { class: "small" }, editedNote));
+        h("div", { class: "metaline" }, h("span", {}, fmtDate(d.recorded_at, { year: true })), d.duration_s ? [h("span", {}, "·"), h("span", {}, fmtDur(d.duration_s))] : null));
       drawSummary(null);
     }
   }
@@ -290,7 +281,7 @@ export async function note({ main, params, query }) {
       input.addEventListener("blur", () => { if (!input.value.trim()) render(); });
       add.replaceWith(input); input.focus(); } }, "+ Add tag");
     tags.append(add);
-    put(summaryBox, h("h2", { class: "eyebrow ul" }, "Summary"), editor || h("p", { class: "summary" }, d.summary || "No summary yet."), tags);
+    put(summaryBox, h("div", { class: "chrow" }, h("h2", { class: "ch" }, "Summary"), h("span", { class: "small" }, d.edited.includes("summary") ? "Edited by you" : "Written automatically")), editor || h("p", { class: "summary" }, d.summary || "No summary yet."), tags);
   }
   function render() { drawTop(); drawTranscript(); drawSide(); }
 
