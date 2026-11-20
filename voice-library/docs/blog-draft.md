@@ -14,7 +14,7 @@ That started me down this path: **how can I make a voice library that's easy to 
 
 Good photo search comes down to metadata: information attached to an image that describes what's in it. We used to be expected to add it ourselves, with keywords and descriptions, and almost nobody did. On a phone it's even harder, because the Photos app gives you little more than a caption field. What makes Photos different is that it does that work for you. It uses machine learning to look at each image in the background and build its own database of what it finds, so even if you've never tagged a single picture, the metadata exists. [Add the source for this idea.]
 
-That's how I'm building this. When a recording is imported, the app collects its metadata: a transcript, a title, a summary, a collection, tags, and the sounds it can hear. Then it makes all of that searchable. I never tag anything by hand, and the heavy work happens once, up front, so searching afterwards is fast.
+That's how I'm building this. When a recording is imported, the app builds its metadata. It transcribes the speech, then Claude reads that transcript and writes a title, a summary, a collection and tags, and a sound model listens for things like a baby laughing. Then it makes all of that searchable. I never tag anything by hand, and the heavy work happens once, up front, so searching afterwards is fast.
 
 ## Where it is now
 
