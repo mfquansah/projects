@@ -330,3 +330,10 @@
 - Why: user: "are we able to share audios? if not, let's create a share button that shares by email, and then we can optionally add a message", then chose "Apple Mail app ... but I'd also like a download, so I can do gmail".
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - The sidebar lists only the five biggest collections
+- Decision: the sidebar shows the five collections with the most recordings, then a "See N more collections" control that expands the list ("Show fewer" folds it back). A collection you are viewing stays visible even if it is not in the top five. The home page's four cards are unchanged.
+- Alternatives considered/rejected: listing every collection (it keeps growing as Claude suggests new ones).
+- Why: user: "the collections list is growing in the side bar. let's keep it at perhaps 5.. starting with the most in the collection, and then a little 'see more collections' to expand the list."
+- Reversible? yes (one constant, `SIDE_COLLECTIONS` in `web/js/app.js`)
+- Source: confirmed

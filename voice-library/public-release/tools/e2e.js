@@ -191,6 +191,23 @@ fs.writeFileSync(path.join(tmp, 'taxes.m4a'), 'a quick reminder about taxes and 
   log('sync line gone when off', (await page.$$('.sync')).length === 0);
   await sane('sync');
 
+  // sidebar collections: the five biggest, then "See more"
+  await page.goto('http://127.0.0.1:8798/#/');
+  await page.waitForSelector('.cols');
+  const shown = await page.$$eval('.cols a .name', els => els.map(e => e.textContent));
+  const counts = await page.$$eval('.cols a .c', els => els.map(e => Number(e.textContent)));
+  log('sidebar shows at most 5 collections', shown.length <= 5);
+  log('sidebar collections are largest first', counts.every((c, i) => i === 0 || counts[i - 1] >= c));
+  const more = await page.$('.more-cols');
+  if (more) {
+    await more.click();
+    const all = await page.$$eval('.cols a .name', els => els.length);
+    log('"See more" shows every collection', all > shown.length);
+    await page.click('.more-cols');
+    log('"Show fewer" folds the list back', (await page.$$('.cols a')).length === shown.length);
+  }
+  await sane('sidebar collections');
+
   // phone width
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto('http://127.0.0.1:8798/#/');

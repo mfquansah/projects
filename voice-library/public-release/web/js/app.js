@@ -16,6 +16,8 @@ const routes = [
   [/^#\/attention$/, "attention", attention],
 ];
 let current = { name: "library", cleanup: null, colId: null };
+const SIDE_COLLECTIONS = 5;   // the sidebar lists this many collections (the largest first); the rest sit behind "See more"
+let sideExpanded = false;
 
 function syncLine() {
   const sy = state.sync;
@@ -42,6 +44,21 @@ function brandLogo() {
   return el;
 }
 
+// The sidebar's collections: the biggest few, then "See more". A collection you are looking at is always shown.
+function collectionsNav(home) {
+  const all = (home?.categories || []).filter((c) => c.count > 0 || c.id !== null)
+    .map((c) => ({ ...c, key: c.id === null ? "none" : String(c.id) }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  const rest = all.slice(SIDE_COLLECTIONS);
+  const shown = sideExpanded ? all : [...all.slice(0, SIDE_COLLECTIONS), ...rest.filter((c) => c.key === current.colId)];
+  return h("div", { class: "cols" }, h("p", { class: "eyebrow" }, "Collections"),
+    shown.map((c) => h("a", { href: `#/collection/${c.key}`, ...(current.colId === c.key ? { "aria-current": "page" } : {}) },
+      h("span", { class: "n" }, String(all.indexOf(c) + 1).padStart(2, "0")), h("span", { class: "name" }, c.name), h("span", { class: "c" }, c.count))),
+    rest.length ? h("button", { type: "button", class: "more-cols", "aria-expanded": String(sideExpanded),
+      onclick: () => { sideExpanded = !sideExpanded; renderSide(); } },
+      sideExpanded ? "Show fewer" : `See ${rest.length} more ${rest.length === 1 ? "collection" : "collections"}`) : null);
+}
+
 function renderSide() {
   const home = state.home, side = $("#side");
   put(side,
@@ -50,12 +67,7 @@ function renderSide() {
       h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, "Library"),
       h("a", { href: "#/search", ...(current.name === "search" ? { "aria-current": "page" } : {}) }, "Search"),
       h("a", { href: "#/import", ...(current.name === "import" ? { "aria-current": "page" } : {}) }, "Import")),
-    h("div", { class: "cols" }, h("p", { class: "eyebrow" }, "Collections"),
-      (home?.categories || []).filter((c) => c.count > 0 || c.id !== null).map((c, i) => {
-        const id = c.id === null ? "none" : String(c.id);
-        return h("a", { href: `#/collection/${id}`, ...(current.colId === id ? { "aria-current": "page" } : {}) },
-          h("span", { class: "n" }, String(i + 1).padStart(2, "0")), h("span", { class: "name" }, c.name), h("span", { class: "c" }, c.count));
-      })),
+    collectionsNav(home),
     h("div", { class: "grow" }),
     h("div", { class: "side-foot" },
       h("a", { href: "#/attention", class: `attn${home && home.attention_count ? "" : " none"}` }, h("span", { class: "dot", "aria-hidden": "true" }), h("span", {}, "Needs attention"),

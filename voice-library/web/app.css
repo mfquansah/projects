@@ -40,6 +40,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .grow { flex-grow: 1; }
 .manual-link { font-size: 13px; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; align-self: flex-start; }
 .manual-link:hover { color: var(--ink); border-color: var(--ink); }
+.more-cols { align-self: flex-start; margin: 4px 0 0 2px; padding: 4px 0; background: none; border: 0; border-bottom: 1px solid var(--line-strong); color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
+.more-cols:hover { color: var(--ink); border-color: var(--ink); }
 .side-foot { display: flex; flex-direction: column; gap: 14px; padding: 0 4px; }
 .attn { display: flex; align-items: center; gap: 8px; font-weight: 500; }
 .attn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
