@@ -96,3 +96,5 @@ footer .container{padding-top:24px;padding-bottom:24px;font-size:14px;color:var(
 .nav a::after{bottom:0}
 .cta:hover::after,.link:hover::after,.nav a:hover::after{transform:scaleX(1)}
 @media (prefers-reduced-motion:reduce){.cta::after,.link::after,.nav a::after{transition:none}}
+
+button.pill{background:transparent;color:inherit;font-family:inherit;font-size:16px;font-weight:500;cursor:pointer}
