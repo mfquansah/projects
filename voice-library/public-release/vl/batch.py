@@ -1,0 +1,123 @@
+"""Test-batch support: pick the newest recordings not yet imported, and turn per-file timings into an estimate for the rest."""
+from __future__ import annotations
+
+import statistics
+from pathlib import Path
+
+from sqlalchemy.orm import Session
+
+from vl.db import DeletedNote, Enrichment, Note
+from vl.ingest.importer import probe_duration, sha256_of
+
+
+DEFAULT_MAX_MINUTES = 45  # recordings longer than this (usually meetings) are skipped at import; 0 turns the limit off
+
+
+def split_by_length(files: list[Path], max_minutes: float | None, cache: dict | None = None) -> tuple[list[Path], list[Path]]:
+    """Split into (recordings to import, recordings longer than the limit). Order is kept.
+
+    A file whose length can't be read is kept (we only skip what we know is long). `cache` remembers lengths
+    per (path, size, modified time) so repeated checks, like sync's, don't re-read every file.
+    """
+    if not max_minutes or max_minutes <= 0:
+        return list(files), []
+    limit_s = max_minutes * 60
+    keep: list[Path] = []
+    too_long: list[Path] = []
+    for p in files:
+        try:
+            st = p.stat()
+            key = (str(p), st.st_size, int(st.st_mtime))
+        except OSError:
+            keep.append(p)
+            continue
+        if cache is not None and key in cache:
+            d = cache[key]
+        else:
+            d = probe_duration(p)
+            if cache is not None:
+                cache[key] = d
+        (too_long if d is not None and d > limit_s else keep).append(p)
+    return keep, too_long
+
+
+def pick_new(files: list[Path], n: int, session: Session) -> list[Path]:
+    """The first `n` files (in the order given, so pass newest first) that still need importing.
+
+    A recording that was imported but never finished (e.g. you stopped the app part-way) counts as still needing work,
+    so a restarted batch picks it up again instead of skipping it.
+    """
+    out: list[Path] = []
+    for p in files:
+        if len(out) >= n:
+            break
+        try:
+            digest = sha256_of(p)
+            if session.get(DeletedNote, digest) is not None:
+                continue   # deleted by the user: never offered again
+            note = session.query(Note).filter_by(sha256=digest).first()
+            if note is None or session.get(Enrichment, note.id) is None:
+                out.append(p)
+        except OSError:
+            continue
+    return out
+
+
+def remaining_audio_seconds(rest: list[Path], fallback_mean_s: float | None) -> float | None:
+    """Total audio length of the files not in the batch. Unreadable ones count as the batch's average length."""
+    if not rest:
+        return 0.0
+    known = [d for d in (probe_duration(p) for p in rest) if d]
+    if known:
+        return sum(known) + (fallback_mean_s or statistics.mean(known)) * (len(rest) - len(known))
+    return fallback_mean_s * len(rest) if fallback_mean_s else None
+
+
+def build_report(files: list[dict], remaining_files: int, remaining_audio_s: float | None,
+                 price_in: float | None = None, price_out: float | None = None) -> dict:
+    """Summarise a finished batch. Only notes that were actually processed count (duplicates and failures are listed apart).
+
+    Prices are USD per million tokens; without both, no dollar figures are produced (tokens only).
+    """
+    ok = [f for f in files if f["state"] == "done"]
+    failed = [f for f in files if f["state"] == "error"]
+    secs = [f["seconds"] for f in ok]
+    audio_total = sum((f.get("audio_s") or 0) for f in ok)
+    t_in = sum(f.get("tokens_in", 0) for f in ok)
+    t_out = sum(f.get("tokens_out", 0) for f in ok)
+    calls = sum(f.get("calls", 0) for f in ok)
+    total = sum(secs)
+    rate = total / (audio_total / 60) if audio_total > 0 else None   # seconds of work per minute of audio
+
+    def cost(tin, tout):
+        return None if price_in is None or price_out is None else (tin * price_in + tout * price_out) / 1e6
+
+    stage_totals: dict[str, float] = {}
+    for x in ok:
+        for k, v in (x.get("stages") or {}).items():
+            if k != "end":
+                stage_totals[k] = stage_totals.get(k, 0.0) + v
+    rep = {
+        "stages": {k: round(v, 1) for k, v in stage_totals.items()},
+        "processed": len(ok), "failed": [{"name": f["name"], "error": f["error"]} for f in failed],
+        "duplicates": sum(1 for f in files if f["state"] == "duplicate"),
+        "seconds": {"total": total, "mean": statistics.mean(secs) if secs else None,
+                    "median": statistics.median(secs) if secs else None, "max": max(secs) if secs else None},
+        "audio_minutes": audio_total / 60, "seconds_per_audio_minute": rate,
+        "tokens": {"input": t_in, "output": t_out, "calls": calls},
+        "cost_usd": cost(t_in, t_out),
+        "slowest": [{"name": f["name"], "seconds": f["seconds"], "audio_s": f.get("audio_s")}
+                    for f in sorted(ok, key=lambda x: -x["seconds"])[:3]],
+        "remaining": None,
+    }
+    if ok and remaining_files > 0:
+        if rate and remaining_audio_s:
+            est_s, basis, factor = rate * (remaining_audio_s / 60), "audio length", remaining_audio_s / audio_total
+        else:
+            est_s, basis, factor = statistics.mean(secs) * remaining_files, "per recording", remaining_files / len(ok)
+        rep["remaining"] = {
+            "files": remaining_files, "audio_minutes": (remaining_audio_s / 60) if remaining_audio_s else None,
+            "est_seconds": est_s, "basis": basis, "est_tokens": {"input": int(t_in * factor), "output": int(t_out * factor)},
+            "est_cost_usd": cost(t_in * factor, t_out * factor),
+        }
+    return rep

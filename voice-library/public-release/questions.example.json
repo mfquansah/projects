@@ -1,0 +1,9 @@
+{
+  "questions": [
+    {"q": "the team meeting about the roadmap", "kind": "content", "expect": ["Team meeting.m4a"]},
+    {"q": "that thing I recorded at the lake", "kind": "content", "expect": ["Lake walk.m4a"]},
+    {"q": "something I recorded in September 2026", "kind": "date", "expect": ["Voice note 1.m4a", "Voice note 2.m4a"]},
+    {"q": "my longest voice note", "kind": "property", "expect": ["Team meeting.m4a"]},
+    {"q": "my favourite pizza topping", "kind": "none", "expect": []}
+  ]
+}

@@ -86,4 +86,5 @@ mgr = ImportManager(f, audio, Deps(FakeTranscriber(), FakeEnricher(), emb, None)
 sync = holder["s"] = SyncManager(mgr, root / "state", source_resolver=lambda src: (VM, None), poll_seconds=3)
 app = create_app(f, embedder=emb, parser=Parser(), reranker=Reranker(), audio_root=audio, import_manager=mgr,
                  cache_dir=root/"cache", upload_dir=root/"up", sync_manager=sync)
+print("Demo library running at http://127.0.0.1:8798  (Ctrl+C to stop)")
 uvicorn.run(app, host="127.0.0.1", port=8798, log_level="warning")
