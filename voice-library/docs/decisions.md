@@ -371,3 +371,8 @@
 - Why: user brought a mockup and asked for the page to match it.
 - Notes: menus are keyboard-operable (arrows, Home, End, Esc). The older tag-chip styles on the Needs attention page were renamed (`tagchips`) because they leaked into the new menus.
 - Not changed: search, the recording page, sidebar icons (next: second mockup).
+
+## 2026-11-20 - Recording page and sidebar restyled to the second mockup (our palette kept)
+- Decision: copied the mockup's layout and icons, not its colours or fonts. Recording page is now cards: player (back 10 / play / forward 10, "1× speed"), Summary, and a Transcript on its own darker panel. The line being spoken is highlighted (white card with a dark edge) and the transcript scrolls to keep it in view while playing. Right column: Details, Tags, Related recordings, then the actions. "Edit" became "Edit details". Sidebar: icons for Library, All recordings, Search, Import; each collection gets an icon chosen from its name (lightbulb for ideas, heart for family, briefcase for work, book for reflections, music for songs, dots for other, folder otherwise) replacing the 01-05 numbers; the privacy note is a card with a lock.
+- Why: user: "keep our palette, only copy the layout and icons", and wanted the transcript on a separate background with the audio's current section highlighted.
+- Notes: the highlight was already tracked by playback time; the new part is the styling and the auto-scroll. Not verified on a long real transcript yet.

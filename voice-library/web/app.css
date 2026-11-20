@@ -34,7 +34,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .cols .eyebrow { padding: 0 12px 10px; }
 .cols a { display: flex; align-items: baseline; gap: 12px; padding: 8px 12px; border-radius: var(--r-sm); }
 .cols a[aria-current="page"] { background: var(--nav-active); font-weight: 500; }
-.cols a .n { flex: 0 0 20px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .cols a .name { flex-grow: 1; }
 .cols a .c { font-size: 13px; color: var(--muted); font-weight: 400; }
 .grow { flex-grow: 1; }
@@ -51,7 +50,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .sync.off, .sync.warn { display: inline-block; border-bottom: 1px solid var(--link-line); }
 .sync.warn { color: var(--danger); }
 .sync .link { font-size: 12px; }
-.privacy { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.privacy { margin: 0; display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); font-size: 12px; line-height: 1.55; color: var(--muted); }
+.privacy .ico { margin-top: 1px; }
+.ico { flex: 0 0 auto; display: inline-flex; align-items: center; color: var(--muted); }
+.nav a { display: flex; align-items: center; gap: 12px; }
+.nav a[aria-current="page"] .ico, .cols a[aria-current="page"] .ico { color: var(--ink); }
+.cols a { align-items: center; }
 
 .main { flex: 999 1 560px; min-width: 0; padding: 72px 48px 80px; }
 .main.flush { padding: 0 0 80px; }
@@ -323,7 +327,8 @@ dialog input { width: 100%; font: inherit; padding: 10px 12px; margin: 10px 0 8p
 @media (max-width: 760px) {
   .side { flex-basis: 100%; min-width: 0; max-width: 100%; padding: 16px; gap: 14px; border-right: 0; border-bottom: 1px solid var(--line); }
   .nav { flex-direction: row; } .cols { flex-direction: row; overflow-x: auto; gap: 4px; min-width: 0; } .cols .eyebrow { display: none; }
-  .cols a { white-space: nowrap; gap: 8px; } .cols a .n { display: none; } .side-foot, .grow { display: none; }
+  .cols a { white-space: nowrap; gap: 8px; } .side-foot, .grow { display: none; }
+  .nav { overflow-x: auto; min-width: 0; } .nav a { white-space: nowrap; gap: 8px; padding: 9px 10px; flex: 0 0 auto; }
   .main { padding: 24px 16px 64px; } .main.flush { padding: 0 0 64px; }
   .hero { margin: 12px 12px 0; border-radius: 20px; }
   .hero .inner { padding: 32px 20px 70px; } .hero h1 { font-size: 40px; } .hero-wave { display: none; }
@@ -332,3 +337,25 @@ dialog input { width: 100%; font: inherit; padding: 10px 12px; margin: 10px 0 8p
   .ntitle, .h1 { font-size: 32px; }
   .bars { gap: 1px; } .bars i { min-width: 1px; }
 }
+
+/* recording page: cards, and a transcript on its own tinted panel */
+.pcard { padding: 22px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); }
+.noteMain { gap: 20px; } .noteSide { gap: 16px; }
+.player { display: flex; flex-direction: column; gap: 14px; }
+.skip { display: inline-flex; align-items: center; gap: 4px; border-radius: var(--r-sm); }
+.skip b { font-size: 12px; font-weight: 500; }
+.skip:hover { background: var(--accent-soft); color: var(--ink); }
+.speedbtn { padding: 6px 12px; }
+.pcard.transcard { background: #E9E6E2; border-color: var(--line-strong); display: flex; flex-direction: column; gap: 12px; }
+.transcard .transhead { padding-bottom: 0; }
+.transcard .transhead input { background: var(--surface); }
+.segs { display: flex; flex-direction: column; gap: 2px; max-height: 520px; overflow-y: auto; position: relative; margin: 0 -8px; padding: 0 8px; }
+.transcard .seg { border-left: 3px solid transparent; border-radius: var(--r-sm); line-height: 1.6; }
+.transcard .seg.active { background: var(--surface); border-left-color: var(--accent); box-shadow: 0 1px 3px rgba(38, 46, 53, .10); }
+.transcard .seg.active button.t { color: var(--ink); font-weight: 600; }
+.transcard .seg.active span { color: var(--ink); }
+.related.pcard a:first-of-type { border-top: 0; }
+@media (max-width: 720px) { .pcard { padding: 18px 16px; } .segs { max-height: 420px; } }
+.titlerow .ghost { white-space: nowrap; }
+.pcard .eyebrow.ul { align-self: flex-start; }
+@media (max-width: 760px) { .noteSide { flex: 1 1 100%; } .noteGrid { gap: 20px; } }

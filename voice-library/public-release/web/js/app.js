@@ -1,5 +1,5 @@
 // Starts the app: sidebar, routing between screens, and the "Claude isn't connected" notice.
-import { $, h, api, bus, shared, put } from "./util.js";
+import { $, h, api, bus, shared, put, icons } from "./util.js";
 import { state, refreshHome, refreshSync, ago } from "./core.js";
 import { library, collection } from "./views/library.js";
 import { allRecordings } from "./views/list.js";
@@ -46,6 +46,14 @@ function brandLogo() {
   return el;
 }
 
+// A small picture for a collection, chosen from its name (a plain folder when nothing fits).
+function collIcon(name) {
+  const n = (name || "").toLowerCase();
+  const pick = /idea/.test(n) ? icons.bulb : /family|memor|baby|kid/.test(n) ? icons.heart : /work|project|job/.test(n) ? icons.briefcase
+    : /reflect|personal|journal|diary/.test(n) ? icons.book : /song|lullab|music/.test(n) ? icons.music : /other|misc/.test(n) ? icons.dots : icons.folder;
+  return h("span", { class: "ico" }, pick(18));
+}
+
 // The sidebar's collections: the biggest few, then "See more". A collection you are looking at is always shown.
 function collectionsNav(home) {
   const all = (home?.categories || []).filter((c) => c.count > 0 || c.id !== null)
@@ -55,7 +63,7 @@ function collectionsNav(home) {
   const shown = sideExpanded ? all : [...all.slice(0, SIDE_COLLECTIONS), ...rest.filter((c) => c.key === current.colId)];
   return h("div", { class: "cols" }, h("p", { class: "eyebrow" }, "Collections"),
     shown.map((c) => h("a", { href: `#/collection/${c.key}`, ...(current.colId === c.key ? { "aria-current": "page" } : {}) },
-      h("span", { class: "n" }, String(all.indexOf(c) + 1).padStart(2, "0")), h("span", { class: "name" }, c.name), h("span", { class: "c" }, c.count))),
+      collIcon(c.name), h("span", { class: "name" }, c.name), h("span", { class: "c" }, c.count))),
     rest.length ? h("button", { type: "button", class: "more-cols", "aria-expanded": String(sideExpanded),
       onclick: () => { sideExpanded = !sideExpanded; renderSide(); } },
       sideExpanded ? "Show fewer" : `See ${rest.length} more ${rest.length === 1 ? "collection" : "collections"}`) : null);
@@ -66,10 +74,10 @@ function renderSide() {
   put(side,
     brandLogo(),
     h("div", { class: "nav" },
-      h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, "Library"),
-      h("a", { href: "#/all", ...(current.name === "all" ? { "aria-current": "page" } : {}) }, "All recordings"),
-      h("a", { href: "#/search", ...(current.name === "search" ? { "aria-current": "page" } : {}) }, "Search"),
-      h("a", { href: "#/import", ...(current.name === "import" ? { "aria-current": "page" } : {}) }, "Import")),
+      h("a", { href: "#/", ...(current.name === "library" && current.colId === null ? { "aria-current": "page" } : {}) }, h("span", { class: "ico" }, icons.grid(18)), "Library"),
+      h("a", { href: "#/all", ...(current.name === "all" ? { "aria-current": "page" } : {}) }, h("span", { class: "ico" }, icons.rows(18)), "All recordings"),
+      h("a", { href: "#/search", ...(current.name === "search" ? { "aria-current": "page" } : {}) }, h("span", { class: "ico" }, icons.search(18)), "Search"),
+      h("a", { href: "#/import", ...(current.name === "import" ? { "aria-current": "page" } : {}) }, h("span", { class: "ico" }, icons.upload(18)), "Import")),
     collectionsNav(home),
     h("div", { class: "grow" }),
     h("div", { class: "side-foot" },
@@ -77,7 +85,7 @@ function renderSide() {
         home && home.attention_count ? h("span", { class: "n" }, home.attention_count) : null),
       syncLine(),
       h("a", { class: "manual-link", href: "/manual", target: "_blank", rel: "noopener" }, "Manual: start, stop, settings ↗"),
-      h("p", { class: "privacy" }, "Audio stays on this computer. Transcript text is sent to Claude to write titles and answer questions.")));
+      h("p", { class: "privacy" }, h("span", { class: "ico" }, icons.lock(16)), h("span", {}, "Audio stays on this computer. Transcript text is sent to Claude to write titles and answer questions."))));
 }
 
 async function route() {

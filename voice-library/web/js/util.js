@@ -46,6 +46,18 @@ export const icons = {
   search: (n = 24) => svg(["M11 18a7 7 0 100-14 7 7 0 000 14z", "M20 20l-3.5-3.5"], { size: n }),
   back: (n = 14) => svg("M15 5l-7 7 7 7", { size: n }),
   check: (n = 16) => svg("M5 12.5l4.5 4.5L19 7.5", { size: n, stroke: 2.2 }),
+  grid: (n = 18) => svg(["M4 4h6v6H4z", "M14 4h6v6h-6z", "M4 14h6v6H4z", "M14 14h6v6h-6z"], { size: n, stroke: 1.8 }),
+  rows: (n = 18) => svg(["M8 6h12", "M8 12h12", "M8 18h12", "M4 6h.01", "M4 12h.01", "M4 18h.01"], { size: n, stroke: 1.8 }),
+  bulb: (n = 18) => svg(["M9 18h6", "M10 21h4", "M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"], { size: n, stroke: 1.8 }),
+  heart: (n = 18) => svg("M12 20s-7-4.4-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.6-9 9-9 9z", { size: n, stroke: 1.8 }),
+  briefcase: (n = 18) => svg(["M4 8h16v11H4z", "M9 8V5h6v3", "M4 13h16"], { size: n, stroke: 1.8 }),
+  book: (n = 18) => svg(["M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z", "M5 17a3 3 0 013-3h11"], { size: n, stroke: 1.8 }),
+  music: (n = 18) => svg(["M9 18V6l10-2v12", "M9 18a3 3 0 11-3-3 3 3 0 013 3z", "M19 16a3 3 0 11-3-3 3 3 0 013 3z"], { size: n, stroke: 1.8 }),
+  dots: (n = 18) => svg(["M6 12h.01", "M12 12h.01", "M18 12h.01"], { size: n, stroke: 3 }),
+  folder: (n = 18) => svg("M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z", { size: n, stroke: 1.8 }),
+  lock: (n = 16) => svg(["M6 11h12v9H6z", "M8 11V8a4 4 0 018 0v3"], { size: n, stroke: 1.8 }),
+  back10: (n = 20) => svg(["M3.5 5v5h5", "M4.2 10A8 8 0 114 14"], { size: n, stroke: 1.8 }),
+  fwd10: (n = 20) => svg(["M20.5 5v5h-5", "M19.8 10A8 8 0 1020 14"], { size: n, stroke: 1.8 }),
   upload: (n = 26) => svg(["M12 16V4M7 9l5-5 5 5", "M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"], { size: n, stroke: 1.8 }),
 };
 

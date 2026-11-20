@@ -32,14 +32,14 @@ export async function note({ main, params, query }) {
   const wave = h("div", { class: "wave" }, bars);
   const timeEl = h("span", { class: "time" }, `0:00 / ${fmtDur(dur())}`);
   const playBtn = h("button", { type: "button", class: "big", "aria-label": "Play", onclick: toggle }, icons.play(16));
-  const speedBtn = h("button", { type: "button", class: "ghost", "aria-label": "Playback speed", style: "padding:4px 10px", onclick: () => {
-    speed = (speed + 1) % SPEEDS.length; audio.playbackRate = SPEEDS[speed]; speedBtn.textContent = `${SPEEDS[speed]}×`; } }, "1×");
+  const speedBtn = h("button", { type: "button", class: "ghost speedbtn", "aria-label": "Playback speed", onclick: () => {
+    speed = (speed + 1) % SPEEDS.length; audio.playbackRate = SPEEDS[speed]; speedBtn.textContent = `${SPEEDS[speed]}× speed`; } }, "1× speed");
   const soundsLine = h("div", { class: "soundsline" });
-  const player = h("section", { "aria-label": "Player", style: "display:flex;flex-direction:column;gap:14px" }, wave,
+  const player = h("section", { "aria-label": "Player", class: "pcard player" }, wave,
     h("div", { class: "controls" },
-      h("button", { type: "button", class: "skip", "aria-label": "Back 10 seconds", onclick: () => seek(audio.currentTime - 10) }, "−10s"),
+      h("button", { type: "button", class: "skip", "aria-label": "Back 10 seconds", onclick: () => seek(audio.currentTime - 10) }, icons.back10(22), h("b", {}, "10")),
       playBtn,
-      h("button", { type: "button", class: "skip", "aria-label": "Forward 10 seconds", onclick: () => seek(audio.currentTime + 10) }, "+10s"),
+      h("button", { type: "button", class: "skip", "aria-label": "Forward 10 seconds", onclick: () => seek(audio.currentTime + 10) }, icons.fwd10(22), h("b", {}, "10")),
       timeEl, h("div", { class: "grow" }), speedBtn),
     soundsLine);
 
@@ -72,7 +72,14 @@ export async function note({ main, params, query }) {
     bars.setAttribute("aria-valuetext", `${fmtDur(t)} of ${fmtDur(total)}`);
     let idx = -1;
     d.segments.forEach((s, i) => { if (s.start <= t + 0.05) idx = i; });
-    if (idx !== activeIdx) { activeIdx = idx; segEls.forEach((el, i) => el.classList.toggle("active", i === idx)); }
+    if (idx !== activeIdx) {
+      activeIdx = idx; segEls.forEach((el, i) => el.classList.toggle("active", i === idx));
+      const el = segEls[idx];
+      if (el && el.isConnected && !audio.paused && segsBox.scrollHeight > segsBox.clientHeight) {   // keep the spoken line in view, without moving the page
+        const top = el.offsetTop - segsBox.offsetTop;
+        if (top < segsBox.scrollTop || top + el.offsetHeight > segsBox.scrollTop + segsBox.clientHeight) segsBox.scrollTo({ top: Math.max(0, top - 40), behavior: "smooth" });
+      }
+    }
   }
 
   // waveform shape from the server (a flat row until it arrives, or if the audio can't be read)
@@ -98,19 +105,22 @@ export async function note({ main, params, query }) {
   drawMarkers();
 
   // ---------- summary + tags ----------
-  const summaryBox = h("section", { style: "display:flex;flex-direction:column;gap:12px" });
+  const summaryBox = h("section", { class: "pcard", style: "display:flex;flex-direction:column;gap:12px" });
+  let tagsEl = h("div", { class: "tags" });
   // ---------- transcript ----------
   let segEls = [];
-  const transBox = h("section", { style: "display:flex;flex-direction:column;gap:8px" });
+  const transBox = h("section", { class: "pcard transcard", "aria-label": "Transcript" });
+  const segsBox = h("div", { class: "segs" });
   function drawTranscript() {
     const q = findText.trim().toLowerCase();
     const find = h("input", { type: "search", placeholder: "Find in transcript", "aria-label": "Find in transcript", value: findText,
       oninput: (e) => { findText = e.target.value; drawTranscript(); find2.focus(); } });
     const find2 = find;
-    put(transBox, h("div", { class: "transhead" }, h("h2", { class: "eyebrow ul" }, "Transcript"), find));
+    put(transBox, h("div", { class: "transhead" }, h("h2", { class: "eyebrow ul" }, "Transcript"), find), segsBox);
+    segsBox.replaceChildren();
     segEls = [];
     if (!d.segments.length) {
-      transBox.append(h("p", { class: "summary", style: "font-size:15px" }, d.transcript || "(no speech was transcribed)"));
+      segsBox.append(h("p", { class: "summary", style: "font-size:15px" }, d.transcript || "(no speech was transcribed)"));
       return;
     }
     let shown = 0;
@@ -121,9 +131,9 @@ export async function note({ main, params, query }) {
       const el = h("div", { class: `seg${i === activeIdx ? " active" : ""}` },
         h("button", { type: "button", class: "t", "aria-label": `Play from ${fmtDur(s.start)}`, onclick: () => seek(s.start, true) }, fmtDur(s.start)),
         h("span", {}, q ? parts : s.text));
-      segEls.push(el); transBox.append(el); shown++;
+      segEls.push(el); segsBox.append(el); shown++;
     });
-    if (q && !shown) transBox.append(h("div", { class: "empty" }, "Nothing in this transcript matches."));
+    if (q && !shown) segsBox.append(h("div", { class: "empty" }, "Nothing in this transcript matches."));
   }
 
   // ---------- side rail ----------
@@ -132,9 +142,10 @@ export async function note({ main, params, query }) {
     const rows = [["Recorded", fmtDate(d.recorded_at, { year: true, time: true })], ["Length", fmtDur(d.duration_s)], ["Collection", d.category || "Uncategorized"],
       ["Imported", d.imported_at ? fmtDate(d.imported_at, { year: true }) : "—"], ["Date from", DATE_FROM[d.date_source] || d.date_source], ["File", d.file]];
     put(side,
-      h("section", { style: "display:flex;flex-direction:column;gap:10px" }, h("h2", { class: "eyebrow ul" }, "Details"),
+      h("section", { class: "pcard", style: "display:flex;flex-direction:column;gap:10px" }, h("h2", { class: "eyebrow ul" }, "Details"),
         h("dl", { class: "det" }, rows.map(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))),
-      d.related && d.related.length ? h("section", { class: "related" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:6px" }, "Related"),
+      h("section", { class: "pcard", style: "display:flex;flex-direction:column;gap:10px" }, h("h2", { class: "eyebrow ul" }, "Tags"), tagsEl),
+      d.related && d.related.length ? h("section", { class: "pcard related" }, h("h2", { class: "eyebrow ul", style: "margin-bottom:2px" }, "Related recordings"),
         d.related.map((r) => h("a", { href: `#/note/${r.id}` }, h("b", {}, r.title), h("span", {}, [r.category, fmtDate(r.recorded_at, { year: true })].filter(Boolean).join(" · "))))) : null,
       confirmingDelete ? deleteConfirm() : h("div", { style: "display:flex;flex-direction:column;gap:8px" },
         h("button", { type: "button", class: "ghost", onclick: openShare }, "Share by email…"),
@@ -252,14 +263,14 @@ export async function note({ main, params, query }) {
       queueMicrotask(() => title.focus());
     } else {
       put(header,
-        h("div", { class: "titlerow" }, h("h1", { class: "ntitle" }, d.title), h("button", { type: "button", class: "ghost", style: "margin-top:8px", onclick: () => { editing = true; render(); } }, "Edit")),
+        h("div", { class: "titlerow" }, h("h1", { class: "ntitle" }, d.title), h("button", { type: "button", class: "ghost", style: "margin-top:8px", onclick: () => { editing = true; render(); } }, "Edit details")),
         h("div", { class: "metaline" }, sel, h("span", {}, "·"), h("span", {}, fmtDate(d.recorded_at, { year: true })), d.duration_s ? [h("span", {}, "·"), h("span", {}, fmtDur(d.duration_s))] : null),
         h("div", { class: "small" }, editedNote));
       drawSummary(null);
     }
   }
   function drawSummary(editor) {
-    const tags = h("div", { class: "tags" }, d.tags.map((t) => h("span", { class: "tag" }, t,
+    const tags = tagsEl = h("div", { class: "tags" }, d.tags.map((t) => h("span", { class: "tag" }, t,
       editing ? h("button", { type: "button", "aria-label": `Remove ${t}`, onclick: async () => { if (await save({ tags: d.tags.filter((x) => x !== t) })) render(); } }, "×") : null)));
     const add = h("button", { type: "button", class: "tagadd", onclick: () => {
       const input = h("input", { class: "tagin", "aria-label": "New tag", maxlength: "40", placeholder: "tag" });
@@ -268,7 +279,7 @@ export async function note({ main, params, query }) {
       input.addEventListener("blur", () => { if (!input.value.trim()) render(); });
       add.replaceWith(input); input.focus(); } }, "+ Add tag");
     tags.append(add);
-    put(summaryBox, h("h2", { class: "eyebrow ul" }, "Summary"), editor || h("p", { class: "summary" }, d.summary || "No summary yet."), tags);
+    put(summaryBox, h("h2", { class: "eyebrow ul" }, "Summary"), editor || h("p", { class: "summary" }, d.summary || "No summary yet."));
   }
   function render() { drawTop(); drawTranscript(); drawSide(); }
 
