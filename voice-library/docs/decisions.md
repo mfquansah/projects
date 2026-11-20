@@ -295,3 +295,10 @@
 - Why: user: "let's shelf blog notes and morning to do for now. Let's work on the speed", then "yes, build the timing tool". Minutes instead of hours to learn where the time goes.
 - Reversible? yes
 - Source: confirmed
+
+## 2026-11-20 - Shelve permanent delete and the exclusion list
+- Decision: do not build a permanent delete button or an exclusion list now; the user will decide at the end. Archive (hide, restorable) stays the only removal.
+- Alternatives considered/rejected: building delete with a "won't come back" fingerprint now.
+- Why: user: "let's shelf that as well. that's stuff I'll decide on in the end."
+- Reversible? yes
+- Source: confirmed
