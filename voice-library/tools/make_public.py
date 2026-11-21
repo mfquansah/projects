@@ -20,7 +20,7 @@ OUT = ROOT / "public-release"
 
 # Left out of the public copy entirely.
 EXCLUDE = (
-    "docs/blog-notes.md", "docs/blog-draft.md", "docs/progress/", "docs/.build-trail-state",
+    "docs/blog-notes.md", "docs/blog-draft.md", "docs/blog-post.md", "docs/progress/", "docs/.build-trail-state",
     "docs/public-release-review.md", "tools/render_trail.py", "tools/trail_template.html", "tools/make_public.py",
     "public-release/",
 )
