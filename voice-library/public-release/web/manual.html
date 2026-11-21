@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kasa Adaka: pocket manual</title>
+<style>
+@font-face { font-family: 'Sora'; font-weight: 300; font-display: swap; src: url('/static/fonts/sora-latin-300-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Sora'; font-weight: 700; font-display: swap; src: url('/static/fonts/sora-latin-700-normal.woff2') format('woff2'); }
+:root { color-scheme: light; --bg: #F2F0EF; --paper: #FBFAF9; --ink: #1F2429; --muted: #5E6670; --line: #DAD6D2; --slate: #26323C; --soft: #ECEAE7; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif; padding: 24px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); }
+.sheet { max-width: 1000px; margin: 0 auto; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 28px 32px 22px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; border-bottom: 2px solid var(--slate); padding-bottom: 10px; margin-bottom: 14px; }
+h1 { font: 700 26px/1 Sora, system-ui, sans-serif; margin: 0; color: var(--slate); }
+h1 span { font-weight: 300; }
+header p { margin: 0; color: var(--muted); font-size: 13px; }
+.actions { display: flex; gap: 8px; }
+button { font: inherit; font-size: 13px; padding: 6px 14px; border: 1px solid var(--slate); border-radius: 999px; background: var(--slate); color: #fff; cursor: pointer; }
+button.ghost { background: transparent; color: var(--slate); }
+:focus-visible { outline: 2px solid var(--slate); outline-offset: 2px; }
+.cols { column-count: 2; column-gap: 28px; }
+section { break-inside: avoid; margin: 0 0 12px; }
+h2 { font: 700 12px/1.2 Sora, system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--slate); margin: 0 0 5px; padding-top: 2px; }
+h2 i { font-style: normal; color: var(--muted); margin-right: 6px; }
+p, ul { margin: 0 0 5px; }
+ul { padding-left: 17px; }
+li { margin: 0 0 2px; }
+.code { position: relative; margin: 3px 0 6px; }
+pre { margin: 0; background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 6px 54px 6px 9px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.copy { position: absolute; top: 4px; right: 4px; padding: 1px 8px; font-size: 11px; }
+code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 0 4px; border-radius: 4px; overflow-wrap: anywhere; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; margin: 2px 0 6px; }
+th, td { text-align: left; vertical-align: top; padding: 3px 6px; border-top: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+.warn { border-left: 3px solid #D2432B; background: #FBEFEC; padding: 5px 9px; border-radius: 0 8px 8px 0; font-size: 12.5px; margin: 4px 0 8px; }
+footer { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; }
+@media (max-width: 760px) { .cols { column-count: 1; } .sheet { padding: 18px 16px; } }
+/* One page when printed: smaller type, no screen chrome */
+@page { margin: 8mm; }
+@media print {
+  body { background: #fff; padding: 0; font-size: 9.3pt; line-height: 1.3; }
+  .sheet { border: 0; border-radius: 0; padding: 0; max-width: none; }
+  .actions, .copy { display: none !important; }
+  h1 { font-size: 17pt; } header { padding-bottom: 4px; margin-bottom: 6px; }
+  .cols { column-count: 2; column-gap: 7mm; }
+  pre, code { font-size: 8.3pt; } pre { padding: 2px 6px; margin-bottom: 3px; }
+  table { font-size: 8.6pt; margin-bottom: 4px; } th, td { padding: 1px 4px; }
+  section { margin-bottom: 5px; } h2 { font-size: 8.2pt; margin-bottom: 3px; }
+  .warn { font-size: 8.3pt; padding: 2px 6px; margin: 3px 0 5px; }
+  footer { font-size: 8pt; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header>
+    <h1>kasa <span>adaka</span> &nbsp;·&nbsp; pocket manual</h1>
+    <div class="actions"><button type="button" onclick="window.print()">Print this page</button><button type="button" class="ghost" onclick="window.close()">Close</button></div>
+    <p>Run these in Terminal on your Mac. Grey boxes can be pasted as they are.</p>
+  </header>
+
+  <div class="cols">
+    <section>
+      <h2><i>1</i>Start the app (each new Terminal window)</h2>
+      <p>Go to the project:</p>
+      <div class="code"><pre>cd ~/Desktop/projects/voice-library &amp;&amp; source .venv/bin/activate</pre></div>
+      <p>Set your Claude key (paste it when the cursor waits, press Enter, nothing shows):</p>
+      <div class="code"><pre>read -s ANTHROPIC_API_KEY &amp;&amp; export ANTHROPIC_API_KEY</pre></div>
+      <p>Start and open it:</p>
+      <div class="code"><pre>python -m vl.cli serve --open</pre></div>
+      <p>Keep that window open while you use the app. The page is at <code>127.0.0.1:8765</code>.</p>
+      <div class="warn">Never paste your API key into chat, a document or a screenshot. If it leaks, delete it in the Anthropic Console and make a new one.</div>
+    </section>
+
+    <section>
+      <h2><i>2</i>Stop, and update</h2>
+      <ul>
+        <li><b>Stop:</b> press <code>Ctrl+C</code> in the app's window. Search stops too; finished recordings are saved.</li>
+        <li><b>Update:</b> stop the app, then:</li>
+      </ul>
+      <div class="code"><pre>git pull</pre></div>
+      <p>Start again, then press <code>Cmd+Shift+R</code> in the browser. If a module is missing after a pull:</p>
+      <div class="code"><pre>pip install -r requirements.txt</pre></div>
+    </section>
+
+    <section>
+      <h2><i>3</i>Importing</h2>
+      <p>Import page, then <b>Import from Voice Memos</b>: <i>test batch (25 newest)</i>, <i>next 100</i>, or <i>all</i>. Newest first.</p>
+      <p><b>No pause button yet.</b> To stop safely press <code>Ctrl+C</code>, restart, click the same button. Finished ones are skipped; the unfinished one restarts its step.</p>
+      <p><b>Length limit:</b> recordings over <b>45 minutes</b> (usually meetings) are skipped before anything is copied or sent to Claude. Change it when starting:</p>
+      <table>
+        <tr><th>You want</th><th>Add to the start command</th></tr>
+        <tr><td>Over 45 min (default)</td><td>nothing</td></tr>
+        <tr><td>Over 60 min</td><td><code>--max-minutes 60</code></td></tr>
+        <tr><td>No limit</td><td><code>--max-minutes 0</code></td></tr>
+      </table>
+      <p>Applies to Voice Memos, folders and sync; not to files dragged onto the page.</p>
+    </section>
+
+    <section>
+      <h2><i>4</i>Other start-up settings</h2>
+      <table>
+        <tr><td><code>--port 8766</code></td><td>another page address if 8765 is busy</td></tr>
+        <tr><td><code>--whisper-model base</code></td><td>faster, less accurate transcription (default <code>small</code>)</td></tr>
+        <tr><td><code>--llm-model NAME</code></td><td>which Claude writes titles and answers</td></tr>
+        <tr><td><code>--name Ama</code></td><td>your name in the greeting; saved after the first time</td></tr>
+      </table>
+      <p>Before starting, in the same window: <code>export VL_HOME=/path</code> keeps the library on another drive.</p>
+    </section>
+
+    <section>
+      <h2><i>5</i>Sounds (baby laughing, crying)</h2>
+      <div class="code"><pre>python -m vl.cli sounds --limit 3
+python -m vl.cli sounds
+python -m vl.cli sounds --redo</pre></div>
+      <p>Try 3 first (it can be slow), then the rest, or <code>--redo</code> to re-check all. 0.30+ is "heard", 0.15 to 0.30 is "possibly".</p>
+    </section>
+
+    <section>
+      <h2><i>6</i>How long does each step take?</h2>
+      <div class="code"><pre>python -m vl.cli profile --voicememos 3</pre></div>
+      <p>Times a few recordings in a throwaway library (yours isn't touched). Add <code>--no-claude</code> or <code>--no-sounds</code> to skip a step.</p>
+    </section>
+
+    <section>
+      <h2><i>7</i>Search and look from the terminal</h2>
+      <div class="code"><pre>python -m vl.cli ask "my baby laughing"
+python -m vl.cli status
+du -sh ~/VoiceLibrary</pre></div>
+      <p><code>status</code> lists counts and any recording that failed, and why.</p>
+    </section>
+
+    <section>
+      <h2><i>8</i>Where your things live</h2>
+      <ul>
+        <li><code>~/VoiceLibrary/library.db</code>: transcripts, titles, summaries, collections, sounds, indexes</li>
+        <li><code>~/VoiceLibrary/audio/</code>: copies of imported recordings. Originals in Voice Memos are never changed.</li>
+        <li>Back up with Time Machine, or copy the folder.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><i>9</i>If something goes wrong</h2>
+      <table>
+        <tr><td><code>command not found</code>, <code>No module named vl</code></td><td>Run step 1 again (the <code>source</code> part)</td></tr>
+        <tr><td><code>ModuleNotFoundError</code></td><td><code>pip install -r requirements.txt</code></td></tr>
+        <tr><td>Claude isn't connected</td><td>Set the key (step 1) in the same window, restart</td></tr>
+        <tr><td>macOS blocks Voice Memos</td><td>Settings, Privacy &amp; Security, Full Disk Access, add Terminal, <b>quit (Cmd+Q)</b> and reopen it</td></tr>
+        <tr><td>Page looks old</td><td><code>Cmd+Shift+R</code></td></tr>
+        <tr><td><code>Address already in use</code></td><td>The app is running in another window, or add <code>--port 8766</code></td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2><i>10</i>Not built yet</h2>
+      <ul>
+        <li><b>Share by email…</b> opens a Mail draft with the audio attached; you press Send in Mail. First time: allow Terminal to control Mail (Automation). <b>Download audio</b> is a separate button (use it for Gmail).</li>
+        <li><b>Archive</b> hides a recording and can be undone (Needs attention, then Archived). <b>Delete permanently</b> (below it, on the recording page) can't be undone and the recording is skipped by later imports. Your original in Voice Memos is never touched.</li>
+        <li>No pause button for imports (see 3).</li>
+        <li>Sync is built but off, and only runs while the app is open.</li>
+        <li>Collection lists sort newest first only. In search, ask in words: "my longest note about work".</li>
+        <li>Audio never leaves your Mac. Only transcript text and your questions go to Claude.</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer><span>Kasa Adaka · pocket manual · updated 2026-11-20</span><span>Longer version: <code>docs/manual.md</code></span></footer>
+</main>
+<script>
+document.querySelectorAll(".code").forEach(function (box) {
+  var b = document.createElement("button");
+  b.type = "button"; b.className = "copy ghost"; b.textContent = "Copy";
+  b.addEventListener("click", function () {
+    var text = box.querySelector("pre").textContent;
+    var done = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1500); };
+    try { navigator.clipboard.writeText(text).then(done, function () { b.textContent = "Select and copy"; }); }
+    catch (e) { b.textContent = "Select and copy"; }
+  });
+  box.appendChild(b);
+});
+</script>
+</body>
+</html>

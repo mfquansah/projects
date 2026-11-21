@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.db
+# Never commit recordings or the library
+audio/
+VoiceLibrary/
+.demo/
+node_modules/
