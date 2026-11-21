@@ -85,7 +85,7 @@ Add these to the `serve` command:
 | `--port 8766` | use a different page address, if 8765 is busy |
 | `--whisper-model base` | a smaller, faster transcription model (less accurate); the default is `small` |
 | `--llm-model NAME` | which Claude model writes titles and answers; the default is `claude-haiku-5-5` |
-| `--name Ama` | the name in the greeting ("Good evening, Ama"). Saved after the first time, so you don't repeat it. `--name ""` removes it |
+| `--name Ama` | the name in the greeting ("Maadwo, Michael": Maakye in the morning, Maaha in the afternoon, Maadwo in the evening). Saved after the first time, so you don't repeat it. `--name ""` removes it |
 
 Example, a faster and looser setup:
 ```bash

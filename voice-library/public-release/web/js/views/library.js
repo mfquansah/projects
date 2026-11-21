@@ -4,10 +4,12 @@ import { state, go } from "../core.js";
 import { searchBox, noteRows, emptyLibrary } from "./common.js";
 import { recordingList } from "./list.js";
 
+// The greeting is in Twi and follows the time of day. Edit these three words to change it.
+const TWI = { morning: "Maakye", afternoon: "Maaha", evening: "Maadwo" };
+
 function greeting(name = "", now = new Date()) {
   const hr = now.getHours();
-  if (hr < 5) return name ? `Still up, ${name}?` : "Still up?";
-  const hello = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+  const hello = hr >= 5 && hr < 12 ? TWI.morning : hr >= 12 && hr < 17 ? TWI.afternoon : TWI.evening;   // late night counts as evening
   return name ? `${hello}, ${name}` : hello;
 }
 

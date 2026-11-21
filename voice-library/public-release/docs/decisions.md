@@ -385,3 +385,8 @@
 ## 2026-11-20 - "Other" is always the last collection in the sidebar
 - Decision: the sidebar lists collections biggest first, with "Other" always last. When the list is collapsed, "Other" stays visible at the end and the biggest others fill the rest of the five slots; "See more" reveals the remainder, still ahead of "Other".
 - Why: user asked for "Other" as the last collection item.
+
+## 2026-11-21 - The greeting is in Twi, by time of day
+- Decision: the welcome line is now Maakye (morning, 5am to noon), Maaha (afternoon, noon to 5pm) or Maadwo (evening and late night), followed by the name if one is set. The English greetings and the "Still up?" line are gone. The three words sit in one small list at the top of `web/js/views/library.js`.
+- Why: user: "take out the English and make it Twi to match the time of the day"; no Twi prompts elsewhere.
+- Revisit: the Twi was written by me, not checked by a speaker; the user asked to compare and may correct spelling. Maadwo is also used for "good night", so it covers late night.
