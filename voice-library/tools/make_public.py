@@ -37,7 +37,7 @@ REWRITES: list[tuple[str, str, str]] = [
     ("docs/revisit.md", "only \"Weija Gbawe\" was checked by hand. The note `5:16:25, 2:50 PM.m4a` is dated 2020-01-14, which doesn't fit its name.",
      "only one recording was checked by hand. One note is dated 2020, which doesn't fit its name."),
     ("docs/revisit.md", "`Red Fox Rd 10/11/12` (baby babbling, failed laugh, laugh)", "a few test recordings (baby babbling, a failed laugh, a laugh)"),
-    ("docs/manual.md", "`--name Michael`", "`--name Ama`"), ("docs/manual.md", "\"Good evening, Michael\"", "\"Good evening, Ama\""),
+    ("docs/manual.md", "`--name Michael`", "`--name Ama`"), ("docs/manual.md", "\"Maadwo, Michael\"", "\"Maadwo, Ama\""),
     ("web/manual.html", "--name Michael", "--name Ama"),
     ("vl/cli.py", "e.g. --name Michael", "e.g. --name Ama"),
     ("tests/test_profile.py", "Michael", "Ama"),
